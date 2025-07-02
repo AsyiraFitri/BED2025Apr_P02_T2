@@ -1,0 +1,142 @@
+body {
+    font-family: 'Inter', sans-serif;
+    color: black;
+    line-height: 1.6;
+}
+
+.container {
+    padding: 15px;
+}
+
+/* Navigation */
+.logo-container {
+  height: 90px; /* smaller height suitable for navbar */
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+}
+
+.logo-image {
+  height: 100%;
+  width: auto;
+  object-fit: contain;
+  display: block;
+  transition: transform 0.3s ease;
+}
+
+.logo-container:hover .logo-image {
+  transform: scale(1.05);
+}
+
+.nav-link {
+    margin: 0 15px;
+    font-size: 1.1rem;
+    color: black;
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+.nav-link:hover {
+    color: #e74c3c;
+}
+
+/* Hero Section */
+.hero-section {
+    padding: 4rem 0;
+}
+
+.hero-image {
+    width: 100%;
+    max-width: 600px;
+    height: auto;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #e74c3c;
+}
+
+.hero-image-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
+/* Features Section */
+.section-title {
+    font-size: 2.5rem;
+    font-weight: bold;
+    color: black;
+    margin-bottom: 2rem;
+    text-align: center;
+}
+
+.feature-card {
+    background: white;
+    border-radius: 15px;
+    padding: 2rem;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    height: 100%;
+    transition: transform 0.3s ease;
+}
+
+.feature-card:hover {
+    transform: translateY(-5px);
+}
+
+.feature-icon {
+    width: 60px;
+    height: 60px;
+    background: #e74c3c;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+.section-bg {
+    padding: 4rem 0;
+}
+
+.welcome-text {
+    font-size: 3rem;
+    font-weight: bold;
+    color: black;
+    margin-bottom: 1rem;
+}
+
+.subtitle {
+    color: #666;
+    font-size: 1.1rem;
+    margin-bottom: 2rem;
+}
+
+.feature-title {
+    font-size: 1.25rem;
+    font-weight: bold;
+    margin-bottom: 1rem;
+    color: black;
+}
+
+.btn-primary-custom {
+    background-color: #e74c3c;
+    border-color: #e74c3c;
+    padding: 0.75rem 2rem;
+    font-weight: 500;
+    border-radius: 25px;
+}
+
+.btn-primary-custom:hover {
+    background-color: #c0392b;
+    border-color: #c0392b;
+}
+
+.footer {
+    background: black;
+    color: white;
+    padding: 2rem 0;
+    text-align: center;
+}
+
+
