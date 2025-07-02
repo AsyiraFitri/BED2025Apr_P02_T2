@@ -5,8 +5,10 @@ body {
 }
 
 .container {
-    padding: 15px;
+    padding: 20px;
 }
+
+/*-------------Home Page Styles-------------*/
 
 /* Navigation */
 .logo-container {
@@ -140,3 +142,199 @@ body {
 }
 
 
+/*-----------Health Dashboard Styles-----------*/
+/* Main Content */
+.main-content {
+    padding: 3rem 0;
+}
+
+.page-title {
+    font-size: 3rem;
+    font-weight: bold;
+    margin-bottom: 2rem;
+}
+
+.calendar-view {
+    text-decoration: none;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    margin-bottom: 2rem;
+    color: black;
+}
+
+.calendar-view:hover {
+    color: #e74c3c;
+}
+
+.calendar-view i {
+    margin-left: 0.5rem;
+}
+
+/* Section Headers */
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.section-title {
+    font-size: 1.75rem;
+    font-weight: bold;
+    margin: 0;
+}
+
+.add-btn {
+    background-color: transparent;
+    border: 2px solid #666;
+    color: #666;
+    padding: 0.5rem 1.5rem;
+    border-radius: 25px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.add-btn:hover {
+    border-color: #e74c3c;
+    color: #e74c3c;
+}
+
+/* Cards */
+.medication-card, .appointment-card {
+    background: white;
+    border-radius: 15px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    border: 1px solid #dee2e6;
+}
+
+.medication-name {
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+}
+
+.medication-dosage {
+    color: #666;
+    margin-bottom: 1rem;
+    font-size: 1.1rem;
+}
+
+.medication-schedule {
+    display: flex;
+    gap: 2rem;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.schedule-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.schedule-time {
+    font-weight: 500;
+}
+
+.custom-checkbox {
+    width: 20px;
+    height: 20px;
+    border: 2px solid #666;
+    border-radius: 3px;
+    position: relative;
+    cursor: pointer;
+}
+
+.custom-checkbox.checked {
+    background-color: #e74c3c;
+    border-color: #e74c3c;
+}
+
+.custom-checkbox.checked::after {
+    content: '✓';
+    color: white;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.medication-note {
+    font-style: italic;
+    color: #666;
+    font-size: 0.95rem;
+}
+
+/* Appointment Card */
+.appointment-date {
+    color: #e74c3c;
+    font-weight: bold;
+    font-size: 1.25rem;
+    margin-bottom: 0.5rem;
+}
+
+.appointment-time {
+    font-size: 1.5rem;
+    font-weight: bold;
+    text-align: right;
+}
+
+.appointment-title {
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin-bottom: 1rem;
+}
+
+.appointment-location {
+    color: #666;
+    margin-bottom: 1rem;
+    line-height: 1.4;
+}
+
+.doctor-name {
+    font-weight: 500;
+    color: #2c3e50;
+    margin-bottom: 1rem;
+}
+
+.appointment-note {
+    font-style: italic;
+    color: #666;
+    font-size: 0.95rem;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .page-title {
+        font-size: 2rem;
+    }
+
+    .section-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+
+    .medication-schedule {
+        flex-direction: column;
+        gap: 1rem;
+        align-items: flex-start;
+    }
+
+    .appointment-time {
+        text-align: left;
+        margin-top: 1rem;
+    }
+}
+
+/* Hamburger Menu */
+.hamburger-menu {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+}
