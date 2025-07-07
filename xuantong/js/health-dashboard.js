@@ -2,34 +2,6 @@
 let currentEditingId = null;
 let currentEditingAppointmentId = null;
 
-let medications = {
-    1: {
-        name: "Panadol",
-        dosage: 1,
-        frequency: 3,
-        notes: "Take After Food",
-        schedule: ["Morning", "Afternoon", "Night"]
-    },
-    2: {
-        name: "Medicine Name",
-        dosage: 2,
-        frequency: 2,
-        notes: "Take After Food",
-        schedule: ["Morning", "Night"]
-    }
-};
-
-let appointments = {
-    1: {
-        date: "2025-07-10",
-        time: "09:00",
-        title: "General Checkup",
-        location: "Clinic A",
-        doctor: "Dr. Tan",
-        notes: "Bring health report"
-    }
-};
-
 
 // ========== MEDICATION FUNCTIONS ==========
 function generateSchedule(frequency) {
@@ -43,7 +15,9 @@ function generateSchedule(frequency) {
 }
 
 function createMedicationCard(id, medication) {
-    const scheduleHTML = medication.schedule.map(time => `
+    const scheduleList = generateSchedule(medication.frequency); // 👈 dynamically generate
+
+    const scheduleHTML = scheduleList.map(time => `
         <div class="schedule-item">
             <span class="schedule-time">${time}</span>
             <div class="custom-checkbox" onclick="toggleCheckbox(this)"></div>
@@ -64,32 +38,39 @@ function createMedicationCard(id, medication) {
     `;
 }
 
-function updateMedicationDisplay() {
+
+async function updateMedicationDisplay() {
+    const response = await fetch('/api/medications');
+    const medications = await response.json();
+
     const container = document.getElementById('medicationContainer');
     container.innerHTML = '';
-    Object.keys(medications).forEach(id => {
-        container.innerHTML += createMedicationCard(id, medications[id]);
+    Object.entries(medications).forEach(([id, med]) => {
+        container.innerHTML += createMedicationCard(id, med);
     });
 }
 
 function addNewMedication() {
     currentEditingId = 'new';
     document.getElementById('editForm').reset();
-    document.getElementById('editOffcanvasLabel').textContent = 'Add New Medication';
-    new bootstrap.Offcanvas('#editOffcanvas').show();
+    document.getElementById('editMedicationModalLabel').textContent = 'Add New Medication';
+    const modal = new bootstrap.Modal(document.getElementById('editMedicationModal'));
+    modal.show();
 }
 
-function editMedication(id) {
+async function editMedication(id) {
     currentEditingId = id;
-    const med = medications[id];
+    const response = await fetch(`/api/medications/${id}`);
+    const med = await response.json();
 
     document.getElementById('editMedicineName').value = med.name;
     document.getElementById('editDosage').value = med.dosage;
     document.getElementById('editFrequency').value = med.frequency;
     document.getElementById('editNotes').value = med.notes;
 
-    document.getElementById('editOffcanvasLabel').textContent = 'Edit Medication Details';
-    new bootstrap.Offcanvas('#editOffcanvas').show();
+    document.getElementById('editMedicationModalLabel').textContent = 'Edit Medication Details';
+    const modal = new bootstrap.Modal(document.getElementById('editMedicationModal'));
+    modal.show();
 
     document.querySelectorAll('.medication-card').forEach(card => card.classList.remove('selected'));
     document.querySelector(`[data-medication-id="${id}"]`).classList.add('selected');
@@ -99,11 +80,12 @@ function cancelEdit() {
     currentEditingId = null;
     document.getElementById('editForm').reset();
     document.querySelectorAll('.medication-card').forEach(card => card.classList.remove('selected'));
-    const offcanvas = bootstrap.Offcanvas.getInstance(document.getElementById('editOffcanvas'));
-    if (offcanvas) offcanvas.hide();
+    const modalEl = document.getElementById('editMedicationModal');
+    const modal = bootstrap.Modal.getInstance(modalEl);
+    if (modal) modal.hide();
 }
 
-function handleMedicationFormSubmit(e) {
+async function handleMedicationFormSubmit(e) {
     e.preventDefault();
     const name = document.getElementById('editMedicineName').value;
     const dosage = parseInt(document.getElementById('editDosage').value);
@@ -113,89 +95,40 @@ function handleMedicationFormSubmit(e) {
 
     const data = { name, dosage, frequency, notes, schedule };
 
-    if (currentEditingId === 'new') {
-        const newId = Math.max(0, ...Object.keys(medications).map(Number)) + 1;
-        medications[newId] = data;
-    } else {
-        medications[currentEditingId] = data;
-    }
+    try {
+        if (currentEditingId === 'new') {
+            const res = await fetch('/api/medications', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            if (!res.ok) throw new Error('Failed to add medication');
+        } else {
+            const res = await fetch(`/api/medications/${currentEditingId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            if (!res.ok) throw new Error('Failed to update medication');
+        }
 
-    updateMedicationDisplay();
-    cancelEdit();
-    showSaveFeedback('.btn-confirm');
+        await updateMedicationDisplay(); // await here
+
+        cancelEdit();
+        showSaveFeedback('.btn-confirm');
+    } catch (error) {
+        console.error(error);
+        alert('Error saving medication');
+    }
 }
+
 
 
 // ========== APPOINTMENT FUNCTIONS ==========
-function addNewAppointment() {
-    currentEditingAppointmentId = 'new';
-    document.getElementById('appointmentForm').reset();
-    document.getElementById('appointmentOffcanvasLabel').textContent = 'Add New Appointment';
-    new bootstrap.Offcanvas('#appointmentOffcanvas').show();
-}
+async function updateAppointmentDisplay() {
+    const response = await fetch('/api/appointments');
+    const appointments = await response.json();
 
-function editAppointment(id) {
-    currentEditingAppointmentId = id;
-    const app = appointments[id];
-
-    document.getElementById('editAppointmentDate').value = app.date;
-    document.getElementById('editAppointmentTime').value = app.time;
-    document.getElementById('editAppointmentTitle').value = app.title;
-    document.getElementById('editAppointmentLocation').value = app.location;
-    document.getElementById('editDoctorName').value = app.doctor;
-    document.getElementById('editAppointmentNotes').value = app.notes;
-
-    document.getElementById('appointmentOffcanvasLabel').textContent = 'Edit Appointment Details';
-    new bootstrap.Offcanvas('#appointmentOffcanvas').show();
-
-    document.querySelectorAll('.appointment-card').forEach(card => card.classList.remove('selected'));
-    document.querySelector(`[data-appointment-id="${id}"]`).classList.add('selected');
-}
-
-function handleAppointmentFormSubmit(e) {
-    e.preventDefault();
-    const data = {
-        date: document.getElementById('editAppointmentDate').value,
-        time: document.getElementById('editAppointmentTime').value,
-        title: document.getElementById('editAppointmentTitle').value,
-        location: document.getElementById('editAppointmentLocation').value,
-        doctor: document.getElementById('editDoctorName').value,
-        notes: document.getElementById('editAppointmentNotes').value || 'No special instructions'
-    };
-
-    if (currentEditingAppointmentId === 'new') {
-        const newId = Math.max(0, ...Object.keys(appointments).map(Number)) + 1;
-        appointments[newId] = data;
-    } else {
-        appointments[currentEditingAppointmentId] = data;
-    }
-
-    updateAppointmentDisplay();
-    const offcanvas = bootstrap.Offcanvas.getInstance(document.getElementById('appointmentOffcanvas'));
-    if (offcanvas) offcanvas.hide();
-
-    currentEditingAppointmentId = null;
-    showSaveFeedback('#appointmentForm .btn-confirm');
-}
-
-
-// ========== UTILITIES ==========
-function toggleCheckbox(element) {
-    element.classList.toggle('checked');
-}
-
-function showSaveFeedback(selector) {
-    const btn = document.querySelector(selector);
-    const original = btn.textContent;
-    btn.textContent = 'Saved!';
-    btn.style.backgroundColor = '#28a745';
-    setTimeout(() => {
-        btn.textContent = original;
-        btn.style.backgroundColor = '#ff6b6b';
-    }, 2000);
-}
-
-function updateAppointmentDisplay() {
     const container = document.getElementById('appointmentContainer');
     if (!container) return;
 
@@ -224,13 +157,97 @@ function updateAppointmentDisplay() {
     });
 }
 
+function addNewAppointment() {
+    currentEditingAppointmentId = 'new';
+    document.getElementById('appointmentForm').reset();
+    document.getElementById('appointmentModalLabel').textContent = 'Add New Appointment';
+    const modal = new bootstrap.Modal(document.getElementById('appointmentModal'));
+    modal.show();
+}
+
+async function editAppointment(id) {
+    currentEditingAppointmentId = id;
+    const response = await fetch(`/api/appointments/${id}`);
+    const app = await response.json();
+
+    document.getElementById('editAppointmentDate').value = app.date;
+    document.getElementById('editAppointmentTime').value = app.time;
+    document.getElementById('editAppointmentTitle').value = app.title;
+    document.getElementById('editAppointmentLocation').value = app.location;
+    document.getElementById('editDoctorName').value = app.doctor;
+    document.getElementById('editAppointmentNotes').value = app.notes;
+
+    document.getElementById('appointmentModalLabel').textContent = 'Edit Appointment Details';
+    const modal = new bootstrap.Modal(document.getElementById('appointmentModal'));
+    modal.show();
+
+    document.querySelectorAll('.appointment-card').forEach(card => card.classList.remove('selected'));
+    document.querySelector(`[data-appointment-id="${id}"]`).classList.add('selected');
+}
+
+async function handleAppointmentFormSubmit(e) {
+    e.preventDefault();
+    const data = {
+        date: document.getElementById('editAppointmentDate').value,
+        time: document.getElementById('editAppointmentTime').value,
+        title: document.getElementById('editAppointmentTitle').value,
+        location: document.getElementById('editAppointmentLocation').value,
+        doctor: document.getElementById('editDoctorName').value,
+        notes: document.getElementById('editAppointmentNotes').value || 'No special instructions'
+    };
+
+    if (currentEditingAppointmentId === 'new') {
+        await fetch('/api/appointments', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
+    } else {
+        await fetch(`/api/appointments/${currentEditingAppointmentId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
+    }
+
+    updateAppointmentDisplay();
+
+    const modalEl = document.getElementById('appointmentModal');
+    const modal = bootstrap.Modal.getInstance(modalEl);
+    if (modal) modal.hide();
+
+    currentEditingAppointmentId = null;
+    showSaveFeedback('#appointmentForm .btn-confirm');
+}
+
+
+// ========== UTILITIES ==========
+function toggleCheckbox(element) {
+    element.classList.toggle('checked');
+}
+
+function showSaveFeedback(selector) {
+    const btn = document.querySelector(selector);
+    const original = btn.textContent;
+    btn.textContent = 'Saved!';
+    btn.style.backgroundColor = '#28a745';
+    setTimeout(() => {
+        btn.textContent = original;
+        btn.style.backgroundColor = '#ff6b6b';
+    }, 2000);
+}
+
 function formatDate(dateStr) {
     const options = { weekday: 'short', day: 'numeric', month: 'short' };
     const date = new Date(dateStr);
-    return date.toLocaleDateString(undefined, options); // e.g., "Thu, 10 Jul"
+    return date.toLocaleDateString(undefined, options);
 }
 
 function formatTime(timeStr) {
+    if (!timeStr || typeof timeStr !== 'string' || !timeStr.includes(':')) {
+        return 'Invalid time'; // fallback display
+    }
+
     const [hour, minute] = timeStr.split(':');
     const date = new Date();
     date.setHours(hour, minute);
@@ -243,8 +260,8 @@ function formatTime(timeStr) {
 document.getElementById('editForm').addEventListener('submit', handleMedicationFormSubmit);
 document.getElementById('appointmentForm').addEventListener('submit', handleAppointmentFormSubmit);
 
-document.getElementById('editOffcanvas').addEventListener('hidden.bs.offcanvas', cancelEdit);
-document.getElementById('appointmentOffcanvas').addEventListener('hidden.bs.offcanvas', () => {
+document.getElementById('editMedicationModal').addEventListener('hidden.bs.modal', cancelEdit);
+document.getElementById('appointmentModal').addEventListener('hidden.bs.modal', () => {
     currentEditingAppointmentId = null;
     document.getElementById('appointmentForm').reset();
     document.querySelectorAll('.appointment-card').forEach(card => card.classList.remove('selected'));
@@ -253,13 +270,6 @@ document.getElementById('appointmentOffcanvas').addEventListener('hidden.bs.offc
 document.addEventListener('DOMContentLoaded', () => {
     updateMedicationDisplay();
     updateAppointmentDisplay();
-    document.querySelectorAll('.medication-card, .appointment-card').forEach(card => {
-        card.addEventListener('click', e => {
-            if (e.target.classList.contains('edit-icon')) return;
-            card.style.transform = 'scale(0.98)';
-            setTimeout(() => card.style.transform = 'scale(1)', 150);
-        });
-    });
 
     document.querySelectorAll('.add-btn').forEach(btn => {
         btn.addEventListener('mouseenter', () => btn.style.transform = 'translateY(-2px)');
