@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Community | Everyday Care</title>
+  <link rel="stylesheet" href="/jingyin/community.css"/>
+  <link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+  <main class="community-container">
+    <h1>Community</h1>
+
+    <div class="community-search-section">
+      <input type="text" placeholder="Search" class="community-search-input"/>
+      <button class="add-btn">Add</button>
+    </div>
+
+    <h2>Join a community now!</h2>
+
+    <!-- Dynamically rendered community cards -->
+    <div class="community-cards" id="communityCards">
+      <!-- Groups will be inserted here by JS -->
+    </div>
+  </main>
+
+<!-- Modal HTML -->
+<div id="addModal" class="modal" style="display:none;">
+  <div class="modal-content">
+    <span class="close-btn" title="Close">&times;</span>
+    <h2>Add New Community</h2>
+    <form id="addCommunityForm">
+      <label for="groupName">Group Name:</label>
+      <input type="text" id="groupName" name="groupName" required>
+
+      <label for="groupDescription">Description:</label>
+      <textarea id="groupDescription" name="groupDescription" rows="4" required></textarea>
+
+      <button type="submit" class="submit-btn">Add Group</button>
+    </form>
+  </div>
+</div>
+
+<script>
+  const modal = document.getElementById('addModal');
+  const addBtns = document.querySelectorAll('.add-btn');
+  const closeBtn = document.querySelector('.close-btn');
+  const form = document.getElementById('addCommunityForm');
+
+  addBtns.forEach(btn => {
+    btn.onclick = () => {
+      modal.style.display = 'block';
+    };
+  });
+
+  closeBtn.onclick = () => {
+    modal.style.display = 'none';
+  };
+
+  window.onclick = (e) => {
+    if (e.target === modal) modal.style.display = 'none';
+  };
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const groupName = document.getElementById('groupName').value.trim();
+    const groupDescription = document.getElementById('groupDescription').value.trim();
+
+    try {
+      const response = await fetch('/api/hobby-groups', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ groupName, groupDescription }),
+      });
+
+      if (response.ok) {
+        alert('Community group added!');
+        modal.style.display = 'none';
+        form.reset();
+        location.reload(); // or call loadGroups();
+      } else {
+        alert('Failed to add group.');
+      }
+    } catch (error) {
+      alert('Error connecting to server.');
+      console.error(error);
+    }
+  });
+
+  async function loadGroups() {
+    try {
+      const res = await fetch('/api/hobby-groups');
+      const groups = await res.json();
+      const container = document.getElementById('communityCards');
+      container.innerHTML = '';
+
+      groups.forEach(group => {
+        const card = document.createElement('div');
+        card.className = 'community-card';
+
+        const title = document.createElement('h3');
+        title.textContent = group.GroupName;
+
+        const desc = document.createElement('p');
+        desc.textContent = group.GroupDescription;
+
+        const btn = document.createElement('button');
+        btn.className = 'join-btn';
+        btn.textContent = 'Join';
+
+        card.appendChild(title);
+        card.appendChild(desc);
+        card.appendChild(btn);
+        container.appendChild(card);
+      });
+    } catch (error) {
+      console.error('Error loading groups:', error);
+    }
+  }
+
+  window.onload = loadGroups;
+</script>
+</body>
+</html>
