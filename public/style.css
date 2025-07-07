@@ -69,6 +69,20 @@ body {
     color: black;
     margin-bottom: 2rem;
     text-align: center;
+    
+}
+
+.section-link:hover {
+    text-decoration: underline;
+    color: #e74c3c;
+}
+
+.section-link {
+    color: black;
+    text-decoration: none;
+    font-size: 1.1rem;
+    font-weight: 600;
+    transition: transform 0.3s ease;
 }
 
 .feature-card {
