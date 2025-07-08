@@ -1,5 +1,5 @@
 const sql = require('mssql');
-const dbConfig = require('../../dbConfig');
+const dbConfig = require('../dbConfig');
 
 exports.getAll = async () => {
   const pool = await sql.connect(dbConfig);

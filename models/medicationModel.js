@@ -1,5 +1,5 @@
 const sql = require('mssql');
-const dbConfig = require('../../dbConfig'); // Adjust the path as necessary
+const dbConfig = require('../dbConfig'); // Adjust the path as necessary
 
 exports.getAll = async () => {
   const pool = await sql.connect(dbConfig);

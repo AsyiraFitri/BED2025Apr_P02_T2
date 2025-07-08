@@ -14,7 +14,7 @@ app.use(express.static(path.join(__dirname, '../public')));
 app.use('/jingyin', express.static(path.join(__dirname, './')));
 
 // Routes
-const hobbyRoutes = require('./public/routes/communityRoutes');
+const hobbyRoutes = require('./routes/communityRoutes');
 app.use('/api/hobby-groups', hobbyRoutes);
 
 // Start the server

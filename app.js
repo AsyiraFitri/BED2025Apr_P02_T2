@@ -36,8 +36,8 @@ sql.connect(dbConfig)
   .catch(err => console.error('❌ DB Connection Error:', err));
 
 // API Routes
-const medicationRoutes = require('./public/routes/medicationRoutes');
-const appointmentRoutes = require('./public/routes/appointmentRoutes');
+const medicationRoutes = require('./routes/medicationRoutes');
+const appointmentRoutes = require('./routes/appointmentRoutes');
 
 app.use('/api/medications', medicationRoutes);
 app.use('/api/appointments', appointmentRoutes);
