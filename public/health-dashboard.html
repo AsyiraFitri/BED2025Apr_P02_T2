@@ -1,19 +1,22 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>EverydayCare - Health Dashboard</title>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="../xuantong/xt.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="../xuantong/xt.css" />
+    <link rel="stylesheet" href="style.css" />
 </head>
+
 <body>
     <!-- Navigation -->
     <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
         <div class="container d-flex justify-content-between align-items-center">
-            <a class="navbar-brand logo-container d-flex align-items-center" href="../public/index.html">
-                <img src="../images/logo.jpg" alt="logo" class="logo-image">
+            <a class="navbar-brand logo-container d-flex align-items-center" href="index.html">
+                <img src="../images/logo.jpg" alt="logo" class="logo-image" />
             </a>
             <button class="navbar-toggler ms-auto" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
@@ -24,10 +27,10 @@
                         <a class="nav-link" href="#navigation"><i class="fas fa-map-marker-alt"></i> Navigation</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#community"><i class="fas fa-users"></i> Community</a>
+                        <a class="nav-link" href="community.html"><i class="fas fa-users"></i> Community</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#health"><i class="fas fa-heartbeat"></i> Health</a>
+                        <a class="nav-link" href="health-dashboard.html"><i class="fas fa-heartbeat"></i> Health</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="#emergency"><i class="fas fa-exclamation-triangle"></i> Emergency</a>
@@ -60,117 +63,216 @@
             <!-- Today's Medication Column -->
             <div class="col-lg-6 col-md-12">
                 <div class="section-header">
-                    <h2 class="section-title">Today's Medication</h2>
-                    <button class="btn add-btn">Add</button>
+                    <h2 class="dashboard-section-title">Today's Medication</h2>
+                    <button class="btn add-btn" onclick="addNewMedication()">Add</button>
                 </div>
 
-                <!-- Panadol Card -->
-                <div class="medication-card">
-                    <div class="medication-name">Panadol</div>
-                    <div class="medication-dosage">Take 1 pill 3 times a day</div>
-                    
-                    <div class="medication-schedule">
-                        <div class="schedule-item">
-                            <span class="schedule-time">Morning</span>
-                            <div class="custom-checkbox checked" onclick="toggleCheckbox(this)"></div>
-                        </div>
-                        <div class="schedule-item">
-                            <span class="schedule-time">Afternoon</span>
-                            <div class="custom-checkbox checked" onclick="toggleCheckbox(this)"></div>
-                        </div>
-                        <div class="schedule-item">
-                            <span class="schedule-time">Night</span>
-                            <div class="custom-checkbox" onclick="toggleCheckbox(this)"></div>
-                        </div>
-                    </div>
-                    
-                    <div class="medication-note">Note: Take After Food</div>
-                </div>
+                <!-- Medication Cards Container -->
+                <div id="medicationContainer">
+                    <!-- Panadol Card -->
+                    <div class="medication-card" data-medication-id="1">
+                        <i class="fas fa-edit edit-icon" onclick="editMedication(1)"></i>
+                        <div class="medication-name">Panadol</div>
+                        <div class="medication-dosage">Take 1 pill 3 times a day</div>
 
-                <!-- Medicine Name Card -->
-                <div class="medication-card">
-                    <div class="medication-name">Medicine Name</div>
-                    <div class="medication-dosage">Take 2 pill 2 times a day</div>
-                    
-                    <div class="medication-schedule">
-                        <div class="schedule-item">
-                            <span class="schedule-time">Morning</span>
-                            <div class="custom-checkbox checked" onclick="toggleCheckbox(this)"></div>
+                        <div class="medication-schedule">
+                            <div class="schedule-item">
+                                <span class="schedule-time">Morning</span>
+                                <div class="custom-checkbox checked" onclick="toggleCheckbox(this)"></div>
+                            </div>
+                            <div class="schedule-item">
+                                <span class="schedule-time">Afternoon</span>
+                                <div class="custom-checkbox checked" onclick="toggleCheckbox(this)"></div>
+                            </div>
+                            <div class="schedule-item">
+                                <span class="schedule-time">Night</span>
+                                <div class="custom-checkbox" onclick="toggleCheckbox(this)"></div>
+                            </div>
                         </div>
-                        <div class="schedule-item">
-                            <span class="schedule-time">Night</span>
-                            <div class="custom-checkbox" onclick="toggleCheckbox(this)"></div>
-                        </div>
+
+                        <div class="medication-note">Note: Take After Food</div>
                     </div>
-                    
-                    <div class="medication-note">Note: Take After Food</div>
+
+                    <!-- Medicine Name Card -->
+                    <div class="medication-card" data-medication-id="2">
+                        <i class="fas fa-edit edit-icon" onclick="editMedication(2)"></i>
+                        <div class="medication-name">Medicine Name</div>
+                        <div class="medication-dosage">Take 2 pills 2 times a day</div>
+
+                        <div class="medication-schedule">
+                            <div class="schedule-item">
+                                <span class="schedule-time">Morning</span>
+                                <div class="custom-checkbox checked" onclick="toggleCheckbox(this)"></div>
+                            </div>
+                            <div class="schedule-item">
+                                <span class="schedule-time">Night</span>
+                                <div class="custom-checkbox" onclick="toggleCheckbox(this)"></div>
+                            </div>
+                        </div>
+
+                        <div class="medication-note">Note: Take After Food</div>
+                    </div>
                 </div>
             </div>
 
             <!-- Upcoming Appointments Column -->
             <div class="col-lg-6 col-md-12">
                 <div class="section-header">
-                    <h2 class="section-title">Upcoming Appointments</h2>
-                    <button class="btn add-btn">Add</button>
+                    <h2 class="dashboard-section-title">Upcoming Appointments</h2>
+                    <button class="btn add-btn" onclick="addNewAppointment()">Add</button>
                 </div>
 
                 <!-- Appointment Card -->
-                <div class="appointment-card">
-                    <div class="row">
-                        <div class="col-8">
-                            <div class="appointment-date">1 Jun, Tuesday</div>
+                <div id="appointmentContainer"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap Modal for Editing Medication -->
+    <div class="modal fade" id="editMedicationModal" tabindex="-1" aria-labelledby="editMedicationModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog modal-dialog-end">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editMedicationModalLabel">Edit Medication Details</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="editForm">
+                        <div class="mb-3">
+                            <label class="form-label">Medicine Name</label>
+                            <input type="text" class="form-control" id="editMedicineName" required />
                         </div>
-                        <div class="col-4">
-                            <div class="appointment-time">10:00AM</div>
+                        <div class="mb-3">
+                            <label class="form-label">Dosage (How many pills each time?)</label>
+                            <select class="form-select" id="editDosage" required>
+                                <option value="">Select dosage</option>
+                                <option value="1">1</option>
+                                <option value="2">2</option>
+                                <option value="3">3</option>
+                                <option value="4">4</option>
+                                <option value="5">5</option>
+                            </select>
                         </div>
-                    </div>
-                    
-                    <div class="appointment-title">Health Check-Up</div>
-                    
-                    <div class="appointment-location">
-                        @Tan Tock Seng Hospital, 11 Jln Tan Tock Seng,<br>
-                        Singapore 308433
-                    </div>
-                    
-                    <div class="doctor-name">Dr Lim Xiao Ming</div>
-                    
-                    <div class="appointment-note">Note: Remember to bring identification card!</div>
+                        <div class="mb-3">
+                            <label class="form-label">Frequency (How many times a day?)</label>
+                            <select class="form-select" id="editFrequency" required>
+                                <option value="">Select frequency</option>
+                                <option value="1">1</option>
+                                <option value="2">2</option>
+                                <option value="3">3</option>
+                                <option value="4">4</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Notes (e.g. take after food)</label>
+                            <textarea class="form-control" id="editNotes" rows="3"
+                                placeholder="Enter any special instructions"></textarea>
+                        </div>
+                        <div class="d-flex justify-content-end gap-2">
+                            <button type="button" class="btn btn-cancel" data-bs-dismiss="modal">
+                                Cancel
+                            </button>
+                            <button type="submit" class="btn btn-confirm">Confirm</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap Modal for Editing Appointment -->
+    <div class="modal fade" id="appointmentModal" tabindex="-1" aria-labelledby="appointmentModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog modal-dialog-end">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="appointmentModalLabel">Edit Appointment Details</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="appointmentForm">
+                        <div class="mb-3">
+                            <label class="form-label">Date</label>
+                            <input type="date" class="form-control" id="editAppointmentDate" required />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Time</label>
+                            <input type="time" class="form-control" id="editAppointmentTime" required />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Appointment Title</label>
+                            <input type="text" class="form-control" id="editAppointmentTitle"
+                                placeholder="e.g. Health Check-Up" required />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Location/Hospital</label>
+                            <input type="text" class="form-control" id="locationSearch"
+                                placeholder="Search for location" required>
+
+                            <!-- Optional: show selected address -->
+                            <!-- <div class="mt-2 text-muted">
+                                Selected Address: <span id="displayAddress">None</span>
+                            </div> -->
+
+                            <!-- Hidden inputs for storing values -->
+                            <!-- <input type="hidden" id="selectedAddress">
+                            <input type="hidden" id="selectedLat">
+                            <input type="hidden" id="selectedLng"> -->
+                        </div>
+
+
+                        <div class="mb-3">
+                            <label class="form-label">Location/Hospital</label>
+                            <textarea class="form-control" id="editAppointmentLocation" rows="3"
+                                placeholder="Enter hospital name and address" required></textarea>
+                            <input id="pac-input" class="controls" type="text" placeholder="Search for location"
+                                style="width: 300px; margin-bottom: 10px;" />
+
+                            <input id="locationSearch" type="text" class="form-control"
+                                placeholder="Search for location" />
+                            <input type="hidden" id="selectedAddress" name="location" />
+                            <input type="hidden" id="selectedLat" name="latitude" />
+                            <input type="hidden" id="selectedLng" name="longitude" />
+
+
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Doctor Name</label>
+                            <input type="text" class="form-control" id="editDoctorName"
+                                placeholder="e.g. Dr Lim Xiao Ming" required />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Notes</label>
+                            <textarea class="form-control" id="editAppointmentNotes" rows="3"
+                                placeholder="Enter any special instructions or reminders"></textarea>
+
+                        </div>
+
+                        <div class="d-flex justify-content-end gap-2">
+                            <button type="button" class="btn btn-cancel" data-bs-dismiss="modal">
+                                Cancel
+                            </button>
+                            <button type="submit" class="btn btn-confirm">Confirm</button>
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
-    <script>
-        function toggleCheckbox(element) {
-            element.classList.toggle('checked');
-        }
+    <script src="../xuantong/js/health-dashboard.js"></script>
 
-        // Add smooth scrolling and interactive features
-        document.addEventListener('DOMContentLoaded', function() {
-            // Add click animations to cards
-            const cards = document.querySelectorAll('.medication-card, .appointment-card');
-            cards.forEach(card => {
-                card.addEventListener('click', function() {
-                    this.style.transform = 'scale(0.98)';
-                    setTimeout(() => {
-                        this.style.transform = 'scale(1)';
-                    }, 150);
-                });
-            });
+    <!-- <script
+        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB24O7f7_CZ_6Oue6mEjcvLTwmfCOofY_o&libraries=places&callback=initAutocomplete"
+        async defer></script> -->
 
-            // Add hover effects to buttons
-            const buttons = document.querySelectorAll('.add-btn');
-            buttons.forEach(button => {
-                button.addEventListener('mouseenter', function() {
-                    this.style.transform = 'translateY(-2px)';
-                });
-                
-                button.addEventListener('mouseleave', function() {
-                    this.style.transform = 'translateY(0)';
-                });
-            });
-        });
-    </script>
+
 </body>
+
 </html>

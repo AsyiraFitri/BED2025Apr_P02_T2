@@ -5,9 +5,9 @@ module.exports = {
   password: process.env.DB_PASSWORD,
   server: process.env.DB_SERVER,
   database: process.env.DB_DATABASE,
-  trustServerCertificate: true,
+  port: parseInt(process.env.DB_PORT),
   options: {
-    port: parseInt(process.env.DB_PORT),
+    trustServerCertificate: true,
     connectionTimeout: 60000
   }
 };

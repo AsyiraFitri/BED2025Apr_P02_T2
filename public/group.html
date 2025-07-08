@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Group Details</title>
+  <link rel="stylesheet" href="/jingyin/group.css"/>
+  <link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+  <!-- Main Container -->
+  <div class="container">
+    <!-- Back Arrow -->
+    <div class="breadcrumb">
+      <button class="back-btn" onclick="history.back()">←</button>
+    </div>
+
+    <!-- Group Header -->
+    <div class="group-header">
+      <div class="group-title-section">
+        <div>
+          <h1 class="group-title" id="groupTitle">Loading...</h1>
+          <div class="group-stats">26 members</div>
+        </div>
+        <button class="settings-btn" onclick="openSettingsModal()">⚙️</button>
+      </div>
+    </div>
+
+    <!-- Content Area -->
+    <div class="content-area">
+      <!-- Sidebar -->
+      <div class="sidebar">
+        <button class="sidebar-item active">#announcements</button>
+        <button class="sidebar-item">#events</button>
+        <button class="sidebar-item">#general</button>
+        <button class="sidebar-item">#ask-a-knitter</button>
+      </div>
+
+      <!-- Main Content -->
+      <div class="main-content">
+        <div class="admin-post">
+          <div class="post-header">
+            <div class="avatar"></div>
+            <div class="post-author">Admin</div>
+          </div>
+          <div class="post-content">
+            <p><span class="emoji">🧶</span> Welcome to the Knitting & Crochet Community! <span class="emoji">🧡</span></p>
+            <p id="groupDesc">This community is a cozy space for knitters and crocheters of all levels to connect, share, learn, and inspire each other. Whether you're a complete beginner or you've been knitting for decades, there's a spot for you here.</p>
+            
+            <p><span class="emoji">🧵</span> What this community is all about:</p>
+            <ul>
+              <li>Sharing your knitting projects, tips, and work-in-progress</li>
+              <li>Getting help with patterns or tricky stitches</li>
+              <li>Joining knit-alongs, virtual meetups, and fun events</li>
+              <li>Swapping yarns, tools, and ideas</li>
+              <li>Celebrating creativity, connection, and cozy vibes</li>
+            </ul>
+
+            <p><span class="emoji">🧶</span> Start by:</p>
+            <ul>
+              <li><span class="checkmark">✅</span> Introducing yourself in the #introductions channel</li>
+              <li><span class="checkmark">✅</span> Sharing what you're currently working on</li>
+              <li><span class="checkmark">✅</span> Checking out upcoming events or knit-alongs</li>
+            </ul>
+
+            <p>This is a respectful, inclusive, and supportive space — so be kind, stay curious, and have fun. <span class="emoji">💛</span></p>
+            <p>Need help or have a question? Tag an admin or post in #ask-a-knitter anytime.</p>
+            <p>Let the stitches begin! <span class="emoji">🧡</span><span class="emoji">🧶</span></p>
+            
+            <p><em>— The Admin Team</em></p>
+          </div>
+        </div>
+
+        <div class="add-comment">
+          <span class="plus-icon">+</span>
+          <span class="add-comment-text">Add a comment</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Settings Modal -->
+  <div class="settings-modal" id="settingsModal">
+    <div class="settings-content">
+      <div class="settings-header">
+        <h2 class="settings-title">🧶 Knitting & Crochet Circle</h2>
+        <button class="settings-close" onclick="closeSettingsModal()">×</button>
+      </div>
+
+      <div class="description-section">
+        <div class="description-title">Group Description:</div>
+        <div class="description-text" id="descriptionText">Join fellow yarn lovers to share patterns, techniques, and handmade projects. Whether you're a beginner or an experienced crafter, everyone is welcome to stitch and socialize.</div>
+        <textarea class="description-textarea hidden" id="descriptionTextarea">Join fellow yarn lovers to share patterns, techniques, and handmade projects. Whether you're a beginner or an experienced crafter, everyone is welcome to stitch and socialize.</textarea>
+        <div class="description-actions">
+            <button class="description-btn edit-btn" id="editDescBtn" onclick="editDescription()">Edit</button>
+            <button class="description-btn save-btn hidden" id="saveDescBtn" onclick="saveDescription()">Save</button>
+            <button class="description-btn cancel-btn hidden" id="cancelDescBtn" onclick="cancelDescription()">Cancel</button>
+        </div>
+      </div>
+      
+      <div class="members-section">
+        <div class="members-title">Members list:</div>
+        <ul class="members-list">
+          <li class="member-item">Username 1</li>
+          <li class="member-item">Username 2</li>
+          <li class="member-item">Username 3</li>
+          <li class="member-item">Username 4</li>
+        </ul>
+      </div>
+
+      <div class="action-section">
+        <div class="action-question">Would you like to leave the community?</div>
+        <button class="action-btn leave-btn" onclick="leaveCommunity()">Leave</button>
+      </div>
+
+      <div class="action-section">
+        <div class="action-question">Would you like to delete the community?</div>
+        <button class="action-btn delete-btn" onclick="deleteCommunity()">Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="../jingyin/js/group.js"></script>
+</body>
+</html>
