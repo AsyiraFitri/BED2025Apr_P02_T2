@@ -6,6 +6,7 @@ const validateGroup = require('../middlewares/validateCommunity');
 // Routes
 router.get('/', controller.getAllGroups);
 router.post('/', validateGroup, controller.createGroup);
+router.get('/:id', controller.getGroupById);
 
 module.exports = router;
 

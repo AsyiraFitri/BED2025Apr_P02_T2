@@ -108,6 +108,11 @@
         btn.className = 'join-btn';
         btn.textContent = 'Join';
 
+        // 👇 Join button navigates to group.html with ID
+        btn.addEventListener('click', () => {
+          window.location.href = `/group.html?id=${group.GroupID}`;
+        });
+
         card.appendChild(title);
         card.appendChild(desc);
         card.appendChild(btn);

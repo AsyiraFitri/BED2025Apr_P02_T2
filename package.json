@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "dev:xt": "nodemon xuantong/app.js",
+    "dev:jy": "nodemon jingyin/server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
