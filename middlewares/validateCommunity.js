@@ -1,4 +1,4 @@
-module.exports = function (req, res, next) {
+const validateCommunity = (req, res, next) => {
   const { groupName, groupDescription } = req.body;
 
   if (!groupName || !groupDescription) {
@@ -7,3 +7,5 @@ module.exports = function (req, res, next) {
 
   next(); // Continue if valid
 };
+
+module.exports = validateCommunity;

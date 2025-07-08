@@ -4,8 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Community | Everyday Care</title>
-  <link rel="stylesheet" href="community.css"/>
-  <link rel="stylesheet" href="style.css"/>
+  <link rel="stylesheet" href="css/community.css"/>
+  <link rel="stylesheet" href="css/style.css"/>
 </head>
 <body>
   <main class="community-container">
@@ -108,7 +108,7 @@
         btn.className = 'join-btn';
         btn.textContent = 'Join';
 
-        // 👇 Join button navigates to group.html with ID
+        // Join button navigates to group.html with ID
         btn.addEventListener('click', () => {
           window.location.href = `/group.html?id=${group.GroupID}`;
         });
