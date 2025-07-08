@@ -20,13 +20,13 @@ app.use(express.static(path.join(__dirname, 'public')));
 // ==========================
 
 // Xuan Tong Routes
-const medicationRoutes = require('./medicationRoutes');
-const appointmentRoutes = require('./appointmentRoutes');
+const medicationRoutes = require('./routes/medicationRoutes');
+const appointmentRoutes = require('./routes/appointmentRoutes');
 app.use('/api/medications', medicationRoutes);
 app.use('/api/appointments', appointmentRoutes);
 
 // Jing Yin Routes
-const hobbyRoutes = require('./communityRoutes');
+const hobbyRoutes = require('./routes/communityRoutes');
 app.use('/api/hobby-groups', hobbyRoutes);
 
 // Yiru Routes

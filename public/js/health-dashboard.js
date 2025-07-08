@@ -15,7 +15,7 @@ function generateSchedule(frequency) {
 }
 
 function createMedicationCard(id, medication) {
-    const scheduleList = generateSchedule(medication.frequency); // 👈 dynamically generate
+    const scheduleList = generateSchedule(medication.frequency); 
 
     const scheduleHTML = scheduleList.map(time => `
         <div class="schedule-item">
