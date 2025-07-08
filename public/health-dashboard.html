@@ -7,7 +7,7 @@
     <title>EverydayCare - Health Dashboard</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet" />
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
-    <link rel="stylesheet" href="css/xt.css" />
+    <link rel="stylesheet" href="css/health.css" />
     <link rel="stylesheet" href="css/style.css" />
 </head>
 
@@ -69,50 +69,7 @@
 
                 <!-- Medication Cards Container -->
                 <div id="medicationContainer">
-                    <!-- Panadol Card -->
-                    <div class="medication-card" data-medication-id="1">
-                        <i class="fas fa-edit edit-icon" onclick="editMedication(1)"></i>
-                        <div class="medication-name">Panadol</div>
-                        <div class="medication-dosage">Take 1 pill 3 times a day</div>
-
-                        <div class="medication-schedule">
-                            <div class="schedule-item">
-                                <span class="schedule-time">Morning</span>
-                                <div class="custom-checkbox checked" onclick="toggleCheckbox(this)"></div>
-                            </div>
-                            <div class="schedule-item">
-                                <span class="schedule-time">Afternoon</span>
-                                <div class="custom-checkbox checked" onclick="toggleCheckbox(this)"></div>
-                            </div>
-                            <div class="schedule-item">
-                                <span class="schedule-time">Night</span>
-                                <div class="custom-checkbox" onclick="toggleCheckbox(this)"></div>
-                            </div>
-                        </div>
-
-                        <div class="medication-note">Note: Take After Food</div>
-                    </div>
-
-                    <!-- Medicine Name Card -->
-                    <div class="medication-card" data-medication-id="2">
-                        <i class="fas fa-edit edit-icon" onclick="editMedication(2)"></i>
-                        <div class="medication-name">Medicine Name</div>
-                        <div class="medication-dosage">Take 2 pills 2 times a day</div>
-
-                        <div class="medication-schedule">
-                            <div class="schedule-item">
-                                <span class="schedule-time">Morning</span>
-                                <div class="custom-checkbox checked" onclick="toggleCheckbox(this)"></div>
-                            </div>
-                            <div class="schedule-item">
-                                <span class="schedule-time">Night</span>
-                                <div class="custom-checkbox" onclick="toggleCheckbox(this)"></div>
-                            </div>
-                        </div>
-
-                        <div class="medication-note">Note: Take After Food</div>
-                    </div>
-                </div>
+                    
             </div>
 
             <!-- Upcoming Appointments Column -->
@@ -206,21 +163,6 @@
                             <label class="form-label">Appointment Title</label>
                             <input type="text" class="form-control" id="editAppointmentTitle"
                                 placeholder="e.g. Health Check-Up" required />
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Location/Hospital</label>
-                            <input type="text" class="form-control" id="locationSearch"
-                                placeholder="Search for location" required>
-
-                            <!-- Optional: show selected address -->
-                            <!-- <div class="mt-2 text-muted">
-                                Selected Address: <span id="displayAddress">None</span>
-                            </div> -->
-
-                            <!-- Hidden inputs for storing values -->
-                            <!-- <input type="hidden" id="selectedAddress">
-                            <input type="hidden" id="selectedLat">
-                            <input type="hidden" id="selectedLng"> -->
                         </div>
 
 

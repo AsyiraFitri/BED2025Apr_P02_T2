@@ -20,6 +20,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 // ==========================
 
 // Xuan Tong Routes
+
 const medicationRoutes = require('./routes/medicationRoutes');
 const appointmentRoutes = require('./routes/appointmentRoutes');
 app.use('/api/medications', medicationRoutes);

@@ -1,42 +1,62 @@
 const sql = require('mssql');
 const dbConfig = require('../dbConfig');
 
-exports.getAll = async () => {
+async function getAppointmentsByUserId(userId) {
   const pool = await sql.connect(dbConfig);
-  const result = await pool.request().query('SELECT * FROM Appointments');
+  const result = await pool.request()
+    .input('userId', sql.Int, userId)
+    .query('SELECT * FROM Appointments WHERE UserID = @userId');
   return result.recordset;
-};
+}
 
-exports.create = async (appointment) => {
+async function getAppointmentById(id) {
+  const pool = await sql.connect(dbConfig);
+  const result = await pool.request()
+    .input('id', sql.Int, id)
+    .query('SELECT * FROM Appointments WHERE AppointmentID = @id');
+  return result.recordset[0];
+}
+
+async function createAppointment(app) {
   const pool = await sql.connect(dbConfig);
   await pool.request()
-    .input('date', sql.Date, appointment.date)
-    .input('time', sql.Time, appointment.time)
-    .input('title', sql.NVarChar, appointment.title)
-    .input('location', sql.NVarChar, appointment.location)
-    .input('doctor', sql.NVarChar, appointment.doctor)
-    .input('notes', sql.NVarChar, appointment.notes)
-    .query(`INSERT INTO Appointments (Date, Time, Title, Location, Doctor, Notes)
-            VALUES (@date, @time, @title, @location, @doctor, @notes)`);
-};
+    .input('date', sql.Date, app.date)
+    .input('time', sql.Time, app.time)
+    .input('title', sql.NVarChar, app.title)
+    .input('location', sql.NVarChar, app.location)
+    .input('doctor', sql.NVarChar, app.doctor)
+    .input('notes', sql.NVarChar, app.notes)
+    .input('userId', sql.Int, app.userId)
+    .query(`INSERT INTO Appointments (Date, Time, Title, Location, DoctorName, Notes, UserID)
+            VALUES (@date, @time, @title, @location, @doctor, @notes, @userId)`);
+}
 
-exports.update = async (id, appointment) => {
+async function updateAppointment(id, app) {
   const pool = await sql.connect(dbConfig);
   await pool.request()
     .input('id', sql.Int, id)
-    .input('date', sql.Date, appointment.date)
-    .input('time', sql.Time, appointment.time)
-    .input('title', sql.NVarChar, appointment.title)
-    .input('location', sql.NVarChar, appointment.location)
-    .input('doctor', sql.NVarChar, appointment.doctor)
-    .input('notes', sql.NVarChar, appointment.notes)
+    .input('date', sql.Date, app.date)
+    .input('time', sql.Time, app.time)
+    .input('title', sql.NVarChar, app.title)
+    .input('location', sql.NVarChar, app.location)
+    .input('doctor', sql.NVarChar, app.doctor)
+    .input('notes', sql.NVarChar, app.notes)
     .query(`UPDATE Appointments SET Date = @date, Time = @time, Title = @title,
-            Location = @location, Doctor = @doctor, Notes = @notes WHERE AppointmentId = @id`);
-};
+            Location = @location, DoctorName = @doctor, Notes = @notes
+            WHERE AppointmentID = @id`);
+}
 
-exports.remove = async (id) => {
+async function deleteAppointment(id) {
   const pool = await sql.connect(dbConfig);
   await pool.request()
     .input('id', sql.Int, id)
-    .query('DELETE FROM Appointments WHERE AppointmentId = @id');
+    .query('DELETE FROM Appointments WHERE AppointmentID = @id');
+}
+
+module.exports = {
+  getAppointmentsByUserId,
+  getAppointmentById,
+  createAppointment,
+  updateAppointment,
+  deleteAppointment
 };

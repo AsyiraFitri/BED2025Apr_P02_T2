@@ -2,7 +2,6 @@
 let currentEditingId = null;
 let currentEditingAppointmentId = null;
 
-
 // ========== MEDICATION FUNCTIONS ==========
 function generateSchedule(frequency) {
     const schedules = {
@@ -15,7 +14,7 @@ function generateSchedule(frequency) {
 }
 
 function createMedicationCard(id, medication) {
-    const scheduleList = generateSchedule(medication.frequency); 
+    const scheduleList = generateSchedule(medication.Frequency);
 
     const scheduleHTML = scheduleList.map(time => `
         <div class="schedule-item">
@@ -26,18 +25,17 @@ function createMedicationCard(id, medication) {
 
     return `
         <div class="medication-card" data-medication-id="${id}">
-            <i class="fas fa-edit edit-icon" onclick="editMedication(${id})"></i>
-            <div class="medication-name">${medication.name}</div>
+            <i class="fas fa-edit edit-icon" onclick="editMedication(${JSON.stringify(id)})"></i>
+            <div class="medication-name">${medication.Name}</div>
             <div class="medication-dosage">
-                Take ${medication.dosage} pill${medication.dosage > 1 ? 's' : ''} 
-                ${medication.frequency} time${medication.frequency > 1 ? 's' : ''} a day
+                Take ${medication.Dosage} pill${medication.Dosage > 1 ? 's' : ''} 
+                ${medication.Frequency} time${medication.Frequency > 1 ? 's' : ''} a day
             </div>
             <div class="medication-schedule">${scheduleHTML}</div>
-            <div class="medication-note">Note: ${medication.notes}</div>
+            <div class="medication-note">Note: ${medication.Notes}</div>
         </div>
     `;
 }
-
 
 async function updateMedicationDisplay() {
     const response = await fetch('/api/medications');
@@ -45,9 +43,16 @@ async function updateMedicationDisplay() {
 
     const container = document.getElementById('medicationContainer');
     container.innerHTML = '';
-    Object.entries(medications).forEach(([id, med]) => {
-        container.innerHTML += createMedicationCard(id, med);
-    });
+
+    if (Array.isArray(medications)) {
+        medications.forEach(med => {
+            container.innerHTML += createMedicationCard(med.MedicationID, med);
+        });
+    } else {
+        Object.entries(medications).forEach(([id, med]) => {
+            container.innerHTML += createMedicationCard(id, med);
+        });
+    }
 }
 
 function addNewMedication() {
@@ -60,20 +65,28 @@ function addNewMedication() {
 
 async function editMedication(id) {
     currentEditingId = id;
-    const response = await fetch(`/api/medications/${id}`);
-    const med = await response.json();
+    try {
+        const response = await fetch(`/api/medications/${id}`);
+        if (!response.ok) throw new Error('Medication not found');
 
-    document.getElementById('editMedicineName').value = med.name;
-    document.getElementById('editDosage').value = med.dosage;
-    document.getElementById('editFrequency').value = med.frequency;
-    document.getElementById('editNotes').value = med.notes;
+        const med = await response.json();
 
-    document.getElementById('editMedicationModalLabel').textContent = 'Edit Medication Details';
-    const modal = new bootstrap.Modal(document.getElementById('editMedicationModal'));
-    modal.show();
+        // Populate form with fetched medication data
+        document.getElementById('editMedicineName').value = med.Name;
+        document.getElementById('editDosage').value = med.Dosage;
+        document.getElementById('editFrequency').value = med.Frequency;
+        document.getElementById('editNotes').value = med.Notes || '';
 
-    document.querySelectorAll('.medication-card').forEach(card => card.classList.remove('selected'));
-    document.querySelector(`[data-medication-id="${id}"]`).classList.add('selected');
+        document.getElementById('editMedicationModalLabel').textContent = 'Edit Medication Details';
+        const modal = new bootstrap.Modal(document.getElementById('editMedicationModal'));
+        modal.show();
+
+        document.querySelectorAll('.medication-card').forEach(card => card.classList.remove('selected'));
+        document.querySelector(`[data-medication-id="${id}"]`).classList.add('selected');
+    } catch (error) {
+        console.error('Error fetching medication:', error);
+        alert('Failed to load medication data');
+    }
 }
 
 function cancelEdit() {
@@ -93,18 +106,19 @@ async function handleMedicationFormSubmit(e) {
     const notes = document.getElementById('editNotes').value || 'No special instructions';
     const schedule = generateSchedule(frequency);
 
-    const data = { name, dosage, frequency, notes, schedule };
+    const data = { Name: name, Dosage: dosage, Frequency: frequency, Notes: notes, Schedule: schedule };
 
     try {
+        let res;
         if (currentEditingId === 'new') {
-            const res = await fetch('/api/medications', {
+            res = await fetch('/api/medications', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(data)
             });
             if (!res.ok) throw new Error('Failed to add medication');
         } else {
-            const res = await fetch(`/api/medications/${currentEditingId}`, {
+            res = await fetch(`/api/medications/${currentEditingId}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(data)
@@ -112,7 +126,7 @@ async function handleMedicationFormSubmit(e) {
             if (!res.ok) throw new Error('Failed to update medication');
         }
 
-        await updateMedicationDisplay(); // await here
+        await updateMedicationDisplay();
 
         cancelEdit();
         showSaveFeedback('.btn-confirm');
@@ -121,8 +135,6 @@ async function handleMedicationFormSubmit(e) {
         alert('Error saving medication');
     }
 }
-
-
 
 // ========== APPOINTMENT FUNCTIONS ==========
 async function updateAppointmentDisplay() {
@@ -134,27 +146,33 @@ async function updateAppointmentDisplay() {
 
     container.innerHTML = '';
 
-    Object.entries(appointments).forEach(([id, app]) => {
-        const card = document.createElement('div');
-        card.className = 'appointment-card';
-        card.setAttribute('data-appointment-id', id);
-        card.innerHTML = `
-            <i class="fas fa-edit edit-icon" onclick="editAppointment(${id})"></i>
-            <div class="row">
-                <div class="col-8">
-                    <div class="appointment-date">${formatDate(app.date)}</div>
+    if (Array.isArray(appointments)) {
+        appointments.forEach(app => {
+            const card = document.createElement('div');
+            card.className = 'appointment-card';
+            card.setAttribute('data-appointment-id', app.AppointmentID);
+            card.innerHTML = `
+                <i class="fas fa-edit edit-icon" onclick="editAppointment(${app.AppointmentID})"></i>
+                <div class="row">
+                    <div class="col-8">
+                        <div class="appointment-date">${formatDate(app.Date)}</div>
+                    </div>
+                    <div class="col-4">
+                        <div class="appointment-time">${formatTime(app.Time)}</div>
+                    </div>
                 </div>
-                <div class="col-4">
-                    <div class="appointment-time">${formatTime(app.time)}</div>
-                </div>
-            </div>
-            <div class="appointment-title">${app.title}</div>
-            <div class="appointment-location">@${app.location}</div>
-            <div class="doctor-name">${app.doctor}</div>
-            <div class="appointment-note">Note: ${app.notes}</div>
-        `;
-        container.appendChild(card);
-    });
+                <div class="appointment-title">${app.Title}</div>
+                <div class="appointment-location">@${app.Location}</div>
+                <div class="doctor-name">${app.DoctorName}</div>
+                <div class="appointment-note">Note: ${app.Notes}</div>
+            `;
+            container.appendChild(card);
+        });
+    } else {
+        Object.entries(appointments).forEach(([id, app]) => {
+            // fallback in case backend returns object instead of array
+        });
+    }
 }
 
 function addNewAppointment() {
@@ -167,59 +185,73 @@ function addNewAppointment() {
 
 async function editAppointment(id) {
     currentEditingAppointmentId = id;
-    const response = await fetch(`/api/appointments/${id}`);
-    const app = await response.json();
+    try {
+        const response = await fetch(`/api/appointments/${id}`);
+        if (!response.ok) throw new Error('Appointment not found');
 
-    document.getElementById('editAppointmentDate').value = app.date;
-    document.getElementById('editAppointmentTime').value = app.time;
-    document.getElementById('editAppointmentTitle').value = app.title;
-    document.getElementById('editAppointmentLocation').value = app.location;
-    document.getElementById('editDoctorName').value = app.doctor;
-    document.getElementById('editAppointmentNotes').value = app.notes;
+        const app = await response.json();
 
-    document.getElementById('appointmentModalLabel').textContent = 'Edit Appointment Details';
-    const modal = new bootstrap.Modal(document.getElementById('appointmentModal'));
-    modal.show();
+        document.getElementById('editAppointmentDate').value = app.Date;
+        document.getElementById('editAppointmentTime').value = app.Time;
+        document.getElementById('editAppointmentTitle').value = app.Title;
+        document.getElementById('editAppointmentLocation').value = app.Location;
+        document.getElementById('editDoctorName').value = app.DoctorName;
+        document.getElementById('editAppointmentNotes').value = app.Notes || '';
 
-    document.querySelectorAll('.appointment-card').forEach(card => card.classList.remove('selected'));
-    document.querySelector(`[data-appointment-id="${id}"]`).classList.add('selected');
+        document.getElementById('appointmentModalLabel').textContent = 'Edit Appointment Details';
+        const modal = new bootstrap.Modal(document.getElementById('appointmentModal'));
+        modal.show();
+
+        document.querySelectorAll('.appointment-card').forEach(card => card.classList.remove('selected'));
+        document.querySelector(`[data-appointment-id="${id}"]`).classList.add('selected');
+    } catch (error) {
+        console.error('Error fetching appointment:', error);
+        alert('Failed to load appointment data');
+    }
 }
 
 async function handleAppointmentFormSubmit(e) {
     e.preventDefault();
     const data = {
-        date: document.getElementById('editAppointmentDate').value,
-        time: document.getElementById('editAppointmentTime').value,
-        title: document.getElementById('editAppointmentTitle').value,
-        location: document.getElementById('editAppointmentLocation').value,
-        doctor: document.getElementById('editDoctorName').value,
-        notes: document.getElementById('editAppointmentNotes').value || 'No special instructions'
+        Date: document.getElementById('editAppointmentDate').value,
+        Time: document.getElementById('editAppointmentTime').value,
+        Title: document.getElementById('editAppointmentTitle').value,
+        Location: document.getElementById('editAppointmentLocation').value,
+        DoctorName: document.getElementById('editDoctorName').value,
+        Notes: document.getElementById('editAppointmentNotes').value || 'No special instructions'
     };
 
-    if (currentEditingAppointmentId === 'new') {
-        await fetch('/api/appointments', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data)
-        });
-    } else {
-        await fetch(`/api/appointments/${currentEditingAppointmentId}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data)
-        });
+    try {
+        let res;
+        if (currentEditingAppointmentId === 'new') {
+            res = await fetch('/api/appointments', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            if (!res.ok) throw new Error('Failed to add appointment');
+        } else {
+            res = await fetch(`/api/appointments/${currentEditingAppointmentId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            if (!res.ok) throw new Error('Failed to update appointment');
+        }
+
+        await updateAppointmentDisplay();
+
+        const modalEl = document.getElementById('appointmentModal');
+        const modal = bootstrap.Modal.getInstance(modalEl);
+        if (modal) modal.hide();
+
+        currentEditingAppointmentId = null;
+        showSaveFeedback('#appointmentForm .btn-confirm');
+    } catch (error) {
+        console.error(error);
+        alert('Error saving appointment');
     }
-
-    updateAppointmentDisplay();
-
-    const modalEl = document.getElementById('appointmentModal');
-    const modal = bootstrap.Modal.getInstance(modalEl);
-    if (modal) modal.hide();
-
-    currentEditingAppointmentId = null;
-    showSaveFeedback('#appointmentForm .btn-confirm');
 }
-
 
 // ========== UTILITIES ==========
 function toggleCheckbox(element) {
@@ -253,8 +285,6 @@ function formatTime(timeStr) {
     date.setHours(hour, minute);
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 }
-
-
 
 // ========== EVENT LISTENERS ==========
 document.getElementById('editForm').addEventListener('submit', handleMedicationFormSubmit);
