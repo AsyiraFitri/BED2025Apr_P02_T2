@@ -1,0 +1,344 @@
+:root {
+            --primary-red: #dc3545;
+            --secondary-gray: #6c757d;
+            --light-gray: #f8f9fa;
+        }
+html, body {
+    width: 100%;
+    height: 100%;
+}
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f5f5;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .navbar {
+            background-color: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .navbar-brand {
+            font-weight: bold;
+            color: var(--primary-red) !important;
+        }
+
+        .navbar-nav .nav-link {
+            color: #333 !important;
+            font-weight: 500;
+            margin: 0 10px;
+        }
+
+        .navbar-nav .nav-link:hover {
+            color: var(--primary-red) !important;
+        }
+
+        .navbar-nav .nav-link.emergency {
+            color: var(--primary-red) !important;
+            font-weight: 600;
+        }
+
+        .main-wrapper {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            min-height: calc(100vh - 76px);
+        }
+
+        .main-container {
+            width: 100%;
+            max-width: none;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            padding: 0;
+            overflow: hidden;
+        }
+
+        /* Responsive breakpoints */
+        @media (max-width: 768px) {
+            .main-wrapper {
+                padding: 10px;
+                min-height: calc(100vh - 56px);
+            }
+            
+            .navbar-nav .nav-link {
+                margin: 0 5px;
+                font-size: 0.9rem;
+            }
+            
+            .main-container {
+                border-radius: 8px;
+                box-shadow: 0 2px 15px rgba(0,0,0,0.1);
+            }
+        }
+
+        @media (max-width: 576px) {
+            .main-wrapper {
+                padding: 5px;
+                align-items: flex-start;
+                padding-top: 20px;
+            }
+            
+            .main-container {
+                border-radius: 0;
+                box-shadow: none;
+                min-height: calc(100vh - 76px);
+            }
+        }
+
+        .welcome-section {
+            padding: 30px;
+            text-align: left;
+        }
+
+        .welcome-section h1 {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .welcome-section p {
+            color: #666;
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+
+        .services-section {
+            padding: 20px 30px 30px;
+        }
+
+        /* Responsive typography and spacing */
+        @media (max-width: 768px) {
+            .welcome-section {
+                padding: 25px 20px;
+            }
+            
+            .welcome-section h1 {
+                font-size: 2rem;
+            }
+            
+            .services-section {
+                padding: 15px 20px 25px;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .welcome-section {
+                padding: 20px 15px;
+            }
+            
+            .welcome-section h1 {
+                font-size: 1.8rem;
+                margin-bottom: 15px;
+            }
+            
+            .welcome-section p {
+                font-size: 0.95rem;
+                margin-bottom: 15px;
+            }
+            
+            .services-section {
+                padding: 15px 15px 20px;
+            }
+        }
+
+        .service-card {
+            background: white;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 15px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .service-card:hover {
+            border-color: var(--primary-red);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(220, 53, 69, 0.1);
+            color: inherit;
+            text-decoration: none;
+        }
+
+        .service-icon {
+            flex-shrink: 0;
+            width: 80px;
+            height: 60px;
+            background-size: cover;
+            background-position: center;
+            border-radius: 6px;
+            margin-right: 20px;
+        }
+
+        /* Responsive service cards */
+        @media (max-width: 768px) {
+            .service-card {
+                padding: 15px;
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .service-icon {
+                margin-right: 0;
+                margin-bottom: 15px;
+                width: 70px;
+                height: 50px;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .service-card {
+                padding: 15px 10px;
+                margin-bottom: 12px;
+            }
+            
+            .service-icon {
+                width: 60px;
+                height: 45px;
+                margin-bottom: 12px;
+            }
+        }
+
+        .help-request-icon {
+            background-image: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA4MCA2MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjgwIiBoZWlnaHQ9IjYwIiByeD0iNiIgZmlsbD0iI0Y4RjlGQSIvPgo8cGF0aCBkPSJNMzAgMjVDMzAgMjEuNjg2MyAzMi42ODYzIDE5IDM2IDE5SDQ0QzQ3LjMxMzcgMTkgNTAgMjEuNjg2MyA1MCAyNUM1MCAyOC4zMTM3IDQ3LjMxMzcgMzEgNDQgMzFIMzZDMzIuNjg2MyAzMSAzMCAyOC4zMTM3IDMwIDI1WiIgZmlsbD0iIzZDNzU3RCIvPgo8cGF0aCBkPSJNMzYgMzVIODRWMzlIMzZWMzVaIiBmaWxsPSIjREVFMkU2Ii8+CjxwYXRoIGQ9Ik0zNiA0MUg3NlY0NUgzNlY0MVoiIGZpbGw9IiNERUUyRTYiLz4KPC9zdmc+');
+        }
+
+        .emergency-contact-icon {
+            background-image: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA4MCA2MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjgwIiBoZWlnaHQ9IjYwIiByeD0iNiIgZmlsbD0iI0Y4RjlGQSIvPgo8cGF0aCBkPSJNMzUgMjBDMzUgMTcuNzkwOSAzNi43OTA5IDE2IDM5IDE2SDQxQzQzLjIwOTEgMTYgNDUgMTcuNzkwOSA0NSAyMFYyMkM0NSAyNC4yMDkxIDQzLjIwOTEgMjYgNDEgMjZIMzlDMzYuNzkwOSAyNiAzNSAyNC4yMDkxIDM1IDIyVjIwWiIgZmlsbD0iIzZDNzU3RCIvPgo8cGF0aCBkPSJNMzMgMjhDMzMgMjYuODk1NCAzMy44OTU0IDI2IDM1IDI2SDQ1QzQ2LjEwNDYgMjYgNDcgMjYuODk1NCA0NyAyOFYzOEMzNyAzOSAzNyAzOCAzNyAzOEgzNVYzMkg0NVYzMEgzNVYyOFoiIGZpbGw9IiM2Qzc1N0QiLz4KPC9zdmc+');
+        }
+
+        .service-content h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .service-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .service-btn {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            color: #495057;
+            padding: 4px 12px;
+            border-radius: 4px;
+            font-size: 0.875rem;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .service-btn:hover {
+            background-color: var(--primary-red);
+            color: white;
+            text-decoration: none;
+        }
+
+        /* Responsive service content */
+        @media (max-width: 768px) {
+            .service-content h3 {
+                font-size: 1.1rem;
+                margin-bottom: 10px;
+            }
+            
+            .service-buttons {
+                justify-content: center;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .service-content h3 {
+                font-size: 1rem;
+                margin-bottom: 8px;
+            }
+            
+            .service-btn {
+                padding: 6px 10px;
+                font-size: 0.8rem;
+            }
+        }
+
+        .emergency-call-card {
+            background: linear-gradient(135deg, #dc3545, #c82333);
+            color: white;
+            border: none;
+        }
+
+        .emergency-call-card:hover {
+            background: linear-gradient(135deg, #c82333, #b21e2f);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(220, 53, 69, 0.3);
+        }
+
+        .emergency-call-icon {
+            background-color: white;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: var(--primary-red);
+        }
+
+        .emergency-call-card h3 {
+            color: white;
+            font-size: 1.5rem;
+            margin-bottom: 5px;
+        }
+
+        .emergency-call-card .service-btn {
+            background-color: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+        }
+
+        .emergency-call-card .service-btn:hover {
+            background-color: white;
+            color: var(--primary-red);
+        }
+
+        /* Responsive emergency call card */
+        @media (max-width: 768px) {
+            .emergency-call-icon {
+                width: 50px;
+                height: 50px;
+                font-size: 1.2rem;
+            }
+            
+            .emergency-call-card h3 {
+                font-size: 1.2rem;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .emergency-call-icon {
+                width: 45px;
+                height: 45px;
+                font-size: 1.1rem;
+            }
+            
+            .emergency-call-card h3 {
+                font-size: 1rem;
+            }
+        }
