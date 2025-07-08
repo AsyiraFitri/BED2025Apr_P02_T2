@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const controller = require('../controllers/community');
+const controller = require('../models/community');
 const validateGroup = require('../middlewares/validateCommunity');
 
 // Routes

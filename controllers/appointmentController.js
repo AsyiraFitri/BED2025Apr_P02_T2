@@ -1,4 +1,4 @@
-const AppointmentModel = require('../public/models/appointmentModel');
+const AppointmentModel = require('../models/appointmentModel');
 
 exports.getAppointments = async (req, res) => {
   const data = await AppointmentModel.getAll();
