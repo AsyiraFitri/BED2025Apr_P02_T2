@@ -1,51 +1,55 @@
-const express = require('express');
-const cors = require('cors');
-const bodyParser = require('body-parser');
-const sql = require('mssql');
-const path = require('path');
-require('dotenv').config();
+require("dotenv").config(); // Load environment variables from .env file
 
-const app = express();
-const PORT = process.env.PORT || 3000;
+const express = require("express");
+const sql = require("mssql");
+const path = require("path");
+const bodyParser = require("body-parser");
+const dbConfig = require("./dbConfig"); // Database configuration
+
+const app = express(); // Create the Express app
 
 // Middleware
-app.use(cors());
-app.use(bodyParser.json());
+app.use(express.json()); // For parsing JSON
+app.use(express.urlencoded({ extended: true })); // Optional: for form data
 
-// Serve frontend static files
+// Serve static files (CSS, JS, HTML)
 app.use(express.static(path.join(__dirname, 'public')));
 
+// ==========================
+// Routes by Team Members
+// ==========================
 
-// SQL Config
-const dbConfig = {
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  server: process.env.DB_SERVER,
-  database: process.env.DB_NAME,
-  options: {
-    encrypt: true,
-    trustServerCertificate: true
-  }
-};
-
-sql.connect(dbConfig)
-  .then(pool => {
-    console.log('✅ Connected to SQL Server');
-    app.locals.db = pool;
-  })
-  .catch(err => console.error('❌ DB Connection Error:', err));
-
-// API Routes
-const medicationRoutes = require('./routes/medicationRoutes');
-const appointmentRoutes = require('./routes/appointmentRoutes');
-
+// Xuan Tong Routes
+const medicationRoutes = require('./medicationRoutes');
+const appointmentRoutes = require('./appointmentRoutes');
 app.use('/api/medications', medicationRoutes);
 app.use('/api/appointments', appointmentRoutes);
 
-const hobbyRoutes = require('./routes/communityRoutes');
+// Jing Yin Routes
+const hobbyRoutes = require('./communityRoutes');
 app.use('/api/hobby-groups', hobbyRoutes);
 
+// Yiru Routes
 
+
+// Asyira Routes
+
+
+// Sandi Routes
+
+
+// ==========================
+
+// Start the server
+const PORT = 3000;
 app.listen(PORT, () => {
-  console.log(`🚀 Server listening on http://localhost:${PORT}`);
+  console.log(`Server running at http://localhost:${PORT}`);
+});
+
+// Graceful shutdown and DB cleanup
+process.on("SIGINT", async () => {
+  console.log("Server is gracefully shutting down");
+  await sql.close();
+  console.log("Database connections closed");
+  process.exit(0);
 });
