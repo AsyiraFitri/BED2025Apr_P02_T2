@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mokesell</title>
+    <link rel="stylesheet" href="style.css" type="text/css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://kit.fontawesome.com/fcf58dc318.js" crossorigin="anonymous"></script>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha256-7s5uDGW3AHqw6xtJmNNtr+OBRJUlgkNJEo78P4b0yRw= sha512-nNo+yCHEyn0smMxSswnf/OnX6/KwJuZTlNZBjauKhTK0c+zT+q5JOCx0UFhXQ6rJR9jg6Es8gPuD2uZcYDLqSw=="
+        crossorigin="anonymous">
+    <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.1/css/font-awesome.min.css" rel="stylesheet"
+        integrity="sha384-hQpvDQiCJaD2H465dQfA717v7lu5qHWtDbWNPvaTJ0ID5xnPUlVXnKzq7b8YUkbN" crossorigin="anonymous">
+    <link href="https://fedassignment2-eef5.restdb.io/assets/css/jquery.datetimepicker.min.css" rel="stylesheet">
+    <script src="js/account-placeholder.js" defer></script>
+    <script src="https://code.jquery.com/jquery-2.2.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/modernizr/2.8.3/modernizr.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"
+        integrity="sha256-KXn5puMvxCw+dAYznun+drMdG1IFl3agK0p/pqT9KAo= sha512-2e8qq0ETcfWRI4HJBzQiA3UoyFk6tbNyG+qSaIBZLyW9Xf3sWZHN/lxe9fTh1U45DpPf07yj94KsUHHWe4Yk1A=="
+        crossorigin="anonymous"></script>
+    <script src="https://fedassg-78fe.restdb.io/assets/js/jquery-serialize-object.min.js"></script>
+    <script src="https://fedassg-78fe.restdb.io/assets/js/jquery.datetimepicker.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.5.1/lodash.min.js"></script>
+    <script src="https://unpkg.com/@dotlottie/player-component@2.7.12/dist/dotlottie-player.mjs" type="module"></script>
+</head>
+
+<body>
+    <div class="loading" id="loadingscreen">
+        <dotlottie-player src="https://lottie.host/3c21a388-775a-4c30-8dfa-47d1850f72f3/2flB88VcIK.lottie"
+            background="transparent" speed="1" style="width: 300px; height: 300px" loop autoplay></dotlottie-player>
+    </div>
+    <div class="msgs">
+        <div class="nocreate" id="nocreate">You already have an account with this Email/Phone number</div>
+        <div class="nocreate" id="noaccount">Your Password/Username is incorrect or does not exist</div>
+    </div>
+    <div class="account-container">
+        <div class="account-logo">
+            <img src="images/mokesell..png" alt="">
+        </div>
+        <div class="account-form">
+            <div class="account-page active" id="signin">
+                <form action="">
+                    <div class="signin-input">
+                        <input type="email" id="signin-email" required>
+                        <label>Email</label>
+                    </div>
+                    <div class="signin-input">
+                        <input type="password" id="signin-password" required>
+                        <label>Password</label>
+                    </div>
+                    <input type="submit" value="SIGN IN" class="account-button" id="account-signin-submit">
+                    <div class="account-signup">
+                        <p>Don't have an account? <a href="#" class="signup-link" >Sign Up</a></p>
+                    </div>
+                </form>
+            </div>
+            <div class="account-page" id="signup">
+                <form id="signup-form">
+                    <div class="signup-input">
+                        <input class="form-control" id="account-username" name="Username" data-type="text" type="text"
+                            required>
+                        <label>Username</label>
+                    </div>
+                    <div class="signup-input">
+                        <input class="form-control" id="account-email" name="Email" data-type="text" type="email"
+                            required>
+                        <label>Email</label>
+                    </div>
+                    <div class="signup-input">
+                        <input class="form-control" id="account-phone" name="Phone Number" data-type="text"
+                            type="number" required>
+                        <label>Phone Number</label>
+                    </div>
+                    <div class="signup-input">
+                        <input class="form-control" id="account-password" name="Password" data-type="text"
+                            type="password" required>
+                        <label>Password</label>
+                    </div>
+                    <input type="submit" value="SIGN UP" class="account-button" id="account-signup-submit">
+                    <div class="account-signup">
+                        <p>Have an account? <a href="#" class="signin-link">Sign In</a></p>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer" id="contact-us">
+        <div class="container-fluid footer-container">
+            <div class="row footer-row">
+                <div class="col-12 col-md-3 footer-col">
+                    <h4>Customer Service</h4>
+                    <ul>
+                        <li><a href="#">help center</a></li>
+                        <li><a href="#">returns</a></li>
+                        <li><a href="#">feedback</a></li>
+                        <li><a href="#">privacy policy</a></li>
+                        <li><a href="#">contact us</a></li>
+                    </ul>
+                </div>
+                <div class="col-12 col-md-3 footer-col">
+                    <h4>Categories</h4>
+                    <ul>
+                        <li><a href="html/gallery.html?category=men">men</a></li>
+                        <li><a href="gallery.html?category=women">women</a></li>
+                        <li><a href="gallery.html?category=kids">kids</a></li>
+                        <li><a href="gallery.html?category=accessories">accessories</a></li>
+                    </ul>
+                </div>
+                <div class="col-12 col-md-3 footer-col">
+                    <h4>Payment Methods</h4>
+                    <div class="payment-icons">
+                        <i class="fa-brands fa-cc-visa"></i>
+                        <i class="fa-brands fa-cc-mastercard"></i>
+                        <i class="fa-brands fa-cc-paypal"></i>
+                    </div>
+                </div>
+                <div class="col-12 col-md-3 footer-col">
+                    <h4>Follow us</h4>
+                    <div class="social-icons">
+                        <a href="https://twitter.com"><i class="fa-brands fa-x-twitter"></i></a>
+                        <a href="https://facebook.com"><i class="fa-brands fa-facebook"></i></a>
+                        <a href="https://instagram.com"><i class="fa-brands fa-instagram"></i></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+</body>
+
+</html>

@@ -57,10 +57,31 @@ const getGroupById = async (req, res) => {
     res.status(500).json({ error: 'Internal Server Error' });
   }
 };
+const loginUser = async (req, res) => {
+  const { email, password } = req.body; // Read email and password from client
 
+  try {
+    const pool = await sql.connect(config);
+    const result = await pool.request()
+      .input('Email', sql.NVarChar(100), email)
+      .input('PasswordHash', sql.NVarChar(255), password) // assuming password is not hashed for now
+      .query('SELECT * FROM Users WHERE Email = @Email AND PasswordHash = @PasswordHash');
+
+    if (result.recordset.length === 0) {
+      return res.status(401).json({ success: false, message: 'Invalid credentials' });
+    }
+
+    const user = result.recordset[0];
+    res.json({ success: true, user }); // Send full user object back to frontend
+  } catch (error) {
+    console.error('Login DB error:', error);
+    res.status(500).json({ success: false, message: 'Internal Server Error' });
+  }
+};
 // Make sure to export all functions
 module.exports = {
   getAllGroups,
   createGroup,
-  getGroupById
+  getGroupById,
+  loginUser
 };
