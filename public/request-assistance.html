@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../public/css/emergency.css">
+    <title>Document</title>
+     <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light">
+        <div class="container">
+            <a class="navbar-brand" href="#"><i class="fas fa-heart"></i> EVERYDAY CARE</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="#navigation"><i class="fas fa-map-marker-alt"></i> Navigation</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="community.html"><i class="fas fa-users"></i> Community</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="health-dashboard.html"><i class="fas fa-heartbeat"></i> Health</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#emergency"><i class="fas fa-exclamation-triangle"></i> Emergency</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#accessibility"><i class="fas fa-universal-access"></i>
+                            Accessibility</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+            
+           
+    <!-- Main Content -->
+    <div class="main-content">
+        <button class="back-btn">
+            <i class="fas fa-arrow-left"></i>
+        </button>
+        
+        <h1 class="page-title">Request Help Assistance</h1>
+        
+        <div class="content-grid">
+            <!-- Sign Up Form -->
+            <div class="form-column">
+                <div class="form-section">
+                    <h2 class="section-title">Sign Up Form</h2>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Category</label>
+                        <select class="form-control">
+                            <option value="">Select</option>
+                            <option value="groceries">Groceries</option>
+                            <option value="medical">Medical</option>
+                            <option value="transportation">Transportation</option>
+                            <option value="companionship">Companionship</option>
+                            <option value="household">Household Tasks</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Description</label>
+                        <textarea class="form-control" rows="4" placeholder="Type here"></textarea>
+                        <small class="text-muted">e.g. I need someone to help me buy groceries this Friday</small>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Date</label>
+                        <select class="form-control">
+                            <option value="">Select Date</option>
+                            <option value="today">Today</option>
+                            <option value="tomorrow">Tomorrow</option>
+                            <option value="this-week">This Week</option>
+                            <option value="next-week">Next Week</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Time</label>
+                        <select class="form-control">
+                            <option value="">Select Time</option>
+                            <option value="morning">Morning (9AM - 12PM)</option>
+                            <option value="afternoon">Afternoon (12PM - 5PM)</option>
+                            <option value="evening">Evening (5PM - 8PM)</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button class="btn btn-secondary">Cancel</button>
+                        <button class="btn btn-primary">Save</button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- My Requests -->
+            <div class="requests-column">
+                <div class="requests-section">
+                    <h2 class="section-title">My Requests</h2>
+                    
+                    <!-- Request Item 1 -->
+                    <div class="request-item">
+                        <div class="request-header">
+                            <div>
+                                <div class="request-date">5 Jun, Thursday</div>
+                            </div>
+                            <div class="request-time">2:00PM</div>
+                        </div>
+                        <div class="request-title">Groceries</div>
+                        <div class="request-description">
+                            Requested for grocery help and to meet @Bukit Timah Plaza, 1 Jalan Anak Bukit, Singapore 588996
+                        </div>
+                        <div class="request-footer">
+                            <div>
+                                <div style="font-weight: 500; font-size: 14px; color: var(--dark-gray); margin-bottom: 4px;">Status</div>
+                                <span class="status-badge status-completed">Completed</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Request Item 2 -->
+                    <div class="request-item">
+                        <div class="request-header">
+                            <div>
+                                <div class="request-date">5 Jul, Saturday</div>
+                            </div>
+                            <div class="request-time">2:00PM</div>
+                        </div>
+                        <div class="request-title">Companionship</div>
+                        <div class="request-description">
+                            Requested for companionship for medical checkup appointment @Mount Elizabeth Novena Hospital, 38 Irrawaddy Rd, Singapore 329563
+                        </div>
+                        <div class="request-footer">
+                            <div>
+                                <div style="font-weight: 500; font-size: 14px; color: var(--dark-gray); margin-bottom: 4px;">Status</div>
+                                <span class="status-badge status-pending">Pending</span>
+                            </div>
+                            <button class="cancel-btn">Cancel</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Mobile menu toggle
+        document.querySelector('.hamburger').addEventListener('click', function() {
+            const navMenu = document.querySelector('.nav-menu');
+            navMenu.style.display = navMenu.style.display === 'flex' ? 'none' : 'flex';
+        });
+
+        // Form functionality
+        document.querySelector('.btn-primary').addEventListener('click', function(e) {
+            e.preventDefault();
+            alert('Request submitted successfully!');
+        });
+
+        // Cancel buttons
+        document.querySelectorAll('.cancel-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                if (confirm('Are you sure you want to cancel this request?')) {
+                    this.closest('.request-item').remove();
+                }
+            });
+        });
+    </script>
+</body>
+</html>
