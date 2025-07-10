@@ -23,21 +23,25 @@ function createMedicationCard(id, medication) {
     `).join('');
 
     return `
-        <div class="medication-card" data-medication-id="${id}">
-            <div class="icon-container">
-                <i class="fas fa-edit edit-icon" onclick="editMedication(${JSON.stringify(id)})"></i>
+        <div class="medication-card position-relative" data-medication-id="${id}">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+                <div class="edit-icon-container" onclick="editMedication(${JSON.stringify(id)})">
+                    <i class="fas fa-edit edit-icon me-1"></i><span> Edit</span>
+                </div>
                 <i class="fas fa-trash-alt delete-icon" onclick="deleteMedication(${JSON.stringify(id)})"></i>
             </div>
+
             <div class="medication-name">${medication.Name}</div>
             <div class="medication-dosage">
                 Take ${medication.Dosage} pill${medication.Dosage > 1 ? 's' : ''} 
                 ${medication.Frequency} time${medication.Frequency > 1 ? 's' : ''} a day
             </div>
             <div class="medication-schedule">${scheduleHTML}</div>
-            <div class="medication-note">Note: ${medication.Notes}</div>
+            <div class="medication-note">Note: ${medication.Notes || 'No special instructions'}</div>
         </div>
     `;
 }
+
 
 async function updateMedicationDisplay() {
     try {
@@ -121,7 +125,7 @@ async function handleMedicationFormSubmit(e) {
         name: document.getElementById('editMedicineName').value,
         dosage: parseInt(document.getElementById('editDosage').value, 10),
         frequency: parseInt(document.getElementById('editFrequency').value, 10),
-        notes: document.getElementById('editNotes').value || '',
+        notes: document.getElementById('editNotes').value || 'No special instructions',
         userId: 1 // Hardcoded user ID for now, replace with actual user ID from session
     };
 
@@ -140,7 +144,7 @@ async function handleMedicationFormSubmit(e) {
         showSaveFeedback('#editMedication .btn-confirm');
     } catch (error) {
         console.error('Error saving medication:', error);
-        alert('Error saving medication');   
+        alert('Error saving medication');
     }
 }
 
@@ -154,7 +158,13 @@ function showSaveFeedback(selector) {
         button.classList.remove('btn-success');
         button.textContent = 'Save';
     }, 2000);
-}   
+}
+
+// toggle checkbox state
+function toggleCheckbox(checkbox) {
+    checkbox.classList.toggle('checked');
+    checkbox.classList.toggle('unchecked');
+}
 
 document.getElementById('editMedication').addEventListener('submit', handleMedicationFormSubmit);
 document.getElementById('editMedicationModal').addEventListener('hidden.bs.modal', cancelEdit);
@@ -168,15 +178,38 @@ document.addEventListener('DOMContentLoaded', () => {
         addBtn.addEventListener('click', addNewMedication);
     }
 
-    const editMedication = document.getElementById('editMedication');
-    if (editMedication) {
-        editMedication.addEventListener('submit', handleMedicationFormSubmit);
+    const medicationForm = document.getElementById('editMedication');
+    if (medicationForm) {
+        medicationForm.addEventListener('submit', handleMedicationFormSubmit);
     }
 
-    const editModal = document.getElementById('editMedicationModal');
-    if (editModal) {
-        editModal.addEventListener('hidden.bs.modal', cancelEdit);
+    const medicationModal = document.getElementById('editMedicationModal');
+    if (medicationModal) {
+        medicationModal.addEventListener('hidden.bs.modal', () => {
+            currentEditingId = null;
+            medicationForm.reset();
+            document.querySelectorAll('.medication-card').forEach(c => c.classList.remove('selected'));
+        });
     }
+
+    const editButtons = document.querySelectorAll('.edit-icon');
+    editButtons.forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const medicationId = btn.closest('.medication-card').dataset.medicationId;
+            editMedication(medicationId);
+        });
+    });
+
+    const deleteButtons = document.querySelectorAll('.delete-icon');
+    deleteButtons.forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const medicationId = btn.closest('.medication-card').dataset.medicationId;
+            deleteMedication(medicationId);
+        });
+    });
 });
+
 
 

@@ -64,6 +64,17 @@
 }
 
 /* Cards */
+.edit-icon-container, .delete-icon {
+    font-size: 1rem;
+    margin-left: 0.5rem;
+    transition: color 0.3s ease;
+}
+
+.edit-icon-container:hover, .delete-icon:hover {
+    color: #e74c3c;
+    cursor: pointer;
+}
+
 .medication-card, .appointment-card {
     background: white;
     border-radius: 15px;
@@ -71,6 +82,11 @@
     margin-bottom: 1.5rem;
     box-shadow: 0 2px 10px rgba(0,0,0,0.05);
     border: 1px solid #dee2e6;
+    transition: border-color 0.4s ease;
+}
+
+.medication-card:hover, .appointment-card:hover {
+    border: 1.5px solid #777;
 }
 
 .medication-name {
@@ -176,4 +192,14 @@
     background: none;
     border: none;
     font-size: 1.5rem;
+}
+
+#actionToast {
+  position: fixed !important;  /* override Bootstrap's default */
+  top: 1rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1080;               /* above most content but below modals */
+  min-width: 300px;
+  max-width: 90vw;
 }
