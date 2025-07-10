@@ -29,8 +29,10 @@ app.use('/api/appointments', appointmentRoutes);
 // Jing Yin Routes
 const hobbyRoutes = require('./routes/communityRoutes');
 const authRoutes = require('./routes/authRoutes');
+const groupRoutes = require('./routes/groupRoutes');
 app.use('/api/hobby-groups', hobbyRoutes);
 app.use('/api/auth', authRoutes);
+app.use('/api/groups', groupRoutes);
 
 // Yiru Routes
 

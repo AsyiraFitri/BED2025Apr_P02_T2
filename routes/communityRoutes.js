@@ -11,5 +11,5 @@ console.log('validateGroup type:', typeof validateGroup);
 router.get('/', controller.getAllGroups);
 router.post('/', validateGroup, controller.createGroup);
 router.get('/:id', controller.getGroupById);
-
+router.post('/join', controller.joinGroup);
 module.exports = router;

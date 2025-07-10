@@ -19,7 +19,7 @@ const getAllGroups = async (req, res) => {
 };
 
 const createGroup = async (req, res) => {
-  const { groupName, groupDescription } = req.body;
+  const { groupName, groupDescription , adminId} = req.body;
 
   if (!groupName) {
     return res.status(400).json({ error: 'Group name is required' });
@@ -27,11 +27,17 @@ const createGroup = async (req, res) => {
 
   try {
     const pool = await sql.connect(config);
-    await pool.request()
+    const result = await pool.request()
       .input('GroupName', sql.NVarChar(100), groupName)
       .input('GroupDescription', sql.NVarChar(255), groupDescription || '')
-      .query('INSERT INTO HobbyGroups (GroupName, GroupDescription) VALUES (@GroupName, @GroupDescription)');
-    res.status(201).json({ message: 'Group added' });
+      .input('AdminID', sql.Int, adminId) // Assuming adminId is passed in the request body
+      .query('INSERT INTO HobbyGroups (GroupName, GroupDescription, AdminID) VALUES (@GroupName, @GroupDescription, @AdminID); SELECT SCOPE_IDENTITY() AS GroupID');
+    
+    const newGroupId = result.recordset[0].GroupID;
+    res.status(201).json({ 
+      message: 'Group added successfully', 
+      groupId: newGroupId 
+    });
   } catch (error) {
     console.error('DB Insert error:', error);
     res.status(500).json({ error: 'Internal Server Error' });
@@ -78,10 +84,29 @@ const loginUser = async (req, res) => {
     res.status(500).json({ success: false, message: 'Internal Server Error' });
   }
 };
-// Make sure to export all functions
+const joinGroup = async (req, res) => {
+  const { groupId, userId, fullName } = req.body; // Receive all needed data
+ 
+  try {
+    const pool = await sql.connect(config);
+    await pool.request()
+      .input('UserID', sql.Int, userId)
+      .input('GroupID', sql.Int, groupId)
+      .input("Name", sql.NVarChar(500), fullName)
+      .query('INSERT INTO Members (UserID, GroupID, Name) VALUES (@UserID, @GroupID, @Name)');
+
+    res.status(201).json({ message: 'Joined group successfully' });
+
+  } catch (error) {
+    console.error('Join Group error:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+};
+
 module.exports = {
   getAllGroups,
   createGroup,
   getGroupById,
-  loginUser
+  loginUser,
+  joinGroup
 };
