@@ -2,7 +2,7 @@ const appointmentModel = require('../models/appointmentModel');
 
 // GET appointments by user ID
 async function getAppointmentsByUserId(req, res) {
-  const userId = parseInt(req.params.userId, 10);
+  const userId = parseInt(req.params.userid, 10);
   if (isNaN(userId)) {
     return res.status(400).json({ error: 'Invalid user ID' });
   }
@@ -34,7 +34,16 @@ async function getAppointmentById(req, res) {
 // POST create a new appointment
 async function createAppointment(req, res) {
   try {
-    const appointment = req.body;
+    const appointment = {
+      date: req.body.Date,                         // string from frontend; converted to Date in model
+      AppointmentTime: req.body.Time,
+      Title: req.body.Title,
+      Location: req.body.Location,
+      DoctorName: req.body.DoctorName,
+      Notes: req.body.Notes || 'No special instructions',
+      UserID: 1  // hardcoded user id for now, replace with req.session.userId when auth ready
+    };
+
     await appointmentModel.createAppointment(appointment);
     res.status(201).json({ message: 'Appointment created' });
   } catch (error) {
@@ -49,7 +58,15 @@ async function updateAppointment(req, res) {
   if (isNaN(id)) return res.status(400).json({ error: 'Invalid appointment ID' });
 
   try {
-    const appointment = req.body;
+    const appointment = {
+      AppointmentDate: req.body.Date,
+      AppointmentTime: req.body.Time,
+      Title: req.body.Title,
+      Location: req.body.Location,
+      DoctorName: req.body.DoctorName,
+      Notes: req.body.Notes || 'No special instructions'
+    };
+
     await appointmentModel.updateAppointment(id, appointment);
     res.json({ message: 'Appointment updated' });
   } catch (error) {

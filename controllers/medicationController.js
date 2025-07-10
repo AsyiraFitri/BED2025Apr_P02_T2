@@ -2,7 +2,7 @@ const medicationModel = require('../models/medicationModel');
 
 // GET all medications by user ID
 async function getMedicationsByUserId(req, res) {
-  const userId = parseInt(req.params.userId, 10);
+  const userId = parseInt(req.params.userid, 10);
   if (isNaN(userId)) return res.status(400).json({ error: 'Invalid user ID' });
 
   try {
@@ -13,6 +13,31 @@ async function getMedicationsByUserId(req, res) {
     res.status(500).json({ error: 'Failed to fetch medications' });
   }
 }
+
+// use this after implementing user authentication
+// async function getMedicationsByUserId(req, res) {
+//   const userId = req.session.userId; // <-- from session
+//   if (!userId) return res.status(401).json({ error: 'Unauthorized' });
+//   try {
+//     const medications = await medicationModel.getMedicationsByUserId(userId);
+//     res.json(medications);
+//   } catch (error) {
+//     console.error(error);
+//     res.status(500).json({ error: 'Failed to fetch medications' });
+//   }
+// }  
+// async function createMedication(req, res) {
+//   const userId = req.session.userId;
+//   if (!userId) return res.status(401).json({ error: 'Unauthorized' });
+//   try {
+//     const medication = { ...req.body, UserID: userId };
+//     await medicationModel.createMedication(medication);
+//     res.status(201).json({ message: 'Medication created' });
+//   } catch (error) {
+//     console.error(error);
+//     res.status(500).json({ error: 'Failed to create medication' });
+//   }
+//   }
 
 // GET medication by medication ID
 async function getMedicationById(req, res) {

@@ -24,7 +24,7 @@ async function createMedication(med) {
     .input('dosage', sql.Int, med.dosage)
     .input('frequency', sql.Int, med.frequency)
     .input('notes', sql.NVarChar, med.notes)
-    .input('userId', sql.Int, med.userId)
+    .input('userId', sql.Int, med.userId) // Ensure UserID is passed correctly
     .query(`INSERT INTO Medications (Name, Dosage, Frequency, Notes, UserID)
             VALUES (@name, @dosage, @frequency, @notes, @userId)`);
 }
