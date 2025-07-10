@@ -30,7 +30,7 @@
                         <a class="nav-link" href="community.html"><i class="fas fa-users"></i> Community</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="health-dashboard.html"><i class="fas fa-heartbeat"></i> Health</a>
+                        <a class="nav-link" href="health.html"><i class="fas fa-heartbeat"></i> Health</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="#emergency"><i class="fas fa-exclamation-triangle"></i> Emergency</a>
@@ -66,11 +66,9 @@
                     <h2 class="dashboard-section-title">Today's Medication</h2>
                     <button class="btn add-btn" onclick="addNewMedication()">Add</button>
                 </div>
-
                 <!-- Medication Cards Container -->
-                <div id="medicationContainer">
-                    
-            </div>
+                <div id="medicationContainer"></div>
+            </div> <!-- 🟢 This closes the medication column -->
 
             <!-- Upcoming Appointments Column -->
             <div class="col-lg-6 col-md-12">
@@ -78,12 +76,11 @@
                     <h2 class="dashboard-section-title">Upcoming Appointments</h2>
                     <button class="btn add-btn" onclick="addNewAppointment()">Add</button>
                 </div>
-
                 <!-- Appointment Card -->
                 <div id="appointmentContainer"></div>
             </div>
         </div>
-    </div>
+    </div> <!-- 🟢 This closes the main content container -->
 
     <!-- Bootstrap Modal for Editing Medication -->
     <div class="modal fade" id="editMedicationModal" tabindex="-1" aria-labelledby="editMedicationModalLabel"
@@ -95,7 +92,7 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <form id="editForm">
+                    <form id="editMedication">
                         <div class="mb-3">
                             <label class="form-label">Medicine Name</label>
                             <input type="text" class="form-control" id="editMedicineName" required />
@@ -208,7 +205,8 @@
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
-    <script src="js/health-dashboard.js"></script>
+    <script src="js/medication.js"></script>
+    <script src="js/appointment.js"></script>
 
     <!-- <script
         src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB24O7f7_CZ_6Oue6mEjcvLTwmfCOofY_o&libraries=places&callback=initAutocomplete"

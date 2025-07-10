@@ -20,31 +20,41 @@ async function getAppointmentById(id) {
 async function createAppointment(app) {
   const pool = await sql.connect(dbConfig);
   await pool.request()
-    .input('date', sql.Date, app.date)
-    .input('time', sql.Time, app.time)
-    .input('title', sql.NVarChar, app.title)
-    .input('location', sql.NVarChar, app.location)
-    .input('doctor', sql.NVarChar, app.doctor)
-    .input('notes', sql.NVarChar, app.notes)
-    .input('userId', sql.Int, app.userId)
-    .query(`INSERT INTO Appointments (Date, Time, Title, Location, DoctorName, Notes, UserID)
+    .input('date', sql.Date, new Date(app.date))
+    .input('time', sql.VarChar, app.AppointmentTime)
+    .input('title', sql.NVarChar, app.Title)
+    .input('location', sql.NVarChar, app.Location)
+    .input('doctor', sql.NVarChar, app.DoctorName)
+    .input('notes', sql.NVarChar, app.Notes)
+    .input('userId', sql.Int, app.UserID) // Ensure UserID is passed correctly
+    .query(`INSERT INTO Appointments (AppointmentDate, AppointmentTime, Title, Location, DoctorName, Notes, UserID)
             VALUES (@date, @time, @title, @location, @doctor, @notes, @userId)`);
 }
 
-async function updateAppointment(id, app) {
+async function updateAppointment(id, data) {
+  console.log('Updating appointment with:', data);  // Debugging log
+
   const pool = await sql.connect(dbConfig);
   await pool.request()
     .input('id', sql.Int, id)
-    .input('date', sql.Date, app.date)
-    .input('time', sql.Time, app.time)
-    .input('title', sql.NVarChar, app.title)
-    .input('location', sql.NVarChar, app.location)
-    .input('doctor', sql.NVarChar, app.doctor)
-    .input('notes', sql.NVarChar, app.notes)
-    .query(`UPDATE Appointments SET Date = @date, Time = @time, Title = @title,
-            Location = @location, DoctorName = @doctor, Notes = @notes
+    .input('date', sql.Date, new Date(data.AppointmentDate))
+    .input('time', sql.VarChar, data.AppointmentTime)
+    .input('title', sql.NVarChar, data.Title)
+    .input('location', sql.NVarChar, data.Location)
+    .input('doctor', sql.NVarChar, data.DoctorName)
+    .input('notes', sql.NVarChar, data.Notes)
+    .input('userId', sql.Int, data.UserID) // Optional: only needed if updating user
+    .query(`UPDATE Appointments 
+            SET AppointmentDate = @date,
+                AppointmentTime = @time,
+                Title = @title,
+                Location = @location,
+                DoctorName = @doctor,
+                Notes = @notes
             WHERE AppointmentID = @id`);
 }
+
+
 
 async function deleteAppointment(id) {
   const pool = await sql.connect(dbConfig);

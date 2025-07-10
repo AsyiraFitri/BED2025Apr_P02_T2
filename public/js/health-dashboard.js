@@ -38,22 +38,35 @@ function createMedicationCard(id, medication) {
 }
 
 async function updateMedicationDisplay() {
-    const response = await fetch('/api/medications');
-    const medications = await response.json();
+    try {
+        const response = await fetch('/api/medications/user/1'); // temp: user ID 1
+        const medications = await response.json();
 
-    const container = document.getElementById('medicationContainer');
-    container.innerHTML = '';
+        console.log("Fetched medications:", medications);
 
-    if (Array.isArray(medications)) {
-        medications.forEach(med => {
-            container.innerHTML += createMedicationCard(med.MedicationID, med);
-        });
-    } else {
-        Object.entries(medications).forEach(([id, med]) => {
-            container.innerHTML += createMedicationCard(id, med);
-        });
+        const container = document.getElementById('medicationContainer');
+        container.innerHTML = '';
+
+        if (Array.isArray(medications)) {
+            // ✅ medications is an array
+            medications.forEach(med => {
+                container.innerHTML += createMedicationCard(med.MedicationID, med);
+            });
+        } else if (typeof medications === 'object' && medications !== null && medications.MedicationID) {
+            // ✅ medications is a single object
+            container.innerHTML += createMedicationCard(medications.MedicationID, medications);
+        } else {
+            // ❌ unexpected data
+            container.innerHTML = '<p class="text-danger">No medication data found.</p>';
+            console.error('Unexpected medication format:', medications);
+        }
+    } catch (error) {
+        console.error('Error fetching medications:', error);
+        const container = document.getElementById('medicationContainer');
+        container.innerHTML = '<p class="text-danger">Failed to load medications.</p>';
     }
 }
+
 
 function addNewMedication() {
     currentEditingId = 'new';
@@ -138,42 +151,74 @@ async function handleMedicationFormSubmit(e) {
 
 // ========== APPOINTMENT FUNCTIONS ==========
 async function updateAppointmentDisplay() {
-    const response = await fetch('/api/appointments');
-    const appointments = await response.json();
+    try {
+        const response = await fetch('/api/appointments/user/1'); // temp: user ID 1
+        const appointments = await response.json();
 
-    const container = document.getElementById('appointmentContainer');
-    if (!container) return;
+        console.log("Fetched appointments:", appointments);
 
-    container.innerHTML = '';
+        const container = document.getElementById('appointmentContainer');
+        if (!container) return;
 
-    if (Array.isArray(appointments)) {
-        appointments.forEach(app => {
-            const card = document.createElement('div');
-            card.className = 'appointment-card';
-            card.setAttribute('data-appointment-id', app.AppointmentID);
-            card.innerHTML = `
-                <i class="fas fa-edit edit-icon" onclick="editAppointment(${app.AppointmentID})"></i>
-                <div class="row">
-                    <div class="col-8">
-                        <div class="appointment-date">${formatDate(app.Date)}</div>
-                    </div>
-                    <div class="col-4">
-                        <div class="appointment-time">${formatTime(app.Time)}</div>
-                    </div>
-                </div>
-                <div class="appointment-title">${app.Title}</div>
-                <div class="appointment-location">@${app.Location}</div>
-                <div class="doctor-name">${app.DoctorName}</div>
-                <div class="appointment-note">Note: ${app.Notes}</div>
-            `;
-            container.appendChild(card);
-        });
-    } else {
-        Object.entries(appointments).forEach(([id, app]) => {
-            // fallback in case backend returns object instead of array
-        });
+        container.innerHTML = '';
+
+        if (Array.isArray(appointments)) {
+            // ✅ multiple appointments
+            appointments.forEach(app => {
+                container.appendChild(createAppointmentCard(app.AppointmentID, app));
+            });
+        } else if (typeof appointments === 'object' && appointments !== null && appointments.AppointmentID) {
+            // ✅ single appointment object
+            container.appendChild(createAppointmentCard(appointments.AppointmentID, appointments));
+        } else {
+            // ❌ unexpected structure
+            container.innerHTML = '<p class="text-danger">No appointment data found.</p>';
+            console.error('Unexpected appointment format:', appointments);
+        }
+    } catch (error) {
+        console.error('Error fetching appointments:', error);
+        const container = document.getElementById('appointmentContainer');
+        container.innerHTML = '<p class="text-danger">Failed to load appointments.</p>';
     }
 }
+
+function createAppointmentCard(id, appointment) {
+    const card = document.createElement('div');
+    card.className = 'appointment-card';
+    card.setAttribute('data-appointment-id', id);
+
+    card.innerHTML = `
+        <div class="icon-container">
+  <i class="fas fa-edit edit-icon" onclick="editAppointment(${id})" title="Edit"></i>
+  <i class="fas fa-trash-alt delete-icon" onclick="deleteAppointment(${id})" title="Delete"></i>
+</div>
+
+        <div class="row">
+            <div class="col-8">
+                <div class="appointment-date">${formatDate(appointment.AppointmentDate)}</div>
+            </div>
+            <div class="col-4">
+                <div class="appointment-time">${formatTime(appointment.AppointmentTime)}</div>
+            </div>
+        </div>
+        
+        <div class="appointment-title">${appointment.Title}</div>
+        
+        <div class="appointment-location">@${appointment.Location}</div>
+        
+        <div class="doctor-name">${appointment.DoctorName}</div>
+        
+        <div class="appointment-note">Note: ${appointment.Notes || 'No special instructions'}</div>
+    `;
+
+    card.addEventListener('click', () => {
+        document.querySelectorAll('.appointment-card').forEach(c => c.classList.remove('selected'));
+        card.classList.add('selected');
+    });
+
+    return card;
+}
+
 
 function addNewAppointment() {
     currentEditingAppointmentId = 'new';
@@ -191,12 +236,17 @@ async function editAppointment(id) {
 
         const app = await response.json();
 
-        document.getElementById('editAppointmentDate').value = app.Date;
-        document.getElementById('editAppointmentTime').value = app.Time;
+        const formattedDate = new Date(app.AppointmentDate).toISOString().split('T')[0];
+        document.getElementById('editAppointmentDate').value = formattedDate;
+
+        const timeString = new Date(app.AppointmentTime).toISOString().substring(11, 16);
+        document.getElementById('editAppointmentTime').value = timeString;
+
         document.getElementById('editAppointmentTitle').value = app.Title;
         document.getElementById('editAppointmentLocation').value = app.Location;
         document.getElementById('editDoctorName').value = app.DoctorName;
         document.getElementById('editAppointmentNotes').value = app.Notes || '';
+
 
         document.getElementById('appointmentModalLabel').textContent = 'Edit Appointment Details';
         const modal = new bootstrap.Modal(document.getElementById('appointmentModal'));
@@ -218,7 +268,9 @@ async function handleAppointmentFormSubmit(e) {
         Title: document.getElementById('editAppointmentTitle').value,
         Location: document.getElementById('editAppointmentLocation').value,
         DoctorName: document.getElementById('editDoctorName').value,
-        Notes: document.getElementById('editAppointmentNotes').value || 'No special instructions'
+        Notes: document.getElementById('editAppointmentNotes').value || 'No special instructions',
+
+        UserID: 1 // temp: hardcoded user ID
     };
 
     try {
@@ -228,7 +280,9 @@ async function handleAppointmentFormSubmit(e) {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(data)
+
             });
+            console.log('Adding new appointment:', data);
             if (!res.ok) throw new Error('Failed to add appointment');
         } else {
             res = await fetch(`/api/appointments/${currentEditingAppointmentId}`, {
@@ -253,6 +307,8 @@ async function handleAppointmentFormSubmit(e) {
     }
 }
 
+
+
 // ========== UTILITIES ==========
 function toggleCheckbox(element) {
     element.classList.toggle('checked');
@@ -269,22 +325,30 @@ function showSaveFeedback(selector) {
     }, 2000);
 }
 
+// Format date and time for display e.g. "Mon, 1 Jan"
 function formatDate(dateStr) {
     const options = { weekday: 'short', day: 'numeric', month: 'short' };
     const date = new Date(dateStr);
+    if (isNaN(date)) return 'Invalid Date'; // fallback for broken parsing
+
     return date.toLocaleDateString(undefined, options);
 }
 
+// Format time for display e.g. "2:30 PM"
 function formatTime(timeStr) {
-    if (!timeStr || typeof timeStr !== 'string' || !timeStr.includes(':')) {
-        return 'Invalid time'; // fallback display
-    }
+    if (!timeStr) return 'Invalid time';
 
-    const [hour, minute] = timeStr.split(':');
-    const date = new Date();
-    date.setHours(hour, minute);
-    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const date = new Date(timeStr);
+    if (isNaN(date)) return 'Invalid time';
+
+    return date.toLocaleTimeString([], {
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true // or false for 24-hour format
+    });
 }
+
+
 
 // ========== EVENT LISTENERS ==========
 document.getElementById('editForm').addEventListener('submit', handleMedicationFormSubmit);
