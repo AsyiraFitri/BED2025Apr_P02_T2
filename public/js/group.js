@@ -22,13 +22,16 @@ async function loadGroupDetails() {
       document.getElementById('saveDescBtn').classList.add('hidden');
       document.getElementById('cancelDescBtn').classList.add('hidden');
       document.getElementById('deleteCommunityBtn').classList.add('hidden');
+      document.getElementById('channelsSection').style.display = 'none';
       document.getElementById('leaveCommunityBtn').classList.remove('hidden');
-    } else {
+    } 
+    else {
       // Show admin options
       document.getElementById('editDescBtn').classList.remove('hidden');
       document.getElementById('saveDescBtn').classList.add('hidden');
       document.getElementById('cancelDescBtn').classList.add('hidden');
       document.getElementById('deleteCommunityBtn').classList.remove('hidden');
+      document.getElementById('channelsSection').style.display = 'block';
       document.getElementById('leaveCommunityBtn').classList.add('hidden');
     }
 
@@ -42,7 +45,11 @@ async function loadGroupDetails() {
     // Load member count and list
     await loadMemberCount(groupId);
     await loadMemberList(groupId);
-  } catch (err) {
+    
+    // Load channels for sidebar and settings
+    await loadChannels(groupId);
+  } 
+  catch (err) {
     document.getElementById('groupTitle').textContent = 'Error loading group.';
     console.error(err);
   }
@@ -53,11 +60,11 @@ async function loadMemberCount(groupId) {
   try {
     const res = await fetch(`/api/groups/memberCount/${groupId}`);
     if (!res.ok) throw new Error('Failed to fetch member count');
-
     const data = await res.json();
     const memberText = data.memberCount === 1 ? '1 member' : `${data.memberCount} members`;
     document.getElementById('noMembers').textContent = memberText;
-  } catch (error) {
+  } 
+  catch (error) {
     console.error('Error loading member count:', error);
     document.getElementById('noMembers').textContent = '0 members';
   }
@@ -68,7 +75,6 @@ async function loadMemberList(groupId) {
   try {
     const res = await fetch(`/api/groups/memberList/${groupId}`);
     if (!res.ok) throw new Error('Failed to fetch member list');
-
     const data = await res.json();
     const membersList = document.querySelector('.members-list');
     membersList.innerHTML = ''; // Clear list before rendering
@@ -93,17 +99,180 @@ async function loadMemberList(groupId) {
         listItem.appendChild(roleSpan);
         membersList.appendChild(listItem);
       });
-    } else {
+    } 
+    else {
       // Show message if no members
       const listItem = document.createElement('li');
       listItem.className = 'member-item';
       listItem.textContent = 'No members yet';
       membersList.appendChild(listItem);
     }
-  } catch (error) {
+  } 
+  catch (error) {
     console.error('Error loading member list:', error);
     document.querySelector('.members-list').innerHTML = '<li class="member-item">Error loading members</li>';
   }
+}
+
+// Load channels for the group
+async function loadChannels(groupId) {
+  try {
+    const res = await fetch(`/api/groups/channels/${groupId}`);
+    const channels = await res.json();
+    
+    // Define the correct order for channels
+    const channelOrder = ['announcements', 'events', 'general', 'guided-meditation', 'daily-checkin'];
+    
+    // Sort channels based on the predefined order
+    const sortedChannels = channels.sort((a, b) => {
+      const indexA = channelOrder.indexOf(a.ChannelName);
+      const indexB = channelOrder.indexOf(b.ChannelName);
+      
+      // If channel is not in predefined order, put it at the end
+      if (indexA === -1 && indexB === -1) return 0;
+      if (indexA === -1) return 1;
+      if (indexB === -1) return -1;
+      
+      return indexA - indexB;
+    });
+    
+    // Update sidebar
+    const sidebar = document.getElementById('channelsSidebar');
+    sidebar.innerHTML = '';
+    
+    if (sortedChannels.length === 0) {
+      // Show default channel if no channels exist
+      const defaultChannel = document.createElement('button');
+      defaultChannel.className = 'sidebar-item active';
+      defaultChannel.textContent = '#general';
+      sidebar.appendChild(defaultChannel);
+    } 
+    else {
+      // Display all channels with # prefix
+      sortedChannels.forEach((channel, index) => {
+        const channelButton = document.createElement('button');
+        channelButton.className = 'sidebar-item' + (index === 0 ? ' active' : '');
+        channelButton.textContent = `#${channel.ChannelName}`;
+        channelButton.onclick = (event) => selectChannel(channel.ChannelName, event);
+        sidebar.appendChild(channelButton);
+      });
+    }
+    
+    // Update channels list in settings modal
+    const channelsList = document.getElementById('channelsList');
+    if (channelsList) {
+      channelsList.innerHTML = '';
+      
+      sortedChannels.forEach(channel => {
+        const listItem = document.createElement('li');
+        listItem.className = 'channel-item';
+        listItem.innerHTML = `
+          <span>#${channel.ChannelName}</span>
+          <button class="channel-btn delete-channel-btn" onclick="deleteChannel('${channel.ChannelName}')">Delete</button>
+        `;
+        channelsList.appendChild(listItem);
+      });
+    }
+  } 
+  catch (error) {
+    console.error('Error loading channels:', error);
+    // Fallback: show default channel
+    const sidebar = document.getElementById('channelsSidebar');
+    sidebar.innerHTML = '<button class="sidebar-item active">#general</button>';
+  }
+}
+
+// Add a new channel (admin only)
+async function addChannel() {
+  const params = new URLSearchParams(window.location.search);
+  const groupId = params.get('id');
+  const channelNameInput = document.getElementById('channelNameInput');
+  const channelName = channelNameInput.value.trim();
+  
+  if (!channelName) {
+    alert('Please enter a channel name');
+    return;
+  }
+  
+  // Validate channel name
+  const channelNameRegex = /^[a-zA-Z0-9-]+$/;
+  if (!channelNameRegex.test(channelName) || channelName.length > 20) {
+    alert('Channel name must be alphanumeric (with dashes only) and max 20 characters');
+    return;
+  }
+  
+  try {
+    const response = await fetch('/api/groups/createChannel', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ groupId, channelName })
+    });
+    
+    const data = await response.json();
+    
+    if (response.ok) {
+      alert('Channel created successfully!');
+      channelNameInput.value = '';
+      // Reload channels
+      await loadChannels(groupId);
+    } 
+    else {
+      alert(data.error || 'Failed to create channel');
+    }
+  } 
+  catch (error) {
+    console.error('Error creating channel:', error);
+    alert('Error creating channel');
+  }
+}
+
+// Delete a channel (admin only)
+async function deleteChannel(channelName) {
+  const params = new URLSearchParams(window.location.search);
+  const groupId = params.get('id');
+  
+  if (!confirm(`Are you sure you want to delete the channel #${channelName}?`)) {
+    return;
+  }
+  
+  try {
+    const response = await fetch('/api/groups/deleteChannel', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ groupId, channelName })
+    });
+    
+    const data = await response.json();
+    
+    if (response.ok) {
+      alert('Channel deleted successfully!');
+      // Reload channels
+      await loadChannels(groupId);
+    } 
+    else {
+      alert(data.error || 'Failed to delete channel');
+    }
+  } 
+  catch (error) {
+    console.error('Error deleting channel:', error);
+    alert('Error deleting channel');
+  }
+}
+
+// Handle channel selection
+function selectChannel(channelName, event) {
+  // Remove active class from all sidebar items
+  document.querySelectorAll('.sidebar-item').forEach(item => {
+    item.classList.remove('active');
+  });
+  
+  // Add active class to clicked channel
+  if (event && event.target) {
+    event.target.classList.add('active');
+  }
+  
+  // Check channel contents
+  console.log(`Selected channel: ${channelName}`);
 }
 
 // Load group details when page is loaded
@@ -144,7 +313,8 @@ function saveDescription() {
   .then(response => {
     if (!response.ok) {
       alert('Failed to save description. Please try again.');
-    } else {
+    } 
+    else {
       alert('Description saved successfully!');
       document.getElementById('descriptionText').textContent = newText;
     }
@@ -176,7 +346,8 @@ function deleteCommunity() {
       if (response.ok) {
         alert('Community deleted successfully.');
         window.location.href = 'community.html'; // Redirect to community list
-      } else {
+      } 
+      else {
         alert('Failed to delete community. Please try again.');
       }
     })
@@ -202,7 +373,8 @@ function leaveCommunity() {
       if (response.ok) {
         alert('You have left the group.');
         window.location.href = 'community.html'; // Redirect to community list
-      } else {
+      } 
+      else {
         alert('Failed to leave the group. Please try again.');
       }
     })

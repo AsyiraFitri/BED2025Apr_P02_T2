@@ -14,7 +14,7 @@
     <div class="back-arrow">
       <button class="back-btn" onclick="window.location.href = 'community.html'">←</button>
     </div>
-
+    
     <!-- Group Header -->
     <div class="group-header">
       <div class="group-title-section">
@@ -30,10 +30,9 @@
     <div class="content-area">
       <!-- Sidebar -->
       <div class="sidebar">
-        <button class="sidebar-item active">#announcements</button>
-        <button class="sidebar-item">#events</button>
-        <button class="sidebar-item">#general</button>
-        <button class="sidebar-item">#ask-a-knitter</button>
+        <div id="channelsSidebar">
+          <!-- Channels will be loaded here dynamically -->
+        </div>
       </div>
 
       <!-- Main Content -->
@@ -82,36 +81,50 @@
   <!-- Settings Modal -->
   <div class="settings-modal" id="settingsModal" style="display: none;">
     <div class="settings-content">
-      <div class="settings-header">
-        <h2 class="settings-title">🧶 Knitting & Crochet Circle</h2>
-        <button class="settings-close" onclick="closeSettingsModal()">×</button>
-      </div>
-
-      <div class="description-section">
-        <div class="description-title">Group Description:</div>
-        <div class="description-text" id="descriptionText">Join fellow yarn lovers to share patterns, techniques, and handmade projects. Whether you're a beginner or an experienced crafter, everyone is welcome to stitch and socialize.</div>
-        <textarea class="description-textarea hidden" id="descriptionTextarea">Join fellow yarn lovers to share patterns, techniques, and handmade projects. Whether you're a beginner or an experienced crafter, everyone is welcome to stitch and socialize.</textarea>
-        <div class="description-actions">
-            <button class="description-btn edit-btn" id="editDescBtn" onclick="editDescription()">Edit</button>
-            <button class="description-btn save-btn hidden" id="saveDescBtn" onclick="saveDescription()">Save</button>
-            <button class="description-btn cancel-btn hidden" id="cancelDescBtn" onclick="cancelDescription()">Cancel</button>
+      <div class="settings-content-inner">
+        <div class="settings-header">
+          <h2 class="settings-title">🧶 Knitting & Crochet Circle</h2>
+          <button class="settings-close" onclick="closeSettingsModal()">×</button>
         </div>
-      </div>
-      
-      <div class="members-section">
-        <div class="members-title">Members list:</div>
-        <ul class="members-list">
-        </ul>
-      </div>
 
-      <div class="action-section" id="leaveCommunityBtn">
-        <div class="action-question">Would you like to leave the community?</div>
-        <button class="action-btn leave-btn" onclick="leaveCommunity()">Leave</button>
-      </div>
+        <div class="description-section">
+          <div class="description-title">Group Description:</div>
+          <div class="description-text" id="descriptionText">Join fellow yarn lovers to share patterns, techniques, and handmade projects. Whether you're a beginner or an experienced crafter, everyone is welcome to stitch and socialize.</div>
+          <textarea class="description-textarea hidden" id="descriptionTextarea">Join fellow yarn lovers to share patterns, techniques, and handmade projects. Whether you're a beginner or an experienced crafter, everyone is welcome to stitch and socialize.</textarea>
+          <div class="description-actions">
+              <button class="description-btn edit-btn" id="editDescBtn" onclick="editDescription()">Edit</button>
+              <button class="description-btn save-btn hidden" id="saveDescBtn" onclick="saveDescription()">Save</button>
+              <button class="description-btn cancel-btn hidden" id="cancelDescBtn" onclick="cancelDescription()">Cancel</button>
+          </div>
+        </div>
+        
+        <div class="members-section">
+          <div class="members-title">Members list:</div>
+          <ul class="members-list">
+          </ul>
+        </div>
 
-      <div class="action-section" id= "deleteCommunityBtn">
-        <div class="action-question">Would you like to delete the community?</div>
-        <button class="action-btn delete-btn"  onclick="deleteCommunity()">Delete</button>
+        <!-- Channel Management Section (Admin Only) -->
+        <div class="channels-section" id="channelsSection" style="display: none;">
+          <div class="channels-title">Manage Channels:</div>
+          <div class="add-channel-form">
+            <input type="text" id="channelNameInput" placeholder="Enter channel name" maxlength="20">
+            <button class="channel-btn add-channel-btn" onclick="addChannel()">Add Channel</button>
+          </div>
+          <ul class="channels-list" id="channelsList">
+            <!-- Channels will be loaded here -->
+          </ul>
+        </div>
+
+        <div class="action-section" id="leaveCommunityBtn">
+          <div class="action-question">Would you like to leave the community?</div>
+          <button class="action-btn leave-btn" onclick="leaveCommunity()">Leave</button>
+        </div>
+
+        <div class="action-section" id="deleteCommunityBtn">
+          <div class="action-question">Would you like to delete the community?</div>
+          <button class="action-btn delete-btn" onclick="deleteCommunity()">Delete</button>
+        </div>
       </div>
     </div>
   </div>
