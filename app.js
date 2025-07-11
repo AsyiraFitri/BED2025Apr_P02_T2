@@ -1,14 +1,23 @@
 require("dotenv").config(); // Load environment variables from .env file
 
+const cors = require('cors');
 const express = require("express");
 const sql = require("mssql");
 const path = require("path");
 const bodyParser = require("body-parser");
 const dbConfig = require("./dbConfig"); // Database configuration
 
+
+//controllers - Asyira
+const { authorizeUser } = require("./middlewares/authorizeUser");
+const placeController = require("./controllers/placeController");
+
+// Initialize app
 const app = express(); // Create the Express app
+const port = process.env.PORT || 3000;
 
 // Middleware
+app.use(cors());
 app.use(express.json()); // For parsing JSON
 app.use(express.urlencoded({ extended: true })); // Optional: for form data
 
@@ -38,6 +47,10 @@ app.use('/api/groups', groupRoutes);
 
 
 // Asyira Routes
+app.get("/places/:userId", authorizeUser, placeController.getUserPlaces);
+app.post("/places", authorizeUser, placeController.createPlace);
+app.put("/places/:placeId", authorizeUser, placeController.updatePlace);
+app.delete("/places/:placeId", authorizeUser, placeController.deletePlace);
 
 
 // Sandi Routes
