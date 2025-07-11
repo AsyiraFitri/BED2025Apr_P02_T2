@@ -1,5 +1,6 @@
 const sql = require("mssql");
 const dbConfig = require("../dbConfig");
+const geocodeAddress = require("../public/js/geoCode");
 
 // Function to check if a place is saved for a specific user
 async function checkSavedPlace(userId, placeName) {
@@ -28,8 +29,11 @@ async function getUserPlaces(userId) {
   }
 }
 
-async function createPlace(userId, placeName, address, latitude, longitude) {
+async function createPlace(userId, placeName, address) {
   try {
+    // Geocode the address to get latitude and longitude
+    const { latitude, longitude } = await geocodeAddress(address);
+
     const pool = await sql.connect(dbConfig);
     const result = await pool.request()
       .input("UserID", sql.Int, userId)
@@ -38,14 +42,18 @@ async function createPlace(userId, placeName, address, latitude, longitude) {
       .input("Latitude", sql.Float, latitude)
       .input("Longitude", sql.Float, longitude)
       .query("INSERT INTO SavedPlaces (UserID, PlaceName, Address, Latitude, Longitude) VALUES (@UserID, @PlaceName, @Address, @Latitude, @Longitude)");
+
     return result;
   } catch (error) {
     throw error;
   }
 }
 
-async function updatePlace(placeId, placeName, address, latitude, longitude) {
+async function updatePlace(placeId, placeName, address) {
   try {
+    // Geocode the address to get latitude and longitude
+    const { latitude, longitude } = await geocodeAddress(address);
+
     const pool = await sql.connect(dbConfig);
     const result = await pool.request()
       .input("PlaceID", sql.Int, placeId)
@@ -54,6 +62,7 @@ async function updatePlace(placeId, placeName, address, latitude, longitude) {
       .input("Latitude", sql.Float, latitude)
       .input("Longitude", sql.Float, longitude)
       .query("UPDATE SavedPlaces SET PlaceName = @PlaceName, Address = @Address, Latitude = @Latitude, Longitude = @Longitude WHERE PlaceID = @PlaceID");
+
     return result;
   } catch (error) {
     throw error;
@@ -66,6 +75,7 @@ async function deletePlace(placeId) {
     const result = await pool.request()
       .input("PlaceID", sql.Int, placeId)
       .query("DELETE FROM SavedPlaces WHERE PlaceID = @PlaceID");
+
     return result;
   } catch (error) {
     throw error;
