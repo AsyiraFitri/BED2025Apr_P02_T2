@@ -1,8 +1,8 @@
-/* ====== global styles ====== */
+/* ===== global styles ===== */
 body {
     margin: 0;
     font-family: Arial, sans-serif;
-    background-color: #f5f5f5;
+    background-color: #fff; /* keep the background white */
     color: #333;
 }
 
@@ -13,13 +13,13 @@ main {
     gap: 40px;
 }
 
-/* ====== left panel ====== */
+/* ===== left panel ===== */
 .left-panel {
     width: 25%;
-    border-right: 2px solid #ccc;
+    border-right: 1px solid #f1c6d8; /* soft pink border */
     padding: 20px;
     background-color: #fff;
-    border-radius: 10px;
+    border-radius: 15px;
 }
 
 .left-panel section {
@@ -45,19 +45,26 @@ main {
 
 .left-panel button {
     cursor: pointer;
-    border: none;
+    border: 1px solid #f1a3b5;
     border-radius: 20px;
     padding: 6px 16px;
 }
 
-/* ====== button styles ====== */
+/* ===== button styles ===== */
 button {
     cursor: pointer;
     border-radius: 20px;
     padding: 8px 16px;
+    background-color: #f8c7d6; /* soft pinkish */
+    color: #333;
+    border: 1px solid #f1a3b5; /* complementary pink */
 }
 
-/* ====== map & info ====== */
+button:hover {
+    background-color: #f1a3b5; /* darker complementary pink */
+}
+
+/* ===== map & info ===== */
 .map-and-info {
     padding: 10px;
     width: 75%;
@@ -76,38 +83,33 @@ button {
     font-size: 16px;
 }
 
-.route-selection input {
-    padding: 8px;
-    border: 2px solid #ccc;
-    border-radius: 20px;
-}
-
+.route-selection input,
 .route-selection select {
     padding: 8px;
-    border: 2px solid #ccc;
+    border: 1px solid #f1a3b5; /* pinkish border */
     border-radius: 20px;
     background-color: white;
     cursor: pointer;
 }
 
 #searchRoute {
-    background-color: #007bff;
-    color: white;
-    padding: 8px;
+    background-color: #f8c7d6; /* soft pinkish */
     border: none;
+    color: #333;
+    padding: 8px;
     border-radius: 20px;
     cursor: pointer;
 }
 
 #searchRoute:hover {
-    background-color: #0056b3;
+    background-color: #f1a3b5; /* darker complementary pink */
 }
 
 #map {
     position: relative;
     height: 500px;
-    background-color: #f0f0f0;
-    border: 2px solid #ccc;
+    background-color: #f9e7ed; /* soft light pink for map */
+    border: 1px solid #f1a3b5; /* complementary pink */
     text-align: center;
     display: flex;
     justify-content: center;
@@ -116,7 +118,7 @@ button {
     border-radius: 10px;
 }
 
-/* ====== info panels ====== */
+/* ===== info panels ===== */
 .info-panels {
     display: flex;
     gap: 24px;
@@ -126,8 +128,8 @@ button {
 .info-panels > div {
     flex: 1;
     min-width: 250px;
-    background-color: #fafafa;
-    border: 2px solid #ddd;
+    background-color: #fff; /* white background for info panels */
+    border: 1px solid #f1c6d8; /* soft pink border */
     border-radius: 10px;
     padding: 24px;
 }
@@ -147,30 +149,42 @@ button {
     cursor: pointer;
 }
 
-/* ====== modal styles for adding new places ====== */
+/* ===== modal styles ===== */
 .modal {
-    display: none; /* hidden by default */
+    display: none;
     position: fixed;
-    z-index: 1; /* sit on top */
+    z-index: 1;
     left: 0;
     top: 0;
     width: 100%;
     height: 100%;
-    overflow: auto; /* enable scroll if needed */
-    background-color: rgba(0, 0, 0, 0.4); /* faded background */
-    padding-top: 250px; /* position the modal */
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.4);
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 .modal-content {
     background-color: white;
     margin: auto;
-    padding: 35px;
-    border: 1px solid #888;
+    padding: 40px;
+    border: 1px solid #f1c6d8; /* soft pink border */
     width: 80%;
     max-width: 400px;
     border-radius: 20px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    text-align: left;
 }
 
+.modal-content p {
+    font-size: 18px;
+    margin-bottom: 20px;
+    color: #333;
+    font-weight: bold;
+}
+
+/* close button */
 .close-btn {
     color: #aaa;
     float: right;
@@ -186,34 +200,34 @@ button {
     cursor: pointer;
 }
 
+/* form control */
 .form-control {
     width: 100%;
     padding: 10px;
     margin-bottom: 10px;
-    border-radius: 5px;
-    border: 1px solid #ccc;
+    border-radius: 20px;
+    border: 1px solid #f1a3b5; /* pinkish border */
 }
 
+/* save button */
 .save-btn {
-    background-color: #28a745;
-    color: white;
-    padding: 10px;
+    background-color: #f8c7d6; /* soft pinkish */
+    color: #333;
     border: none;
-    border-radius: 5px;
     cursor: pointer;
 }
 
 .save-btn:hover {
-    background-color: #218838;
+    background-color: #f1a3b5; /* darker complementary pink */
 }
 
-/* ====== add new place styles ====== */
+/* ===== add new place styles ===== */
 #placeName,
 #address {
     width: 100%;
     padding: 8px;
     margin-bottom: 16px;
-    border: 2px solid #ccc;
+    border: 1px solid #f1a3b5; /* pinkish border */
     border-radius: 20px;
 }
 
@@ -223,43 +237,113 @@ button {
 
 #addPlaceBtn {
     font-size: 14px;
-    background-color: #28a745;
+    background-color: #f8c7d6; /* soft pinkish */
     border-radius: 20px;
     padding: 6px 16px;
 }
 
 #addPlaceBtn:hover {
-    background-color: #218838;
+    background-color: #f1a3b5; /* darker complementary pink */
 }
 
 .edit-btn {
     font-size: 14px;
-    background-color: #eee;
-    border: 2px solid #ddd;
+    background-color: #f0f0f0; /* light gray */
+    border: 1px solid #f1a3b5; 
     border-radius: 20px;
     padding: 6px 16px;
 }
 
 .edit-btn:hover {
-    background-color: #ddd;
+    background-color: #e0e0e0; /* slightly darker gray */
     border-color: #ccc;
 }
 
-/* ====== button styles for delete/edit places ====== */
+/* ===== button styles for delete/edit places ===== */
 .deletePlaceBtn,
 .editPlaceBtn {
     padding: 6px 16px;
     border-radius: 20px;
-    border: 2px solid #ddd;
-    background-color: #f8f9fa;
+    border: none; /* soft pink border */
+    background-color: #fff; /* white background */
     cursor: pointer;
 }
 
 .deletePlaceBtn:hover {
-    background-color: #e03131;
+    background-color: #e03131; /* red */
     color: white;
 }
 
 .editPlaceBtn:hover {
-    background-color: #ffc107;
+    background-color: #ffcf55; /* light yellow */
+}
+
+/* modal button styles */
+.modal-content button {
+    width: 100%;
+    padding: 10px;
+    margin: 10px 0;
+    border: none;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s ease;
+}
+
+/* specific button styles for modal */
+#addToFromBtn {
+    background-color: #A8DADC; /* soft blue */
+    color: #333;
+}
+
+#addToToBtn {
+    background-color: #81C784; /* soft green */
+    color: white;
+}
+
+#cancelAddBtn {
+    background-color: #FF6F61; /* coral red */
+    color: white;
+}
+
+/* button hover effects */
+#addToFromBtn:hover {
+    background-color: #7A9DAE; /* darker blue */
+}
+
+#addToToBtn:hover {
+    background-color: #66BB6A; /* darker green */
+}
+
+#cancelAddBtn:hover {
+    background-color: #FF4C3B; /* darker coral */
+}
+
+/* ensure modal content text is styled properly */
+.custom-modal:hover {
+    cursor: pointer;
+}
+
+/* disable clicking on modal content when clicking outside */
+.modal:hover {
+    cursor: pointer;
+}
+
+.modal .modal-content {
+    pointer-events: auto;
+}
+
+#addPlaceModal {
+    display: none;  /* ensure modal is hidden on load */
+}
+
+
+/* ===== saved places list item hover effect ===== */
+#savedPlacesList li {
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+#savedPlacesList li:hover {
+    background-color: #f1c6d8; /* soft pinkish background */
+    cursor: pointer;
 }

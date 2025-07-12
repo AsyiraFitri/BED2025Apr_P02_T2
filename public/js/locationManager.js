@@ -1,5 +1,5 @@
 document.addEventListener("DOMContentLoaded", () => {
-  const userId = 1; // replace with dynamic user ID
+  const userId = 1; // user id (replace with dynamic user ID)
   const apiBaseUrl = "http://localhost:3000";
 
   const savedPlacesList = document.getElementById("savedPlacesList");
@@ -8,7 +8,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const savePlaceBtn = document.getElementById("savePlaceBtn");
 
   let showEditButtons = false;
-  let currentEditPlaceId = null; // track editing mode
+  let currentEditPlaceId = null; // track the place being edited
 
   // load saved places from backend
   async function loadSavedPlaces() {
@@ -37,34 +37,79 @@ document.addEventListener("DOMContentLoaded", () => {
         ` : ""}
       `;
 
+      li.addEventListener("click", () => promptAddPlace(place));
+
       savedPlacesList.appendChild(li);
-    });
 
-    attachButtonListeners();
-  }
-
-  // attach event listeners to edit and delete buttons (only those with data-place-id)
-  function attachButtonListeners() {
-    document.querySelectorAll(".delete-btn").forEach((button) => {
-      button.addEventListener("click", function () {
-        const placeId = this.getAttribute("data-place-id");
-        if (confirm("are you sure you want to delete this place?")) {
-          deletePlace(placeId);
-        }
-      });
-    });
-
-    document.querySelectorAll(".edit-btn").forEach((button) => {
-      // only add confirmation if button has data-place-id (exclude any other edit buttons)
-      if (button.hasAttribute("data-place-id")) {
-        button.addEventListener("click", function () {
+      const editButton = li.querySelector(".edit-btn");
+      if (editButton) {
+        editButton.addEventListener("click", function (event) {
+          event.stopPropagation(); // prevent li click event
           const placeId = this.getAttribute("data-place-id");
           if (confirm("do you want to edit this place?")) {
             editPlace(placeId);
           }
         });
       }
+
+      const deleteButton = li.querySelector(".delete-btn");
+      if (deleteButton) {
+        deleteButton.addEventListener("click", function (event) {
+          event.stopPropagation(); // prevent li click event
+          const placeId = this.getAttribute("data-place-id");
+          if (confirm("are you sure you want to delete this place?")) {
+            deletePlace(placeId);
+          }
+        });
+      }
     });
+  }
+
+  // custom modal to prompt user to add place to "from" or "to"
+  function promptAddPlace(place) {
+    // create custom modal with buttons for from and to
+    const modal = document.createElement("div");
+    modal.classList.add("modal");
+    modal.innerHTML = `
+      <div class="modal-content">
+        <p>Do you want to add "${place.PlaceName}" to your route?<br>
+            if NO, click <strong>Cancel</strong><br>
+            if YES, click <strong>From</strong> and/or <strong>To</strong> to add location.
+        </p>
+
+        <button class="btn btn-primary" id="addToFromBtn">From</button>
+        <button class="btn btn-secondary" id="addToToBtn">To</button>
+        <button class="btn btn-danger" id="cancelAddBtn">Cancel</button>
+      </div>
+    `;
+
+    // append modal to body
+    document.body.appendChild(modal);
+
+    // add event listeners for buttons
+    const addToFromBtn = modal.querySelector("#addToFromBtn");
+    const addToToBtn = modal.querySelector("#addToToBtn");
+    const cancelAddBtn = modal.querySelector("#cancelAddBtn");
+
+    addToFromBtn.addEventListener("click", () => {
+      document.getElementById("fromSelect").value = place.Address;
+      closeCustomModal(modal);
+    });
+
+    addToToBtn.addEventListener("click", () => {
+      document.getElementById("toSelect").value = place.Address;
+      closeCustomModal(modal);
+    });
+
+    cancelAddBtn.addEventListener("click", () => {
+      closeCustomModal(modal);
+    });
+  }
+
+  // close and remove custom modal
+  function closeCustomModal(modal) {
+    modal.style.display = "none";
+    document.body.removeChild(modal);
   }
 
   // add a new place after confirmation and validation
@@ -111,7 +156,8 @@ document.addEventListener("DOMContentLoaded", () => {
           document.getElementById("placeName").value = place.PlaceName;
           document.getElementById("address").value = place.Address;
           currentEditPlaceId = place.PlaceID;
-          savePlaceBtn.textContent = "Update Place";
+          document.querySelector("#addPlaceModal h3").textContent = "update place";
+          savePlaceBtn.textContent = "update place";
           addPlaceModal.style.display = "block";
         }
       })
@@ -201,11 +247,11 @@ document.addEventListener("DOMContentLoaded", () => {
   // toggle visibility of edit/delete buttons next to each place
   const editPlacesBtn = document.getElementById("editPlacesBtn");
   editPlacesBtn.addEventListener("click", () => {
-    showEditButtons = !showEditButtons; // toggle boolean flag
-    editPlacesBtn.textContent = showEditButtons ? "Done" : "Edit"; // update toggle button text
+    showEditButtons = !showEditButtons; // toggle visibility
+    editPlacesBtn.textContent = showEditButtons ? "Done" : "Edit"; // update button text
     loadSavedPlaces();
   });
 
-  // initial load of saved places on page ready
+  // initial load of saved places
   loadSavedPlaces();
 });
