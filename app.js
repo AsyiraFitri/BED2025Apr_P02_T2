@@ -45,7 +45,9 @@ app.use('/api/groups', groupRoutes);
 
 // Yiru Routes
 const friendRoutes = require('./routes/friendRoutes');
+const messageRoutes = require('./routes/messageRoutes');
 app.use('/api/friends', friendRoutes);
+app.use('/api/messages', messageRoutes);
 
 // Asyira Routes
 app.get("/places/:userId", authorizeUser, placeController.getUserPlaces);
