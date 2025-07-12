@@ -8,10 +8,13 @@ async function updateAppointmentDisplay() {
 
         const container = document.getElementById('appointmentContainer');
         container.innerHTML = '';
+        
 
         if (Array.isArray(appointments)) {
             appointments.forEach(app => {
                 const card = createAppointmentCard(app.AppointmentID, app);
+                console.log('Raw AppointmentTime from API:', app.AppointmentTime);
+
                 container.appendChild(card);
                 attachCardEventListeners(card);
             });
@@ -31,6 +34,7 @@ function createAppointmentCard(id, appointment) {
     const card = document.createElement('div');
     card.className = 'appointment-card';
     card.dataset.appointmentId = id;
+    
 
     card.innerHTML = `
         <div class="d-flex justify-content-between align-items-start mb-2">
@@ -97,7 +101,7 @@ async function editAppointment(id) {
         const app = await res.json();
 
         document.getElementById('editAppointmentDate').value = new Date(app.AppointmentDate).toISOString().split('T')[0];
-        document.getElementById('editAppointmentTime').value = new Date(app.AppointmentTime).toISOString().substring(11, 16);
+        document.getElementById('editAppointmentTime').value = app.AppointmentTime.slice(0, 5);
         document.getElementById('editAppointmentTitle').value = app.Title;
         document.getElementById('editAppointmentLocation').value = app.Location;
         document.getElementById('editDoctorName').value = app.DoctorName;
@@ -187,6 +191,14 @@ function formatDate(dateStr) {
     return date.toLocaleDateString(undefined, options);
 }
 
+function extractTimeFromUTC(dateTimeString) {
+    const dateObj = new Date(dateTimeString);
+    const localHour = String(dateObj.getHours()).padStart(2, '0');
+    const localMinute = String(dateObj.getMinutes()).padStart(2, '0');
+    return `${localHour}:${localMinute}`;
+}
+
+
 function showToast(message) {
     const toastEl = document.getElementById('actionToast');
     const toastMsg = document.getElementById('toastMessage');
@@ -199,15 +211,16 @@ function showToast(message) {
 function formatTime(timeStr) {
     if (!timeStr) return 'Invalid time';
 
-    const date = new Date(timeStr);
-    if (isNaN(date)) return 'Invalid time';
+    const [hour, minute] = timeStr.split(':');
+    const h = parseInt(hour);
+    const m = minute.padStart(2, '0'); 
 
-    return date.toLocaleTimeString([], {
-        hour: '2-digit',
-        minute: '2-digit',
-        hour12: true
-    });
+    const isPM = h >= 12;
+    const displayHour = h % 12 === 0 ? 12 : h % 12;
+
+    return `${displayHour}:${m} ${isPM ? 'PM' : 'AM'}`;
 }
+
 
 function showSaveFeedback(selector) {
     const button = document.querySelector(selector);
