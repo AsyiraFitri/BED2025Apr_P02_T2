@@ -5,28 +5,41 @@ let directionsRenderer;
 
 // This function initializes the Google Map
 function initMap() {
-  // Create a map centered at a default location (latitude, longitude)
+  // Center map in Singapore
   map = new google.maps.Map(document.getElementById('map'), {
-    center: { lat: 1.3521, lng: 103.8198 },  // Example: Singapore coordinates
+    center: { lat: 1.3521, lng: 103.8198 },
     zoom: 12,
   });
 
-  // Initialize geocoder, directions service and renderer for route display
+  // Initialize services
   geocoder = new google.maps.Geocoder();
   directionsService = new google.maps.DirectionsService();
   directionsRenderer = new google.maps.DirectionsRenderer({
-    map: map,  // This tells the renderer to display the route on this map
-    panel: document.getElementById('directionsPanel') // Optional: If you want a directions panel
+    map: map,
+    panel: document.getElementById('directionsPanel'),
   });
 
-  // Add event listener to handle route search
+  // Get input fields
+  const fromInput = document.getElementById('fromSelect');
+  const toInput = document.getElementById('toSelect');
+
+  // Autocomplete restricted to Singapore (SG)
+  const fromAutocomplete = new google.maps.places.Autocomplete(fromInput);
+  fromAutocomplete.setComponentRestrictions({ country: ['SG'] });
+
+  const toAutocomplete = new google.maps.places.Autocomplete(toInput);
+  toAutocomplete.setComponentRestrictions({ country: ['SG'] });
+
+  // Search button event
   document.getElementById('searchRoute').addEventListener('click', searchRoute);
 }
+
 
 // Function to search for a route between 'From' and 'To'
 function searchRoute() {
   const fromLocation = document.getElementById('fromSelect').value;
   const toLocation = document.getElementById('toSelect').value;
+  const selectedMode = document.getElementById('travelMode').value;
 
   if (fromLocation && toLocation) {
     // Use geocoder to get Lat/Lng for from and to locations
@@ -42,7 +55,7 @@ function searchRoute() {
             const request = {
               origin: fromLatLng,
               destination: toLatLng,
-              travelMode: google.maps.TravelMode.DRIVING,
+              travelMode: google.maps.TravelMode[selectedMode],
             };
 
             directionsService.route(request, (response, status) => {

@@ -1,5 +1,6 @@
 const placeModel = require("../models/placeModel");
 
+// function to get all the places saved by a specific user
 async function getUserPlaces(req, res) {
   try {
     const userId = parseInt(req.params.userId);
@@ -10,6 +11,7 @@ async function getUserPlaces(req, res) {
   }
 }
 
+// function to create and save a new place for a user
 async function createPlace(req, res) {
   try {
     const { userId, placeName, address, latitude, longitude } = req.body;
@@ -20,6 +22,7 @@ async function createPlace(req, res) {
   }
 }
 
+// function to update an existing saved place for a user
 async function updatePlace(req, res) {
   try {
     const placeId = parseInt(req.params.placeId);
@@ -31,6 +34,7 @@ async function updatePlace(req, res) {
   }
 }
 
+// function to delete a specific saved place for a user
 async function deletePlace(req, res) {
   try {
     const placeId = parseInt(req.params.placeId);

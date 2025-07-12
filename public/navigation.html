@@ -1,112 +1,116 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Everyday Care - Navigation Dashboard</title>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="css/navigation.css">
-  </head>
+</head>
+
 <body>
-  <!-- Navigation -->
-    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
-        <div class="container d-flex justify-content-between align-items-center">
-            <a class="navbar-brand logo-container d-flex align-items-center" href="index.html">
-                <img src="images/logo.jpg" alt="logo" class="logo-image" />
-            </a>
-            <button class="navbar-toggler ms-auto" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
-                    <li class="nav-item">
-                        <a class="nav-link" href="#navigation"><i class="fas fa-map-marker-alt"></i> Navigation</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="community.html"><i class="fas fa-users"></i> Community</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="health.html"><i class="fas fa-heartbeat"></i> Health</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#emergency"><i class="fas fa-exclamation-triangle"></i> Emergency</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#accessibility"><i class="fas fa-universal-access"></i>
-                            Accessibility</a>
-                    </li>
-                </ul>
-            </div>
-        </div>
-    </nav>
+  <!-- navigation -->
+  <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
+    <div class="container d-flex justify-content-between align-items-center">
+      <a class="navbar-brand logo-container d-flex align-items-center" href="index.html">
+        <img src="images/logo.jpg" alt="logo" class="logo-image" />
+      </a>
+      <button class="navbar-toggler ms-auto" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav ms-auto">
+          <li class="nav-item">
+            <a class="nav-link" href="navigation.html"><i class="fas fa-map-marker-alt"></i> Navigation</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="community.html"><i class="fas fa-users"></i> Community</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="health.html"><i class="fas fa-heartbeat"></i> Health</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="#emergency"><i class="fas fa-exclamation-triangle"></i> Emergency</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="#accessibility"><i class="fas fa-universal-access"></i> Accessibility</a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
   <main>
-    <!-- Left Panel -->
+    <!-- left panel -->
     <aside class="left-panel">
-      <!-- Saved Routes -->
+      <!-- saved routes -->
       <section class="saved-routes">
         <h3>My Saved Routes <button class="edit-btn">Edit</button></h3>
         <ul id="savedRoutesList">
-          <!-- Saved routes will be dynamically inserted here -->
+          <!-- saved routes dynamically inserted here -->
         </ul>
       </section>
 
-      <!-- My Places -->
+      <!-- my places -->
       <section class="my-places">
-        <h3>My Places 
-          <button id="editPlacesBtn" class="edit-btn">Edit</button>
-          <button id="addPlaceBtn" class="add-btn" style="display: none;">Add</button>
+        <h3>My Places
+          <div id="myPlacesBtn">
+            <button id="addPlaceBtn" class="add-btn">Add</button>
+            <button id="editPlacesBtn" class="edit-btn">Edit</button>
+          </div>
         </h3>
         <ul id="savedPlacesList">
-          <!-- Saved places will be dynamically inserted here -->
+          <!-- saved places dynamically inserted here -->
         </ul>
       </section>
 
-
-      <!-- Form for Adding New Places -->
-      <section id="addPlaceSection" style="display: none;">
-        <h3>Add New Place</h3>
-        <input type="text" id="placeName" placeholder="Place Name" />
-        <input type="text" id="address" placeholder="Address" />
-        <button id="getCoordinatesBtn">Get Coordinates</button>
-
-        <!-- Display Coordinates -->
-        <div id="coordinatesDisplay" style="display:none;">
-          <p>Latitude: <span id="latitude"></span></p>
-          <p>Longitude: <span id="longitude"></span></p>
+      <!-- modal for adding new place -->
+      <div id="addPlaceModal" class="modal">
+        <div class="modal-content">
+          <span class="close-btn">&times;</span>
+          <h3>Add New Place</h3>
+          <input type="text" id="placeName" class="form-control" placeholder="Place Name" />
+          <input type="text" id="address" class="form-control" placeholder="Address" />
+          <button id="savePlaceBtn" class="save-btn">Save Place</button>
         </div>
+      </div>
 
-        <input type="text" id="latitude" placeholder="Latitude" readonly />
-        <input type="text" id="longitude" placeholder="Longitude" readonly />
-        <button id="addPlaceBtn">Add Place</button>
-      </section>
-
-      <!-- Nearby Services -->
+      <!-- nearby services -->
       <section class="nearby-services">
         <h3>Nearby Services</h3>
-        
+        <!-- services content here -->
       </section>
     </aside>
 
-    <!-- Main Map & Info -->
+    <!-- main map & info -->
     <section class="map-and-info">
       <div class="route-selection">
         <label for="fromSelect">From:</label>
-        <input type="text" id="fromSelect" placeholder="Enter from location">
+        <input type="text" id="fromSelect" placeholder="Enter from location" />
 
         <label for="toSelect">To:</label>
-        <input type="text" id="toSelect" placeholder="Enter to location">
+        <input type="text" id="toSelect" placeholder="Enter to location" />
+
+        <label for="travelMode">Travel Mode:</label>
+        <select id="travelMode">
+          <option value="TRANSIT">MRT / BUS</option>
+          <option value="WALKING">Walking</option>
+          <option value="DRIVING">Driving</option>
+          <option value="BICYCLING">Bicycling</option>
+        </select>
 
         <button id="searchRoute">Search Route</button>
       </div>
 
-      <!-- Map -->
+      <!-- map -->
       <div id="map">
-        <!-- Map will be shown -->
+        <!-- map will be shown here -->
       </div>
 
-      <!-- Info Panels -->
+      <!-- info panels -->
       <div class="info-panels">
         <div class="step-guide">
           <h4>Step-by-step Guide <span class="bookmark">🔖</span></h4>
@@ -118,8 +122,12 @@
       </div>
     </section>
   </main>
+
   <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
   <script src="js/navigation.js"></script>
+  <script src="js/locationManager.js"></script>
+
   <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA8x9IAovxWerTpmCphVaD73fHHItmGOfg&libraries=places&callback=initMap"></script>
 </body>
+
 </html>
