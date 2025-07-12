@@ -26,17 +26,22 @@ class GroupModel {
             const transaction = new sql.Transaction(pool); // Start transaction
             await transaction.begin(); // Begin transaction
             try {
-                // Step 1: Delete all members in the group
+                // Step 1: Delete all channels in the group (if Channels table exists)
+                await transaction.request()
+                    .input('GroupID', sql.Int, groupId)
+                    .query('DELETE FROM Channels WHERE GroupID = @GroupID');
+
+                // Step 2: Delete all members in the group
                 await transaction.request()
                     .input('GroupID', sql.Int, groupId)
                     .query('DELETE FROM Members WHERE GroupID = @GroupID');
 
-                // Step 2: Delete the group itself
+                // Step 3: Delete the group itself
                 await transaction.request()
                     .input('GroupID', sql.Int, groupId)
                     .query('DELETE FROM HobbyGroups WHERE GroupID = @GroupID');
 
-                // Commit changes if both deletions succeed
+                // Commit changes if all deletions succeed
                 await transaction.commit();
                 return true;
             } 
