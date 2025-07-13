@@ -7,13 +7,13 @@ const dbConfig = require("../dbConfig");
 async function getAppointmentsByUserId(userId) {
   let connection;
   try {
-    connection = await sql.connect(dbConfig);
-    const query = "SELECT * FROM Appointments WHERE UserID = @userId";
+    connection = await sql.connect(dbConfig); // Connect to the database
+    const query = "SELECT * FROM Appointments WHERE UserID = @userId"; // parameterized query
     const request = connection.request();
-    request.input("userId", sql.Int, userId);
+    request.input("userId", sql.Int, userId); // bind userId parameter
     const result = await request.query(query);
 
-    // Format time (remove date portion)
+    // Format time for frontend (remove date portion)
     result.recordset.forEach(app => {
       if (app.AppointmentTime) {
         const t = new Date(app.AppointmentTime);
