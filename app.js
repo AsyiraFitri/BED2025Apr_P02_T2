@@ -1,12 +1,12 @@
-require("dotenv").config(); // Load environment variables from .env file
-
 const cors = require('cors');
 const express = require("express");
 const sql = require("mssql");
 const path = require("path");
 const bodyParser = require("body-parser");
 const dbConfig = require("./dbConfig"); // Database configuration
-
+const dotenv = require("dotenv");
+require("dotenv").config(); // Load environment variables from .env file
+dotenv.config();
 
 //controllers - Asyira
 const { authorizeUser } = require("./middlewares/authorizeUser");
@@ -58,6 +58,7 @@ app.delete("/places/:placeId", authorizeUser, placeController.deletePlace);
 
 // Sandi Routes
 
+app.use('/api/auth', authRoutes);
 
 // ==========================
 
