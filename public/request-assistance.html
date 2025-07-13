@@ -171,6 +171,20 @@
                 }
             });
         });
+        async function fetchRequests() {
+  try {
+    const res = await fetch('http://localhost:3000/api/requests');
+    const data = await res.json();
+
+    console.log('Requests:', data);
+
+    // Here you would render them on your page
+    renderRequests(data);
+  } catch (error) {
+    console.error('Error fetching requests:', error);
+  }
+}
+
     </script>
 </body>
 </html>
