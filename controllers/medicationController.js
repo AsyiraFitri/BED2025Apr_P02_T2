@@ -1,97 +1,96 @@
-const medicationModel = require('../models/medicationModel');
+const medicationModel = require("../models/medicationModel");
 
-// GET all medications by user ID
+// Get medications by user ID
 async function getMedicationsByUserId(req, res) {
-  const userId = parseInt(req.params.userid, 10);
-  if (isNaN(userId)) return res.status(400).json({ error: 'Invalid user ID' });
-
   try {
+    const userId = parseInt(req.params.userid);
+    if (isNaN(userId)) {
+      return res.status(400).json({ error: "Invalid user ID" });
+    }
+
     const medications = await medicationModel.getMedicationsByUserId(userId);
     res.json(medications);
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: 'Failed to fetch medications' });
+    console.error("Controller error (getMedicationsByUserId):", error);
+    res.status(500).json({ error: "Failed to fetch medications" });
   }
 }
 
-// use this after implementing user authentication
-// async function getMedicationsByUserId(req, res) {
-//   const userId = req.session.userId; // <-- from session
-//   if (!userId) return res.status(401).json({ error: 'Unauthorized' });
-//   try {
-//     const medications = await medicationModel.getMedicationsByUserId(userId);
-//     res.json(medications);
-//   } catch (error) {
-//     console.error(error);
-//     res.status(500).json({ error: 'Failed to fetch medications' });
-//   }
-// }  
-// async function createMedication(req, res) {
-//   const userId = req.session.userId;
-//   if (!userId) return res.status(401).json({ error: 'Unauthorized' });
-//   try {
-//     const medication = { ...req.body, UserID: userId };
-//     await medicationModel.createMedication(medication);
-//     res.status(201).json({ message: 'Medication created' });
-//   } catch (error) {
-//     console.error(error);
-//     res.status(500).json({ error: 'Failed to create medication' });
-//   }
-//   }
-
-// GET medication by medication ID
+// Get one medication by ID
 async function getMedicationById(req, res) {
-  const id = parseInt(req.params.id, 10);
-  if (isNaN(id)) return res.status(400).json({ error: 'Invalid medication ID' });
-
   try {
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) {
+      return res.status(400).json({ error: "Invalid medication ID" });
+    }
+
     const medication = await medicationModel.getMedicationById(id);
-    if (!medication) return res.status(404).json({ error: 'Medication not found' });
+    if (!medication) {
+      return res.status(404).json({ error: "Medication not found" });
+    }
+
     res.json(medication);
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: 'Failed to fetch medication' });
+    console.error("Controller error (getMedicationById):", error);
+    res.status(500).json({ error: "Failed to fetch medication" });
   }
 }
 
-// POST create new medication
+// Create medication
 async function createMedication(req, res) {
   try {
-    const medication = req.body;
-    await medicationModel.createMedication(medication);
-    res.status(201).json({ message: 'Medication created' });
+    const med = {
+      Name: req.body.Name,
+      Dosage: parseInt(req.body.Dosage),
+      Frequency: parseInt(req.body.Frequency),
+      Notes: req.body.Notes || "No special instructions",
+      UserID: 1 // Replace with req.user.userID if using JWT
+    };
+
+    await medicationModel.createMedication(med);
+    res.status(201).json({ message: "Medication created successfully" });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: 'Failed to create medication' });
+    console.error("Controller error (createMedication):", error);
+    res.status(500).json({ error: "Failed to create medication" });
   }
 }
 
-// PUT update medication by medication ID
+// Update medication
 async function updateMedication(req, res) {
-  const id = parseInt(req.params.id, 10);
-  if (isNaN(id)) return res.status(400).json({ error: 'Invalid medication ID' });
-
   try {
-    const medication = req.body;
-    await medicationModel.updateMedication(id, medication);
-    res.json({ message: 'Medication updated' });
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) {
+      return res.status(400).json({ error: "Invalid medication ID" });
+    }
+
+    const med = {
+      Name: req.body.Name,
+      Dosage: parseInt(req.body.Dosage),
+      Frequency: parseInt(req.body.Frequency),
+      Notes: req.body.Notes || "No special instructions"
+    };
+
+    await medicationModel.updateMedication(id, med);
+    res.json({ message: "Medication updated successfully" });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: 'Failed to update medication' });
+    console.error("Controller error (updateMedication):", error);
+    res.status(500).json({ error: "Failed to update medication" });
   }
 }
 
-// DELETE medication by medication ID
+// Delete medication
 async function deleteMedication(req, res) {
-  const id = parseInt(req.params.id, 10);
-  if (isNaN(id)) return res.status(400).json({ error: 'Invalid medication ID' });
-
   try {
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) {
+      return res.status(400).json({ error: "Invalid medication ID" });
+    }
+
     await medicationModel.deleteMedication(id);
-    res.json({ message: 'Medication deleted' });
+    res.json({ message: "Medication deleted successfully" });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: 'Failed to delete medication' });
+    console.error("Controller error (deleteMedication):", error);
+    res.status(500).json({ error: "Failed to delete medication" });
   }
 }
 

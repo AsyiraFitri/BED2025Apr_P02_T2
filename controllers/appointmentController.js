@@ -43,8 +43,8 @@ async function getAppointmentById(req, res) {
 async function createAppointment(req, res) {
   try {
     const appointment = {
-      date: req.body.Date,
-      AppointmentTime: req.body.Time,
+      date: req.body.AppointmentDate,
+      AppointmentTime: req.body.AppointmentTime,
       Title: req.body.Title,
       Location: req.body.Location,
       DoctorName: req.body.DoctorName,
@@ -70,8 +70,8 @@ async function updateAppointment(req, res) {
     }
 
     const appointment = {
-      AppointmentDate: req.body.Date,
-      AppointmentTime: req.body.Time,
+      AppointmentDate: req.body.AppointmentDate,
+      AppointmentTime: req.body.AppointmentTime,
       Title: req.body.Title,
       Location: req.body.Location,
       DoctorName: req.body.DoctorName,
@@ -91,7 +91,7 @@ async function updateAppointment(req, res) {
 async function deleteAppointment(req, res) {
   try {
     const id = parseInt(req.params.id);
-    if (isNaN(id)) {
+    if (isNaN(id)) { 
       return res.status(400).json({ error: "Invalid appointment ID" });
     }
 

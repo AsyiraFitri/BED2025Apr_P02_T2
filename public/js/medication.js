@@ -1,6 +1,3 @@
-// ========== GLOBAL STATE ==========
-let currentEditingId = null;
-
 // ========== MEDICATION FUNCTIONS ==========
 function generateSchedule(frequency) {
     const schedules = {
@@ -22,26 +19,54 @@ function createMedicationCard(id, medication) {
         </div>
     `).join('');
 
-    return `
-        <div class="medication-card position-relative" data-medication-id="${id}">
-            <div class="d-flex justify-content-between align-items-start mb-2">
-                <div class="edit-icon-container" onclick="editMedication(${JSON.stringify(id)})">
-                    <i class="fas fa-edit edit-icon me-1"></i><span> Edit</span>
-                </div>
-                <i class="fas fa-trash-alt delete-icon" onclick="deleteMedication(${JSON.stringify(id)})"></i>
-            </div>
+    const card = document.createElement('div');
+    card.className = 'medication-card position-relative';
+    card.dataset.medicationId = id;
 
-            <div class="medication-name">${medication.Name}</div>
-            <div class="medication-dosage">
-                Take ${medication.Dosage} pill${medication.Dosage > 1 ? 's' : ''} 
-                ${medication.Frequency} time${medication.Frequency > 1 ? 's' : ''} a day
+    card.innerHTML = `
+        <div class="d-flex justify-content-between align-items-start mb-2">
+            <div class="edit-icon-container" style="cursor:pointer;">
+                <i class="fas fa-edit edit-icon me-1"></i><span> Edit</span>
             </div>
-            <div class="medication-schedule">${scheduleHTML}</div>
-            <div class="medication-note">Note: ${medication.Notes || 'No special instructions'}</div>
+            <i class="fas fa-trash-alt delete-icon" style="cursor:pointer;"></i>
         </div>
+        <div class="medication-name">${medication.Name}</div>
+        <div class="medication-dosage">
+            Take ${medication.Dosage} pill${medication.Dosage > 1 ? 's' : ''} 
+            ${medication.Frequency} time${medication.Frequency > 1 ? 's' : ''} a day
+        </div>
+        <div class="medication-schedule">${scheduleHTML}</div>
+        <div class="medication-note">Note: ${medication.Notes || 'No special instructions'}</div>
     `;
+
+    card.addEventListener('click', () => {
+        document.querySelectorAll('.medication-card').forEach(c => c.classList.remove('selected'));
+        card.classList.add('selected');
+    });
+
+    attachMedicationCardEventListeners(card);
+    return card;
 }
 
+function attachMedicationCardEventListeners(card) {
+    const editBtn = card.querySelector('.edit-icon-container');
+    const deleteBtn = card.querySelector('.delete-icon');
+    const id = card.dataset.medicationId;
+
+    if (editBtn) {
+        editBtn.addEventListener('click', e => {
+            e.stopPropagation();
+            editMedication(id);
+        });
+    }
+
+    if (deleteBtn) {
+        deleteBtn.addEventListener('click', e => {
+            e.stopPropagation();
+            showDeleteModal(id, 'medication');
+        });
+    }
+}
 
 async function updateMedicationDisplay() {
     try {
@@ -53,10 +78,11 @@ async function updateMedicationDisplay() {
 
         if (Array.isArray(medications)) {
             medications.forEach(med => {
-                container.innerHTML += createMedicationCard(med.MedicationID, med);
+                const card = createMedicationCard(med.MedicationID, med);
+                container.appendChild(card);
             });
         } else if (typeof medications === 'object' && medications !== null && medications.MedicationID) {
-            container.innerHTML += createMedicationCard(medications.MedicationID, medications);
+            container.appendChild(createMedicationCard(medications.MedicationID, medications));
         } else {
             container.innerHTML = '<p class="text-danger">No medication data found.</p>';
         }
@@ -81,9 +107,7 @@ async function editMedication(id) {
 
         const med = await response.json();
 
-        // Reset form first before setting values
         document.getElementById('editMedication').reset();
-
         document.getElementById('editMedicineName').value = med.Name;
         document.getElementById('editDosage').value = med.Dosage;
         document.getElementById('editFrequency').value = med.Frequency;
@@ -92,41 +116,41 @@ async function editMedication(id) {
         document.getElementById('editMedicationModalLabel').textContent = 'Edit Medication Details';
         new bootstrap.Modal(document.getElementById('editMedicationModal')).show();
 
-        document.querySelectorAll('.medication-card').forEach(card => card.classList.remove('selected'));
+        document.querySelectorAll('.medication-card').forEach(c => c.classList.remove('selected'));
         document.querySelector(`[data-medication-id="${id}"]`).classList.add('selected');
     } catch (error) {
         alert('Failed to load medication data');
     }
 }
 
+async function handleDeleteConfirmation() {
+    if (!pendingDeleteId) return;
 
-function cancelEdit() {
-    currentEditingId = null;
-    document.getElementById('editMedication').reset();
-    document.querySelectorAll('.medication-card').forEach(card => card.classList.remove('selected'));
-    const modal = bootstrap.Modal.getInstance(document.getElementById('editMedicationModal'));
-    if (modal) modal.hide();
-}
+    const modalElement = document.getElementById('confirmDeleteModal');
+    const modal = bootstrap.Modal.getInstance(modalElement);
 
-async function deleteMedication(id) {
-    if (!confirm('Are you sure you want to delete this medication?')) return;
     try {
-        const res = await fetch(`/api/medications/${id}`, { method: 'DELETE' });
+        const res = await fetch(`/api/medications/${pendingDeleteId}`, { method: 'DELETE' });
         if (!res.ok) throw new Error();
+
         await updateMedicationDisplay();
+        showToast('Medication deleted successfully');
     } catch {
         alert('Error deleting medication');
+    } finally {
+        pendingDeleteId = null;
+        if (modal) modal.hide();
     }
 }
 
 async function handleMedicationFormSubmit(e) {
     e.preventDefault();
     const data = {
-        name: document.getElementById('editMedicineName').value,
-        dosage: parseInt(document.getElementById('editDosage').value, 10),
-        frequency: parseInt(document.getElementById('editFrequency').value, 10),
-        notes: document.getElementById('editNotes').value || 'No special instructions',
-        userId: 1 // Hardcoded user ID for now, replace with actual user ID from session
+        Name: document.getElementById('editMedicineName').value,
+        Dosage: parseInt(document.getElementById('editDosage').value, 10),
+        Frequency: parseInt(document.getElementById('editFrequency').value, 10),
+        Notes: document.getElementById('editNotes').value || 'No special instructions',
+        UserID: 1
     };
 
     try {
@@ -135,21 +159,23 @@ async function handleMedicationFormSubmit(e) {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(data)
         });
+
         if (!res.ok) throw new Error('Failed to save medication');
 
         await updateMedicationDisplay();
+
         const modal = bootstrap.Modal.getInstance(document.getElementById('editMedicationModal'));
         if (modal) modal.hide();
+
         currentEditingId = null;
         showSaveFeedback('#editMedication .btn-confirm');
+        showToast(`Medication ${currentEditingId === 'new' ? 'added' : 'updated'} successfully`);
     } catch (error) {
         console.error('Error saving medication:', error);
         alert('Error saving medication');
     }
 }
 
-
-// Function to show save feedback
 function showSaveFeedback(selector) {
     const button = document.querySelector(selector);
     button.classList.add('btn-success');
@@ -160,16 +186,19 @@ function showSaveFeedback(selector) {
     }, 2000);
 }
 
-// toggle checkbox state
 function toggleCheckbox(checkbox) {
     checkbox.classList.toggle('checked');
     checkbox.classList.toggle('unchecked');
 }
 
+// ========== EVENT LISTENERS ==========
 document.getElementById('editMedication').addEventListener('submit', handleMedicationFormSubmit);
-document.getElementById('editMedicationModal').addEventListener('hidden.bs.modal', cancelEdit);
+document.getElementById('editMedicationModal').addEventListener('hidden.bs.modal', () => {
+    currentEditingId = null;
+    document.getElementById('editMedication').reset();
+    document.querySelectorAll('.medication-card').forEach(c => c.classList.remove('selected'));
+});
 
-// Initialize medication display on page load
 document.addEventListener('DOMContentLoaded', () => {
     updateMedicationDisplay();
 
@@ -178,38 +207,8 @@ document.addEventListener('DOMContentLoaded', () => {
         addBtn.addEventListener('click', addNewMedication);
     }
 
-    const medicationForm = document.getElementById('editMedication');
-    if (medicationForm) {
-        medicationForm.addEventListener('submit', handleMedicationFormSubmit);
+    const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+    if (confirmDeleteBtn) {
+        confirmDeleteBtn.addEventListener('click', handleDeleteConfirmation);
     }
-
-    const medicationModal = document.getElementById('editMedicationModal');
-    if (medicationModal) {
-        medicationModal.addEventListener('hidden.bs.modal', () => {
-            currentEditingId = null;
-            medicationForm.reset();
-            document.querySelectorAll('.medication-card').forEach(c => c.classList.remove('selected'));
-        });
-    }
-
-    const editButtons = document.querySelectorAll('.edit-icon');
-    editButtons.forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            const medicationId = btn.closest('.medication-card').dataset.medicationId;
-            editMedication(medicationId);
-        });
-    });
-
-    const deleteButtons = document.querySelectorAll('.delete-icon');
-    deleteButtons.forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            const medicationId = btn.closest('.medication-card').dataset.medicationId;
-            deleteMedication(medicationId);
-        });
-    });
 });
-
-
-

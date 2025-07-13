@@ -1,5 +1,3 @@
-let currentEditingAppointmentId = null;
-
 // Update display with appointments and attach event listeners after creating cards
 async function updateAppointmentDisplay() {
     try {
@@ -13,7 +11,6 @@ async function updateAppointmentDisplay() {
         if (Array.isArray(appointments)) {
             appointments.forEach(app => {
                 const card = createAppointmentCard(app.AppointmentID, app);
-                console.log('Raw AppointmentTime from API:', app.AppointmentTime);
 
                 container.appendChild(card);
                 attachCardEventListeners(card);
@@ -81,7 +78,7 @@ function attachCardEventListeners(card) {
     if (deleteBtn) {
         deleteBtn.addEventListener('click', e => {
             e.stopPropagation();
-            showDeleteModal(id);
+            showDeleteModal(id, 'appointment');
         });
     }
 }
@@ -117,22 +114,14 @@ async function editAppointment(id) {
     }
 }
 
-let pendingDeleteId = null;
-
-function showDeleteModal(id) {
-    pendingDeleteId = id;
-    const modal = new bootstrap.Modal(document.getElementById('confirmDeleteModal'));
-    modal.show();
-}
-
 async function handleDeleteConfirmation() {
-    if (!pendingDeleteId) return;
+    if (!pendingDeleteAppointmentId) return;
 
     const modalElement = document.getElementById('confirmDeleteModal');
     const modal = bootstrap.Modal.getInstance(modalElement);
 
     try {
-        const res = await fetch(`/api/appointments/${pendingDeleteId}`, { method: 'DELETE' });
+        const res = await fetch(`/api/appointments/${pendingDeleteAppointmentId}`, { method: 'DELETE' });
         if (!res.ok) throw new Error();
 
         await updateAppointmentDisplay();
@@ -140,7 +129,7 @@ async function handleDeleteConfirmation() {
     } catch {
         alert('Error deleting appointment');
     } finally {
-        pendingDeleteId = null;
+        pendingDeleteAppointmentId = null;
         if (modal) modal.hide();
     }
 }
@@ -148,8 +137,8 @@ async function handleDeleteConfirmation() {
 async function handleAppointmentFormSubmit(e) {
     e.preventDefault();
     const data = {
-        Date: document.getElementById('editAppointmentDate').value,
-        Time: document.getElementById('editAppointmentTime').value,
+        AppointmentDate: document.getElementById('editAppointmentDate').value,
+        AppointmentTime: document.getElementById('editAppointmentTime').value,
         Title: document.getElementById('editAppointmentTitle').value,
         Location: document.getElementById('editAppointmentLocation').value,
         DoctorName: document.getElementById('editDoctorName').value,
@@ -196,16 +185,6 @@ function extractTimeFromUTC(dateTimeString) {
     const localHour = String(dateObj.getHours()).padStart(2, '0');
     const localMinute = String(dateObj.getMinutes()).padStart(2, '0');
     return `${localHour}:${localMinute}`;
-}
-
-
-function showToast(message) {
-    const toastEl = document.getElementById('actionToast');
-    const toastMsg = document.getElementById('toastMessage');
-    toastMsg.textContent = message;
-
-    const toast = new bootstrap.Toast(toastEl);
-    toast.show();
 }
 
 function formatTime(timeStr) {
