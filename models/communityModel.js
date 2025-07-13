@@ -54,9 +54,9 @@ class CommunityModel {
         try {
         const pool = await sql.connect(config);
         const result = await pool.request()
-            .input('Email', sql.NVarChar(100), email)
-            .input('PasswordHash', sql.NVarChar(255), password)
-            .query('SELECT * FROM Users WHERE Email = @Email AND PasswordHash = @PasswordHash');
+            .input('Email', sql.NVarChar(255), email)
+            .input('Password', sql.NVarChar(255), password)
+            .query('SELECT * FROM Users WHERE email = @Email AND password = @Password');
         return result.recordset.length > 0 ? result.recordset[0] : null;
         } 
         catch (error) {
