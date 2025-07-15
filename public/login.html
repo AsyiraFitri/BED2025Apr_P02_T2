@@ -63,9 +63,12 @@
 
             // Store user info (adjust keys based on actual response)
             sessionStorage.setItem("user", JSON.stringify({
-              UserID: data.userId,
-              name: data.name,
-              role: data.role
+              UserID: data.user.UserID,
+              first_name: data.user.first_name,
+              last_name: data.user.last_name,
+              FullName: `${data.user.first_name} ${data.user.last_name}`,
+              email: data.user.email,
+              phone_number: data.user.phone_number,
             }));
 
             window.location.href = "index.html"; 
