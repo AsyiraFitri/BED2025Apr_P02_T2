@@ -1,7 +1,12 @@
+
+
 // Update display with appointments and attach event listeners after creating cards
 async function updateAppointmentDisplay() {
     try {
-        const res = await fetch('/api/appointments/user/1');
+        const user = JSON.parse(sessionStorage.getItem('user'));
+        const res = await fetch(`/api/appointments/user/${user.UserID}`, {
+            headers: getAuthHeaders()
+        });
         const appointments = await res.json();
 
         const container = document.getElementById('appointmentContainer');
@@ -93,7 +98,9 @@ function addNewAppointment() {
 async function editAppointment(id) {
     currentEditingAppointmentId = id;
     try {
-        const res = await fetch(`/api/appointments/${id}`);
+        const res = await fetch(`/api/appointments/${id}`, {
+            headers: getAuthHeaders()
+        });
         if (!res.ok) throw new Error();
         const app = await res.json();
 
@@ -114,14 +121,19 @@ async function editAppointment(id) {
     }
 }
 
-async function handleDeleteConfirmation() {
+let pendingDeleteAppointmentId = null;
+async function handleAppointmentsDeleteConfirmation() {
+    
     if (!pendingDeleteAppointmentId) return;
 
     const modalElement = document.getElementById('confirmDeleteModal');
     const modal = bootstrap.Modal.getInstance(modalElement);
 
     try {
-        const res = await fetch(`/api/appointments/${pendingDeleteAppointmentId}`, { method: 'DELETE' });
+        const res = await fetch(`/api/appointments/${pendingDeleteAppointmentId}`, {
+            method: 'DELETE',
+            headers: getAuthHeaders({ 'Content-Type': 'application/json' })
+        });
         if (!res.ok) throw new Error();
 
         await updateAppointmentDisplay();
@@ -136,6 +148,7 @@ async function handleDeleteConfirmation() {
 
 async function handleAppointmentFormSubmit(e) {
     e.preventDefault();
+    const user = JSON.parse(sessionStorage.getItem('user'));
     const data = {
         AppointmentDate: document.getElementById('editAppointmentDate').value,
         AppointmentTime: document.getElementById('editAppointmentTime').value,
@@ -143,13 +156,13 @@ async function handleAppointmentFormSubmit(e) {
         Location: document.getElementById('editAppointmentLocation').value,
         DoctorName: document.getElementById('editDoctorName').value,
         Notes: document.getElementById('editAppointmentNotes').value || 'No special instructions',
-        UserID: 1
+        UserID: user.UserID
     };
 
     try {
         const res = await fetch(currentEditingAppointmentId === 'new' ? '/api/appointments' : `/api/appointments/${currentEditingAppointmentId}`, {
             method: currentEditingAppointmentId === 'new' ? 'POST' : 'PUT',
-            headers: { 'Content-Type': 'application/json' },
+            headers: getAuthHeaders({ 'Content-Type': 'application/json' }),
             body: JSON.stringify(data)
         });
 
@@ -230,6 +243,26 @@ document.addEventListener('DOMContentLoaded', () => {
     // Delete confirm button in the modal
     const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
     if (confirmDeleteBtn) {
-        confirmDeleteBtn.addEventListener('click', handleDeleteConfirmation);
+        confirmDeleteBtn.addEventListener('click', handleAppointmentsDeleteConfirmation);
+    }
+});
+
+// Fix for Bootstrap modals not removing focus from active elements (remove aria-hidden focus warning)
+const appointmentModalIds = ['appointmentModal', 'appointmentModalLabel', 'confirmDeleteModal'];
+appointmentModalIds.forEach(id => {
+    const modal = document.getElementById(id);
+    if (modal) {
+        modal.addEventListener('hide.bs.modal', () => {
+            setTimeout(() => {
+                const active = document.activeElement;
+                if (active && modal.contains(active)) {
+                    active.blur();
+
+                    // Optional: move focus to a safe location
+                    const safeFocusTarget = document.getElementById('addAppointmentBtn') || document.body;
+                    safeFocusTarget.focus();
+                }
+            }, 0); // Defer until after Bootstrap starts hiding
+        });
     }
 });

@@ -1,4 +1,4 @@
-// ========== MEDICATION FUNCTIONS ==========
+// Generate schedule times based on frequency
 function generateSchedule(frequency) {
     const schedules = {
         1: ["Morning"],
@@ -9,15 +9,22 @@ function generateSchedule(frequency) {
     return schedules[frequency] || [];
 }
 
+// Create medication card element
 function createMedicationCard(id, medication) {
     const scheduleList = generateSchedule(medication.Frequency);
 
-    const scheduleHTML = scheduleList.map(time => `
+    const scheduleHTML = scheduleList.map(time => {
+        const isChecked = loadCheckboxState(id, time);
+        return `
         <div class="schedule-item">
             <span class="schedule-time">${time}</span>
-            <div class="custom-checkbox" onclick="toggleCheckbox(this)"></div>
+            <div class="custom-checkbox ${isChecked ? 'checked' : 'unchecked'}"
+                 role="checkbox" tabindex="0" aria-checked="${isChecked}"
+                 data-medication-id="${id}" data-time-label="${time}">
+            </div>
         </div>
-    `).join('');
+        `;
+    }).join('');
 
     const card = document.createElement('div');
     card.className = 'medication-card position-relative';
@@ -39,6 +46,7 @@ function createMedicationCard(id, medication) {
         <div class="medication-note">Note: ${medication.Notes || 'No special instructions'}</div>
     `;
 
+    // Card selection highlight on click
     card.addEventListener('click', () => {
         document.querySelectorAll('.medication-card').forEach(c => c.classList.remove('selected'));
         card.classList.add('selected');
@@ -48,6 +56,7 @@ function createMedicationCard(id, medication) {
     return card;
 }
 
+// Attach edit/delete event listeners to medication card buttons
 function attachMedicationCardEventListeners(card) {
     const editBtn = card.querySelector('.edit-icon-container');
     const deleteBtn = card.querySelector('.delete-icon');
@@ -68,11 +77,15 @@ function attachMedicationCardEventListeners(card) {
     }
 }
 
+// Load medications and render
 async function updateMedicationDisplay() {
     try {
-        const response = await fetch('/api/medications/user/1');
-        const medications = await response.json();
+        const user = JSON.parse(sessionStorage.getItem('user'));
+        const res = await fetch(`/api/medications/user/${user.UserID}`, {
+            headers: getAuthHeaders()
+        });
 
+        const medications = await res.json();
         const container = document.getElementById('medicationContainer');
         container.innerHTML = '';
 
@@ -81,10 +94,10 @@ async function updateMedicationDisplay() {
                 const card = createMedicationCard(med.MedicationID, med);
                 container.appendChild(card);
             });
-        } else if (typeof medications === 'object' && medications !== null && medications.MedicationID) {
+        } else if (medications?.MedicationID) {
             container.appendChild(createMedicationCard(medications.MedicationID, medications));
         } else {
-            container.innerHTML = '<p class="text-danger">No medication data found.</p>';
+            container.innerHTML = '<p class="text-danger">Add a Medication!</p>';
         }
     } catch (error) {
         console.error('Error fetching medications:', error);
@@ -92,20 +105,24 @@ async function updateMedicationDisplay() {
     }
 }
 
+// Show modal for adding new medication
 function addNewMedication() {
-    currentEditingId = 'new';
+    currentEditingMedicationId = 'new';
     document.getElementById('editMedication').reset();
-    document.getElementById('editMedicationModalLabel').textContent = 'Add New Medication';
-    new bootstrap.Modal(document.getElementById('editMedicationModal')).show();
+    document.getElementById('medicationModalLabel').textContent = 'Add New Medication';
+    new bootstrap.Modal(document.getElementById('medicationModal')).show();
 }
 
+// Load medication data into form and show modal for editing
 async function editMedication(id) {
-    currentEditingId = id;
+    currentEditingMedicationId = id;
     try {
-        const response = await fetch(`/api/medications/${id}`);
-        if (!response.ok) throw new Error('Medication not found');
+        const res = await fetch(`/api/medications/${id}`, {
+            headers: getAuthHeaders()
+        });
 
-        const med = await response.json();
+        if (!res.ok) throw new Error('Medication not found');
+        const med = await res.json();
 
         document.getElementById('editMedication').reset();
         document.getElementById('editMedicineName').value = med.Name;
@@ -113,8 +130,8 @@ async function editMedication(id) {
         document.getElementById('editFrequency').value = med.Frequency;
         document.getElementById('editNotes').value = med.Notes || '';
 
-        document.getElementById('editMedicationModalLabel').textContent = 'Edit Medication Details';
-        new bootstrap.Modal(document.getElementById('editMedicationModal')).show();
+        document.getElementById('medicationModalLabel').textContent = 'Edit Medication Details';
+        new bootstrap.Modal(document.getElementById('medicationModal')).show();
 
         document.querySelectorAll('.medication-card').forEach(c => c.classList.remove('selected'));
         document.querySelector(`[data-medication-id="${id}"]`).classList.add('selected');
@@ -123,14 +140,20 @@ async function editMedication(id) {
     }
 }
 
+let pendingDeleteMedicationId = null;
+// Confirm deletion modal handling
 async function handleDeleteConfirmation() {
-    if (!pendingDeleteId) return;
+    if (!pendingDeleteMedicationId) return;
 
     const modalElement = document.getElementById('confirmDeleteModal');
     const modal = bootstrap.Modal.getInstance(modalElement);
 
     try {
-        const res = await fetch(`/api/medications/${pendingDeleteId}`, { method: 'DELETE' });
+        const res = await fetch(`/api/medications/${pendingDeleteMedicationId}`, {
+            method: 'DELETE',
+            headers: getAuthHeaders({ 'Content-Type': 'application/json' })
+        });
+
         if (!res.ok) throw new Error();
 
         await updateMedicationDisplay();
@@ -138,25 +161,27 @@ async function handleDeleteConfirmation() {
     } catch {
         alert('Error deleting medication');
     } finally {
-        pendingDeleteId = null;
+        pendingDeleteMedicationId = null;
         if (modal) modal.hide();
     }
 }
 
+// Submit handler for add/edit medication form
 async function handleMedicationFormSubmit(e) {
     e.preventDefault();
+    const user = JSON.parse(sessionStorage.getItem('user'));
     const data = {
         Name: document.getElementById('editMedicineName').value,
         Dosage: parseInt(document.getElementById('editDosage').value, 10),
         Frequency: parseInt(document.getElementById('editFrequency').value, 10),
         Notes: document.getElementById('editNotes').value || 'No special instructions',
-        UserID: 1
+        UserID: user.UserID
     };
 
     try {
-        const res = await fetch(currentEditingId === 'new' ? '/api/medications' : `/api/medications/${currentEditingId}`, {
-            method: currentEditingId === 'new' ? 'POST' : 'PUT',
-            headers: { 'Content-Type': 'application/json' },
+        const res = await fetch(currentEditingMedicationId === 'new' ? '/api/medications' : `/api/medications/${currentEditingMedicationId}`, {
+            method: currentEditingMedicationId === 'new' ? 'POST' : 'PUT',
+            headers: getAuthHeaders({ 'Content-Type': 'application/json' }),
             body: JSON.stringify(data)
         });
 
@@ -164,51 +189,146 @@ async function handleMedicationFormSubmit(e) {
 
         await updateMedicationDisplay();
 
-        const modal = bootstrap.Modal.getInstance(document.getElementById('editMedicationModal'));
+        const modal = bootstrap.Modal.getInstance(document.getElementById('medicationModal'));
         if (modal) modal.hide();
 
-        currentEditingId = null;
         showSaveFeedback('#editMedication .btn-confirm');
-        showToast(`Medication ${currentEditingId === 'new' ? 'added' : 'updated'} successfully`);
+        showToast(`Medication ${currentEditingMedicationId === 'new' ? 'added' : 'updated'} successfully`);
+        currentEditingMedicationId = null;
     } catch (error) {
         console.error('Error saving medication:', error);
         alert('Error saving medication');
     }
 }
 
-function showSaveFeedback(selector) {
-    const button = document.querySelector(selector);
-    button.classList.add('btn-success');
-    button.textContent = 'Saved!';
-    setTimeout(() => {
-        button.classList.remove('btn-success');
-        button.textContent = 'Save';
-    }, 2000);
+// Helpers for daily checkbox state persistence
+function getTodayKey() {
+    return new Date().toISOString().split('T')[0];
 }
 
-function toggleCheckbox(checkbox) {
-    checkbox.classList.toggle('checked');
-    checkbox.classList.toggle('unchecked');
+function resetCheckboxesIfNewDay() {
+    const storedDate = sessionStorage.getItem('medicationCheckboxLastDate');
+    const today = getTodayKey();
+
+    if (storedDate !== today) {
+        Object.keys(sessionStorage).forEach(key => {
+            if (key.startsWith('medicationCheckboxes_')) {
+                sessionStorage.removeItem(key);
+            }
+        });
+        sessionStorage.setItem('medicationCheckboxLastDate', today);
+    }
+}
+
+function saveCheckboxState(medicationId, timeLabel, isChecked) {
+    const key = `medicationCheckboxes_${getTodayKey()}`;
+    const state = JSON.parse(sessionStorage.getItem(key)) || {};
+    if (!state[medicationId]) state[medicationId] = {};
+    state[medicationId][timeLabel] = isChecked;
+    sessionStorage.setItem(key, JSON.stringify(state));
+}
+
+function loadCheckboxState(medicationId, timeLabel) {
+    const key = `medicationCheckboxes_${getTodayKey()}`;
+    const state = JSON.parse(sessionStorage.getItem(key)) || {};
+    return state[medicationId]?.[timeLabel] || false;
+}
+
+// Toggle checkbox state and save
+function toggleCheckboxElement(checkbox) {
+    const isChecked = !checkbox.classList.contains('checked');
+    checkbox.classList.toggle('checked', isChecked);
+    checkbox.classList.toggle('unchecked', !isChecked);
+    checkbox.setAttribute('aria-checked', isChecked);
+
+    const medicationId = checkbox.getAttribute('data-medication-id');
+    const timeLabel = checkbox.getAttribute('data-time-label');
+    saveCheckboxState(medicationId, timeLabel, isChecked);
+}
+
+// Keyboard handler for accessibility on custom checkboxes
+function handleCheckboxKeyDown(event) {
+    if (event.key === ' ' || event.key === 'Enter') {
+        event.preventDefault();
+        toggleCheckboxElement(event.target);
+    }
 }
 
 // ========== EVENT LISTENERS ==========
+
+// Form submission
 document.getElementById('editMedication').addEventListener('submit', handleMedicationFormSubmit);
-document.getElementById('editMedicationModal').addEventListener('hidden.bs.modal', () => {
-    currentEditingId = null;
+
+// Reset form and selection on modal hide
+document.getElementById('medicationModal').addEventListener('hidden.bs.modal', () => {
+    currentEditingMedicationId = null;
     document.getElementById('editMedication').reset();
     document.querySelectorAll('.medication-card').forEach(c => c.classList.remove('selected'));
 });
 
+// Delegated event listener for checkbox click and keyboard interaction inside medicationContainer
+document.getElementById('medicationContainer').addEventListener('click', (event) => {
+    const checkbox = event.target.closest('.custom-checkbox');
+    if (checkbox) {
+        toggleCheckboxElement(checkbox);
+    }
+});
+
+document.getElementById('medicationContainer').addEventListener('keydown', (event) => {
+    if (event.target.classList.contains('custom-checkbox')) {
+        handleCheckboxKeyDown(event);
+    }
+});
+
+// Setup on DOM load
 document.addEventListener('DOMContentLoaded', () => {
+    resetCheckboxesIfNewDay();
     updateMedicationDisplay();
 
+    // Add button: add id to your Add button in HTML, or replace this code with your button id
     const addBtn = document.getElementById('addMedicationBtn');
     if (addBtn) {
         addBtn.addEventListener('click', addNewMedication);
     }
 
+    // Confirm delete button
     const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
     if (confirmDeleteBtn) {
         confirmDeleteBtn.addEventListener('click', handleDeleteConfirmation);
+        // remove focus from button after click
+        confirmDeleteBtn.addEventListener('click', () => {
+            confirmDeleteBtn.blur();
+        });
+    }
+
+    // ** Fix for aria-hidden focus warning **
+    const medicationModal = document.getElementById('medicationModal');
+    if (medicationModal) {
+        medicationModal.addEventListener('hidden.bs.modal', () => {
+            if (document.activeElement && medicationModal.contains(document.activeElement)) {
+                document.activeElement.blur();
+            }
+        });
     }
 });
+
+// Fix for Bootstrap modals not removing focus from active elements (remove aria-hidden focus warning)
+const medicationModalIds = ['medicationModal', 'medicationModalLabel', 'confirmDeleteModal'];
+medicationModalIds.forEach(id => {
+    const modal = document.getElementById(id);
+    if (modal) {
+        modal.addEventListener('hide.bs.modal', () => {
+            setTimeout(() => {
+                const active = document.activeElement;
+                if (active && modal.contains(active)) {
+                    active.blur();
+
+                    // Optional: move focus to a safe location
+                    const safeFocusTarget = document.getElementById('addMedicationBtn') || document.body;
+                    safeFocusTarget.focus();
+                }
+            }, 0); // Defer until after Bootstrap starts hiding
+        });
+    }
+});
+

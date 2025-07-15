@@ -49,7 +49,7 @@ async function createAppointment(req, res) {
       Location: req.body.Location,
       DoctorName: req.body.DoctorName,
       Notes: req.body.Notes || "No special instructions",
-      UserID: 1 // Replace with req.user.userID when JWT is implemented
+      UserID: req.body.UserID 
     };
 
     await appointmentModel.createAppointment(appointment);
