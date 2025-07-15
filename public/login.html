@@ -40,33 +40,43 @@
         <p class="bottom-link">Don't have an account? <a href="signup.html">Sign up</a></p>
       </form>
       <script>
-  document.getElementById("loginForm").addEventListener("submit", async (e) => {
-    e.preventDefault();
+      document.getElementById("loginForm").addEventListener("submit", async (e) => {
+        e.preventDefault();
 
-    const email = document.getElementById("email").value;
-    const password = document.getElementById("password").value;
+        const email = document.getElementById("email").value;
+        const password = document.getElementById("password").value;
 
-    try {
-      const res = await fetch("http://localhost:3000/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password })
+        try {
+          const res = await fetch("http://localhost:3000/api/auth/login", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email, password })
+          });
+
+          const data = await res.json();
+
+          if (res.ok) {
+            alert("Login successful!");
+
+            // Store token in sessionStorage
+            sessionStorage.setItem("token", data.token);
+
+            // Store user info (adjust keys based on actual response)
+            sessionStorage.setItem("user", JSON.stringify({
+              UserID: data.userId,
+              name: data.name,
+              role: data.role
+            }));
+
+            window.location.href = "index.html"; 
+          } else {
+            alert(data.error || "Login failed");
+          }
+        } catch (err) {
+          alert("Server error: " + err.message);
+        }
       });
-
-      const data = await res.json();
-
-      if (res.ok) {
-        alert("Login successful!");
-        localStorage.setItem("token", data.token); // Store token
-        window.location.href = "index.html"; 
-      } else {
-        alert(data.error || "Login failed");
-      }
-    } catch (err) {
-      alert("Server error: " + err.message);
-    }
-  });
-</script>
+    </script>
     </div>
   </main>
 </body>
