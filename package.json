@@ -26,10 +26,14 @@
     "cors": "^2.8.5",
     "dotenv": "^17.2.0",
     "express": "^5.1.0",
+    "express-session": "^1.18.1",
     "firebase-admin": "^13.4.0",
+    "googleapi": "^1.0.2",
+    "googleapis": "^153.0.0",
     "jsonwebtoken": "^9.0.2",
     "mssql": "^11.0.1",
-    "nodemailer": "^7.0.5"
+    "nodemailer": "^7.0.5",
+    "open": "^10.2.0"
   },
   "devDependencies": {
     "nodemon": "^3.1.10"

@@ -7,6 +7,7 @@ const dbConfig = require("./dbConfig"); // Database configuration
 const dotenv = require("dotenv");
 const requestRoutes = require('./routes/requestRoutes');
 
+
 require("dotenv").config(); // Load environment variables from .env file
 dotenv.config();
 
@@ -36,6 +37,11 @@ const medicationRoutes = require('./routes/medicationRoutes');
 const appointmentRoutes = require('./routes/appointmentRoutes');
 app.use('/api/medications', medicationRoutes);
 app.use('/api/appointments', appointmentRoutes);
+
+const calendarRoutes = require('./routes/calendarRoutes');
+app.use(calendarRoutes);
+
+
 
 // Jing Yin Routes
 const hobbyRoutes = require('./routes/communityRoutes');

@@ -203,3 +203,18 @@
   min-width: 300px;
   max-width: 90vw;
 }
+
+#syncGoogleBtn, #connectGoogleBtn {
+    color: #666;
+    border: 2px solid #666;
+    padding: 0.5rem 1.5rem;
+    border-radius: 25px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+#syncGoogleBtn:hover, #connectGoogleBtn:hover {
+    border-color: #e74c3c;
+    color: #e74c3c;
+    background-color: white;
+}
