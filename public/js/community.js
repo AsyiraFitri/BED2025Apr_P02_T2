@@ -205,5 +205,97 @@ async function loadGroups() {
     }
 }
 
-// Load groups on window load
-window.onload = loadGroups;
+// Wait for DOM to be fully loaded
+document.addEventListener('DOMContentLoaded', function() {
+    // Get references to DOM elements with null checks
+    const modal = document.getElementById('addModal');
+    const addBtns = document.querySelectorAll('.add-btn');
+    const closeBtn = document.querySelector('.close-btn');
+    const form = document.getElementById('addCommunityForm');
+
+    // Only set up modal functionality if elements exist
+    if (modal && addBtns.length > 0 && closeBtn && form) {
+        // Open the "Add Community" modal when any .add-btn is clicked
+        addBtns.forEach(btn => {
+            btn.onclick = () => {
+                modal.style.display = 'block';
+            };
+        });
+
+        // Close the modal when the close button is clicked
+        closeBtn.onclick = () => {
+            modal.style.display = 'none';
+        };
+
+        // Close the modal if the user clicks outside the modal content
+        window.onclick = (e) => {
+            if (e.target === modal) modal.style.display = 'none';
+        };
+
+        // Handle form submission for creating a new community group
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const user = checkUserAuthentication();
+            if (!user) return;
+
+            const groupName = document.getElementById('groupName').value.trim();
+            const groupDescription = document.getElementById('groupDescription').value.trim();
+            const adminId = user.UserID;
+
+            try {
+                const response = await fetch('/api/hobby-groups', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ groupName, groupDescription, adminId }),
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    alert('Community group added!');
+                    modal.style.display = 'none';
+                    form.reset();
+
+                    const groupId = data.groupId;
+                    const userId = user.UserID;
+                    const fullName = user.FullName;
+
+                    try {
+                        const response = await fetch('/api/hobby-groups/join', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ groupId, userId, fullName })
+                        });
+
+                        const data = await response.json();
+
+                        if (response.status === 201) {
+                            window.location.href = `group.html?id=${groupId}`;
+                        } else {
+                            alert('Failed to join group.');
+                        }
+                    } catch (err) {
+                        console.error('Error joining group:', err);
+                        alert('Error joining group.');
+                    }
+                } else {
+                    alert('Failed to add group.');
+                }
+            } catch (error) {
+                alert('Error connecting to server.');
+                console.error(error);
+            }
+        });
+        
+        console.log('Modal functionality initialized successfully');
+    } else {
+        console.warn('Modal elements not found - modal functionality disabled');
+        console.log('Modal:', modal);
+        console.log('Add buttons:', addBtns.length);
+        console.log('Close button:', closeBtn);
+        console.log('Form:', form);
+    }
+
+    // Load groups after DOM is ready
+    loadGroups();
+});

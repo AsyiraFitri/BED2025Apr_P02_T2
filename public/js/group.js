@@ -761,12 +761,12 @@ function startMessagePolling() {
     clearInterval(messagePollingInterval);
   }
   
-  // Poll every 2 seconds for more responsive chat
+  // Poll every 30 seconds for more responsive chat
   messagePollingInterval = setInterval(() => {
     if (currentGroupId && currentChannel) {
       loadChannelMessages();
     }
-  }, 2000);
+  }, 30000);
 }
 
 // Stop polling when leaving the page

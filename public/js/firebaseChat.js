@@ -29,6 +29,7 @@ async function createMessage(channelId, message) {
 
     const docRef = await groupMessageRef.collection('messages').add(messageData);
 
+
     await groupMessageRef.set({
       lastActivity: admin.firestore.FieldValue.serverTimestamp(),
       lastMessage: message.text
@@ -42,29 +43,25 @@ async function createMessage(channelId, message) {
 }
 
 // Get messages from a specific channel
-async function getMessages(channelId, limit = 50) {
-  try {
-    const snapshot = await db.collection(channelId)
-      .orderBy('createdAt', 'desc')
-      .limit(limit)
-      .get();
+async function getMessages(channelId) {
+  const parentDocId = 'NvOli6bXb837LgM9eSJh';
 
-    if (!snapshot || !snapshot.docs) {
-      console.log('No messages found for channel:', channelId);
-      return [];
-    }
+  const subCollectionRef = db
+    .collection('groupMessage')
+    .doc(parentDocId)
+    .collection('messages');
 
-    const messages = snapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data()
-    }));
+  const snapshot = await subCollectionRef
+    .where('channelId', '==', channelId)
+    .get();
 
-    console.log('Messages retrieved:', messages);
-    return messages;
-  } catch (error) {
-    console.error('Error getting messages:', error);
-    return [];
-  }
+  const filteredMessages = snapshot.docs.map(doc => ({
+    id: doc.id,
+    ...doc.data()
+  }));
+
+  console.log(filteredMessages);
+  return filteredMessages;
 }
 
 // Create a new channel
