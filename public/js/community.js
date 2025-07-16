@@ -1,83 +1,114 @@
-// Get references to DOM elements
+// Add safe authentication check function
+function checkUserAuthentication() {
+  const user = sessionStorage.getItem('user');
+  const token = sessionStorage.getItem('token');
+  
+  if (!user || !token) {
+    alert('Please log in first');
+    window.location.href = 'login.html';
+    return null;
+  }
+  
+  try {
+    return JSON.parse(user);
+  } catch (error) {
+    console.error('Error parsing user data:', error);
+    alert('Please log in again');
+    sessionStorage.removeItem('user');
+    sessionStorage.removeItem('token');
+    window.location.href = 'login.html';
+    return null;
+  }
+}
+
+// Get references to DOM elements with null checks
 const modal = document.getElementById('addModal');
 const addBtns = document.querySelectorAll('.add-btn');
 const closeBtn = document.querySelector('.close-btn');
 const form = document.getElementById('addCommunityForm');
 
-// Open the "Add Community" modal when any .add-btn is clicked
-addBtns.forEach(btn => {
-    btn.onclick = () => {
-        modal.style.display = 'block';
+// Only set up modal functionality if elements exist
+if (modal && addBtns && closeBtn && form) {
+    // Open the "Add Community" modal when any .add-btn is clicked
+    addBtns.forEach(btn => {
+        btn.onclick = () => {
+            modal.style.display = 'block';
+        };
+    });
+
+    // Close the modal when the close button is clicked
+    closeBtn.onclick = () => {
+        modal.style.display = 'none';
     };
-});
 
-// Close the modal when the close button is clicked
-closeBtn.onclick = () => {
-    modal.style.display = 'none';
-};
+    // Close the modal if the user clicks outside the modal content
+    window.onclick = (e) => {
+        if (e.target === modal) modal.style.display = 'none';
+    };
 
-// Close the modal if the user clicks outside the modal content
-window.onclick = (e) => {
-    if (e.target === modal) modal.style.display = 'none';
-};
+    // Handle form submission for creating a new community group
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault(); // Prevent page reload
 
-// Handle form submission for creating a new community group
-form.addEventListener('submit', async (e) => {
-    e.preventDefault(); // Prevent page reload
+        // Use safe authentication check
+        const user = checkUserAuthentication();
+        if (!user) return;
 
-    // Get input values from form
-    const groupName = document.getElementById('groupName').value.trim();
-    const groupDescription = document.getElementById('groupDescription').value.trim();
-    const adminId = JSON.parse(sessionStorage.getItem('user')).UserID;
+        // Get input values from form
+        const groupName = document.getElementById('groupName').value.trim();
+        const groupDescription = document.getElementById('groupDescription').value.trim();
+        const adminId = user.UserID;
 
-    try {
-        // Send POST request to create new group
-        const response = await fetch('/api/hobby-groups', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ groupName, groupDescription, adminId }),
-        });
+        try {
+            // Send POST request to create new group
+            const response = await fetch('/api/hobby-groups', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ groupName, groupDescription, adminId }),
+            });
 
-        if (response.ok) {
-            const data = await response.json(); // Parse response
-            alert('Community group added!');
-            modal.style.display = 'none';
-            form.reset(); // Reset form inputs
+            if (response.ok) {
+                const data = await response.json(); // Parse response
+                alert('Community group added!');
+                modal.style.display = 'none';
+                form.reset(); // Reset form inputs
 
-            // Get logged-in user info
-            const user = JSON.parse(sessionStorage.getItem('user'));
-            const groupId = data.groupId;
-            const userId = user.UserID;
-            const fullName = user.FullName;
+                // Get logged-in user info safely
+                const groupId = data.groupId;
+                const userId = user.UserID;
+                const fullName = user.FullName;
 
-            // Auto-join the group after creation
-            try {
-                const response = await fetch('/api/hobby-groups/join', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ groupId, userId, fullName })
-                });
+                // Auto-join the group after creation
+                try {
+                    const response = await fetch('/api/hobby-groups/join', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ groupId, userId, fullName })
+                    });
 
-                const data = await response.json();
+                    const data = await response.json();
 
-                if (response.status === 201) {
-                    // Redirect to group page after successful join
-                    window.location.href = `group.html?id=${groupId}`;
-                } else {
-                    alert('Failed to join group.');
+                    if (response.status === 201) {
+                        // Redirect to group page after successful join
+                        window.location.href = `group.html?id=${groupId}`;
+                    } else {
+                        alert('Failed to join group.');
+                    }
+                } catch (err) {
+                    console.error('Error joining group:', err);
+                    alert('Error joining group.');
                 }
-            } catch (err) {
-                console.error('Error joining group:', err);
-                alert('Error joining group.');
+            } else {
+                alert('Failed to add group.');
             }
-        } else {
-            alert('Failed to add group.');
+        } catch (error) {
+            alert('Error connecting to server.');
+            console.error(error);
         }
-    } catch (error) {
-        alert('Error connecting to server.');
-        console.error(error);
-    }
-});
+    });
+} else {
+    console.warn('Modal elements not found - modal functionality disabled');
+}
 
 // Load and display all existing groups
 async function loadGroups() {
@@ -85,7 +116,14 @@ async function loadGroups() {
         const res = await fetch('/api/hobby-groups'); // Fetch all groups
         const groups = await res.json();
         const container = document.getElementById('communityCards');
-        const user = JSON.parse(sessionStorage.getItem('user'));
+        
+        if (!container) {
+            console.error('communityCards container not found');
+            return;
+        }
+
+        // Use safe authentication check
+        const user = checkUserAuthentication();
         const userId = user ? user.UserID : null;
         container.innerHTML = ''; // Clear existing content
 
@@ -126,11 +164,9 @@ async function loadGroups() {
                 // If not a member, show "Join" button
                 btn.textContent = 'Join';
                 btn.addEventListener('click', async () => {
-                    const user = JSON.parse(sessionStorage.getItem('user'));
-                    if (!user) {
-                        alert('Please log in first.');
-                        return;
-                    }
+                    // Use safe authentication check
+                    const user = checkUserAuthentication();
+                    if (!user) return;
 
                     const groupId = group.GroupID;
                     const userId = user.UserID;

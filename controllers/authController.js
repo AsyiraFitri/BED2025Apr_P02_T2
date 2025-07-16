@@ -3,20 +3,9 @@ const sql = require('mssql');
 const dbConfig = require('../dbConfig');
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-const nodemailer = require("nodemailer");
-
-
-const transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
-  },
-});
 
 async function registerUser(req, res) {
-console.log("REGISTER req.body:", req.body);
-
+  console.log("REGISTER req.body:", req.body);
 
   try {
     const { email, password, first_name, last_name, phone_number } = req.body;
@@ -56,27 +45,30 @@ console.log("REGISTER req.body:", req.body);
 async function loginUser(req, res) {
   try {
     const { email, password } = req.body;
-    if (!email || !password)
-      return res.status(400).json({ error: "Email and password required" });
+    
+    if (!email || !password) {
+      return res.status(400).json({ message: "Email and password are required" });
+    }
 
     const pool = await sql.connect(dbConfig);
-
+    
+    // Check if user exists
     const user = await pool
       .request()
-      .input("email", email)
+      .input("email", sql.VarChar, email)
       .query("SELECT * FROM Users WHERE email = @email");
 
-    if (user.recordset.length === 0)
-      return res.status(400).json({ error: "Invalid credentials" });
+    if (user.recordset.length === 0) {
+      return res.status(401).json({ message: "Invalid credentials" });
+    }
 
-    const validPassword = await bcrypt.compare(
-      password,
-      user.recordset[0].password
-    );
+    const isValidPassword = await bcrypt.compare(password, user.recordset[0].password);
+    
+    if (!isValidPassword) {
+      return res.status(401).json({ message: "Invalid credentials" });
+    }
 
-    if (!validPassword)
-      return res.status(400).json({ error: "Invalid credentials" });
-
+    // Generate JWT token
     const token = jwt.sign(
       { 
         UserID: user.recordset[0].UserID, 
@@ -85,25 +77,25 @@ async function loginUser(req, res) {
         last_name: user.recordset[0].last_name
       },
       process.env.JWT_SECRET_KEY,
-      { expiresIn: "1h" }
+      { expiresIn: "24h" }
     );
 
-    // Return user information along with token for frontend use
-    res.json({ 
-      message: "Login successful", 
-      token,
+    // Return user data and token
+    res.status(200).json({
+      message: "Login successful",
+      token: token,
       user: {
         UserID: user.recordset[0].UserID,
+        email: user.recordset[0].email,
         first_name: user.recordset[0].first_name,
         last_name: user.recordset[0].last_name,
-        email: user.recordset[0].email,
-        phone_number: user.recordset[0].phone_number,
         FullName: `${user.recordset[0].first_name} ${user.recordset[0].last_name}`.trim()
       }
     });
+
   } catch (error) {
     console.error("Login error:", error);
-    res.status(500).json({ error: "Internal server error" });
+    res.status(500).json({ message: "Internal server error" });
   }
 }
 
@@ -127,17 +119,10 @@ async function forgotPassword(req, res) {
     });
 
     const resetUrl = `http://localhost:3000/reset-password.html?token=${token}`;
-
-    const mailOptions = {
-      from: process.env.EMAIL_USER,
-      to: email,
-      subject: "Password Reset",
-      html: `<p>Click <a href="${resetUrl}">here</a> to reset your password. The link expires in 15 minutes.</p>`,
-    };
-
-    await transporter.sendMail(mailOptions);
-
-    res.json({ message: "Password reset email sent" });
+    res.json({ 
+      message: "Password reset link generated", 
+      resetUrl: resetUrl
+    });
   } catch (error) {
     console.error("Forgot password error:", error);
     res.status(500).json({ error: "Internal server error" });

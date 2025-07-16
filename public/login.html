@@ -40,46 +40,57 @@
         <p class="bottom-link">Don't have an account? <a href="signup.html">Sign up</a></p>
       </form>
       <script>
-      document.getElementById("loginForm").addEventListener("submit", async (e) => {
-        e.preventDefault();
+        // Define the loginUser function
+        async function loginUser(email, password) {
+          try {
+            const response = await fetch('/api/auth/login', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({ email, password })
+            });
 
-        const email = document.getElementById("email").value;
-        const password = document.getElementById("password").value;
+            const data = await response.json();
 
-        try {
-          const res = await fetch("http://localhost:3000/api/auth/login", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ email, password })
-          });
-
-          const data = await res.json();
-
-          if (res.ok) {
-            alert("Login successful!");
-
-            // Store token in sessionStorage
-            sessionStorage.setItem("token", data.token);
-
-            // Store user info (adjust keys based on actual response)
-            sessionStorage.setItem("user", JSON.stringify({
-              UserID: data.user.UserID,
-              first_name: data.user.first_name,
-              last_name: data.user.last_name,
-              FullName: `${data.user.first_name} ${data.user.last_name}`,
-              email: data.user.email,
-              phone_number: data.user.phone_number,
-            }));
-
-            window.location.href = "index.html"; 
-          } else {
-            alert(data.error || "Login failed");
+            if (response.ok) {
+              // Store token and user data
+              sessionStorage.setItem('token', data.token);
+              sessionStorage.setItem('user', JSON.stringify(data.user));
+              
+              console.log('JWT Token:', data.token);
+              return data.token;
+            } else {
+              throw new Error(data.message);
+            }
+          } catch (error) {
+            console.error('Login error:', error);
+            throw error;
           }
-        } catch (err) {
-          alert("Server error: " + err.message);
         }
-      });
-    </script>
+
+        // Define the handleLogin function
+        function handleLogin() {
+          const email = document.getElementById("email").value;
+          const password = document.getElementById("password").value;
+
+          loginUser(email, password)
+            .then(token => {
+              alert('Login successful!');
+              window.location.href = 'index.html';
+            })
+            .catch(error => {
+              console.error('Login failed:', error);
+              alert('Login failed: ' + error.message);
+            });
+        }
+
+        // Form submission handler
+        document.getElementById("loginForm").addEventListener("submit", (e) => {
+          e.preventDefault();
+          handleLogin();
+        });
+      </script>
     </div>
   </main>
 </body>
