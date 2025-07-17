@@ -58,10 +58,10 @@ app.use('/api/friends', friendRoutes);
 app.use('/api/messages', messageRoutes);
 
 // Asyira Routes
-app.get("/places/:userId", verifyToken, placeController.getUserPlaces);
-app.post("/places", verifyToken, placeController.createPlace);
-app.put("/places/:placeId", verifyToken, placeController.updatePlace);
-app.delete("/places/:placeId", verifyToken, placeController.deletePlace);
+app.get("/places/:userId", placeController.getUserPlaces);
+app.post("/places", placeController.createPlace);
+app.put("/places/:placeId", placeController.updatePlace);
+app.delete("/places/:placeId", placeController.deletePlace);
 
 
 // Sandi Routes
