@@ -14,10 +14,18 @@ async function loadGroupDetails() {
 
     const group = await res.json();
 
-    // Determine if the current user is the group admin
-    const userId = JSON.parse(sessionStorage.getItem("user")).UserID;
-    if (group.AdminID != userId) {
-      // Hide admin-only buttons
+    // Determine if the current user is the group owner or admin
+    const user = JSON.parse(sessionStorage.getItem("user"));
+    const userId = user.UserID;
+    const userRole = user.role;
+    
+    // Check if user is owner or admin
+    const isOwner = group.OwnerID === userId;
+    const isAdmin = userRole === 'admin';
+    const hasAdminPrivileges = isOwner || isAdmin;
+    
+    if (!hasAdminPrivileges) {
+      // Hide admin-only buttons for regular users
       document.getElementById('editDescBtn').classList.add('hidden');
       document.getElementById('saveDescBtn').classList.add('hidden');
       document.getElementById('cancelDescBtn').classList.add('hidden');
@@ -26,7 +34,7 @@ async function loadGroupDetails() {
       document.getElementById('leaveCommunityBtn').classList.remove('hidden');
     } 
     else {
-      // Show admin options
+      // Show admin options for owners and admins
       document.getElementById('editDescBtn').classList.remove('hidden');
       document.getElementById('saveDescBtn').classList.add('hidden');
       document.getElementById('cancelDescBtn').classList.add('hidden');
@@ -91,7 +99,7 @@ async function loadMemberList(groupId) {
         const roleSpan = document.createElement('span');
         roleSpan.textContent = member.role;
         roleSpan.style.fontWeight = 'bold';
-        roleSpan.style.color = member.role === 'Admin' ? '#ff6b35' : '#666';
+        roleSpan.style.color = member.role === 'Owner' ? '#ff6b35' : '#666';
 
         listItem.appendChild(nameSpan);
         listItem.appendChild(roleSpan);
@@ -198,9 +206,20 @@ async function addChannel() {
   }
   
   try {
+    const token = sessionStorage.getItem('token');
+    
+    if (!token) {
+      alert('Please log in first');
+      window.location.href = 'login.html';
+      return;
+    }
+    
     const response = await fetch('/api/groups/createChannel', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
       body: JSON.stringify({ groupId, channelName })
     });
     
@@ -231,9 +250,20 @@ async function deleteChannel(channelName) {
   }
   
   try {
+    const token = sessionStorage.getItem('token');
+    
+    if (!token) {
+      alert('Please log in first');
+      window.location.href = 'login.html';
+      return;
+    }
+    
     const response = await fetch('/api/groups/deleteChannel', {
       method: 'DELETE',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
       body: JSON.stringify({ groupId, channelName })
     });
     
@@ -411,11 +441,21 @@ function editDescription() {
 // Save new group description and update server
 function saveDescription() {
   const newText = document.getElementById('descriptionTextarea').value;
+  const token = sessionStorage.getItem('token');
+  
+  if (!token) {
+    alert('Please log in first');
+    window.location.href = 'login.html';
+    return;
+  }
 
   // Send PATCH request to update group description
   fetch('/api/groups/saveDesc', {
     method: 'PATCH',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    },
     body: JSON.stringify({
       groupId: new URLSearchParams(window.location.search).get('id'),
       newDescription: newText
@@ -446,11 +486,21 @@ function cancelDescription() {
 // Delete the community (admin only)
 function deleteCommunity() {
   const groupId = new URLSearchParams(window.location.search).get('id');
+  const token = sessionStorage.getItem('token');
+  
+  if (!token) {
+    alert('Please log in first');
+    window.location.href = 'login.html';
+    return;
+  }
 
   if (confirm('Are you sure you want to delete this community? This action cannot be undone.')) {
     fetch(`/api/groups/deleteCommunity`, {
       method: 'DELETE',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
       body: JSON.stringify({ groupId })
     })
     .then(response => {
@@ -471,13 +521,22 @@ function deleteCommunity() {
 // Allow a user to leave a group
 function leaveCommunity() {
   const groupId = new URLSearchParams(window.location.search).get('id');
-  const userId = JSON.parse(sessionStorage.getItem('user')).UserID;
+  const token = sessionStorage.getItem('token');
+  
+  if (!token) {
+    alert('Please log in first');
+    window.location.href = 'login.html';
+    return;
+  }
 
   if (confirm('Are you sure you want to leave this group?')) {
     fetch('/api/groups/leaveGroup', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ groupId, userId })
+      headers: { 
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({ groupId })
     })
     .then(response => {
       if (response.ok) {
@@ -689,7 +748,9 @@ async function sendMessage() {
   if (!messageText || !currentGroupId || !currentChannel) return;
   
   const currentUser = JSON.parse(sessionStorage.getItem("user"));
-  if (!currentUser) {
+  const token = sessionStorage.getItem("token");
+  
+  if (!currentUser || !token) {
     alert('Please log in to send messages.');
     return;
   }
@@ -704,12 +765,11 @@ async function sendMessage() {
     const response = await fetch(`/api/groups/firebase/channels/${currentGroupId}/${currentChannel}`, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}` // Add JWT token
       },
       body: JSON.stringify({
-        message: messageText,
-        userId: currentUser.UserID.toString(),
-        userName: currentUser.Username || `User ${currentUser.UserID}`
+        message: messageText
       })
     });
     

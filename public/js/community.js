@@ -50,21 +50,37 @@ if (modal && addBtns && closeBtn && form) {
     form.addEventListener('submit', async (e) => {
         e.preventDefault(); // Prevent page reload
 
-        // Use safe authentication check
+        // Check user authentication and admin role
         const user = checkUserAuthentication();
         if (!user) return;
+
+        // Check if user has admin role
+        if (user.role !== 'admin') {
+            alert('Only administrators can create groups');
+            return;
+        }
+
+        // Get JWT token for authentication
+        const token = sessionStorage.getItem('token');
+        if (!token) {
+            alert('Please log in first');
+            window.location.href = 'login.html';
+            return;
+        }
 
         // Get input values from form
         const groupName = document.getElementById('groupName').value.trim();
         const groupDescription = document.getElementById('groupDescription').value.trim();
-        const adminId = user.UserID;
 
         try {
-            // Send POST request to create new group
+            // Send POST request to create new group with JWT token
             const response = await fetch('/api/hobby-groups', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ groupName, groupDescription, adminId }),
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ groupName, groupDescription }),
             });
 
             if (response.ok) {
@@ -73,22 +89,23 @@ if (modal && addBtns && closeBtn && form) {
                 modal.style.display = 'none';
                 form.reset(); // Reset form inputs
 
-                // Get logged-in user info safely
+                // Get group ID from response
                 const groupId = data.groupId;
-                const userId = user.UserID;
-                const fullName = user.FullName;
 
                 // Auto-join the group after creation
                 try {
-                    const response = await fetch('/api/hobby-groups/join', {
+                    const joinResponse = await fetch('/api/hobby-groups/join', {
                         method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ groupId, userId, fullName })
+                        headers: { 
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify({ groupId })
                     });
 
-                    const data = await response.json();
+                    const joinData = await joinResponse.json();
 
-                    if (response.status === 201) {
+                    if (joinResponse.status === 201) {
                         // Redirect to group page after successful join
                         window.location.href = `group.html?id=${groupId}`;
                     } else {
@@ -122,9 +139,8 @@ async function loadGroups() {
             return;
         }
 
-        // Use safe authentication check
-        const user = checkUserAuthentication();
-        const userId = user ? user.UserID : null;
+        // Get JWT token for authentication
+        const token = sessionStorage.getItem('token');
         container.innerHTML = ''; // Clear existing content
 
         for (const group of groups) {
@@ -142,9 +158,14 @@ async function loadGroups() {
 
             // Check if the logged-in user is already a member
             let isMember = false;
-            if (userId) {
+            if (token) {
                 try {
-                    const membershipRes = await fetch(`/api/groups/checkMembership/${group.GroupID}/${userId}`);
+                    const membershipRes = await fetch(`/api/groups/checkMembership/${group.GroupID}`, {
+                        method: 'GET',
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        }
+                    });
                     const membershipData = await membershipRes.json();
                     isMember = membershipData.isMember;
                 } catch (error) {
@@ -164,19 +185,24 @@ async function loadGroups() {
                 // If not a member, show "Join" button
                 btn.textContent = 'Join';
                 btn.addEventListener('click', async () => {
-                    // Use safe authentication check
-                    const user = checkUserAuthentication();
-                    if (!user) return;
+                    // Get JWT token for authentication
+                    const token = sessionStorage.getItem('token');
+                    if (!token) {
+                        alert('Please log in first');
+                        window.location.href = 'login.html';
+                        return;
+                    }
 
                     const groupId = group.GroupID;
-                    const userId = user.UserID;
-                    const fullName = user.FullName;
 
                     try {
                         const response = await fetch('/api/hobby-groups/join', {
                             method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ groupId, userId, fullName })
+                            headers: { 
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${token}`
+                            },
+                            body: JSON.stringify({ groupId })
                         });
 
                         const data = await response.json();
@@ -263,8 +289,11 @@ document.addEventListener('DOMContentLoaded', function() {
                     try {
                         const response = await fetch('/api/hobby-groups/join', {
                             method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ groupId, userId, fullName })
+                            headers: { 
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${token}`
+                            },
+                            body: JSON.stringify({ groupId })
                         });
 
                         const data = await response.json();
@@ -298,4 +327,27 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Load groups after DOM is ready
     loadGroups();
+    
+    // Control UI based on user role
+    checkUserRoleAndSetUI();
 });
+
+// Function to check user role and set UI visibility
+function checkUserRoleAndSetUI() {
+    const user = checkUserAuthentication();
+    if (!user) return;
+
+    // Hide "Add Community" button for non-admin users
+    const addBtns = document.querySelectorAll('.add-btn');
+    if (user.role !== 'admin') {
+        addBtns.forEach(btn => {
+            btn.style.display = 'none';
+        });
+        
+        // Also hide the modal if it exists
+        const modal = document.getElementById('addModal');
+        if (modal) {
+            modal.style.display = 'none';
+        }
+    }
+}

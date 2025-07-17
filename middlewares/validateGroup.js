@@ -1,3 +1,5 @@
+const GroupModel = require('../models/groupModel');
+
 const validateGroup = (req, res, next) => {
     const { groupName, groupDescription } = req.body;
     
@@ -26,4 +28,34 @@ const validateGroup = (req, res, next) => {
     next();
 };
 
-module.exports = validateGroup;
+const validateGroupOwnership = async (req, res, next) => {
+    const { groupId } = req.params || req.body;
+    const userId = req.user.UserID;
+    
+    if (!groupId) {
+        return res.status(400).json({ error: 'Group ID is required' });
+    }
+    
+    try {
+        // Check if user is admin (admins can modify any group)
+        if (req.user.role === 'admin') {
+            return next();
+        }
+        
+        // Check if user is the group owner
+        const isOwner = await GroupModel.checkGroupOwnership(groupId, userId);
+        if (!isOwner) {
+            return res.status(403).json({ error: 'Only the group owner can perform this action' });
+        }
+        
+        next();
+    } catch (error) {
+        console.error('Error validating group ownership:', error);
+        res.status(500).json({ error: 'Internal Server Error', details: error.message });
+    }
+};
+
+module.exports = {
+    validateGroup,
+    validateGroupOwnership
+};

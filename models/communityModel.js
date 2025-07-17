@@ -16,19 +16,48 @@ class CommunityModel {
     }
 
     // Create a new hobby group
-    static async createGroup(groupName, groupDescription, adminId) {
+    static async createGroup(groupName, groupDescription, ownerId) {
         try {
         const pool = await sql.connect(config);
-        const result = await pool.request()
-            .input('GroupName', sql.NVarChar(100), groupName)
-            .input('GroupDescription', sql.NVarChar(255), groupDescription || '')
-            .input('AdminID', sql.Int, adminId)
-            .query(
-            `INSERT INTO HobbyGroups (GroupName, GroupDescription, AdminID)
-            VALUES (@GroupName, @GroupDescription, @AdminID);
-            SELECT SCOPE_IDENTITY() AS GroupID`
-            ); 
-        return result.recordset[0].GroupID;
+        
+        // Start transaction for group creation and admin addition
+        const transaction = new sql.Transaction(pool);
+        await transaction.begin();
+        
+        try {
+            // Create the group
+            const groupResult = await transaction.request()
+                .input('GroupName', sql.NVarChar(100), groupName)
+                .input('GroupDescription', sql.NVarChar(255), groupDescription || '')
+                .input('OwnerID', sql.Int, ownerId)
+                .query(
+                `INSERT INTO HobbyGroups (GroupName, GroupDescription, OwnerID)
+                VALUES (@GroupName, @GroupDescription, @OwnerID);
+                SELECT SCOPE_IDENTITY() AS GroupID`
+                );
+            
+            const newGroupId = groupResult.recordset[0].GroupID;
+            
+            // Get all admin users
+            const adminResult = await transaction.request()
+                .query("SELECT UserID, first_name, last_name FROM Users WHERE role = 'admin'");
+            
+            // Add all admins to the group
+            for (const admin of adminResult.recordset) {
+                const fullName = `${admin.first_name} ${admin.last_name}`.trim();
+                await transaction.request()
+                    .input('UserID', sql.Int, admin.UserID)
+                    .input('GroupID', sql.Int, newGroupId)
+                    .input('Name', sql.NVarChar(500), fullName)
+                    .query('INSERT INTO Members (UserID, GroupID, Name) VALUES (@UserID, @GroupID, @Name)');
+            }
+            
+            await transaction.commit();
+            return newGroupId;
+        } catch (error) {
+            await transaction.rollback();
+            throw error;
+        }
         } 
         catch (error) {
         throw new Error(`Database error in createGroup: ${error.message}`);

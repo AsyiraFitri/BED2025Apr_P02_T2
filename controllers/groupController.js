@@ -45,11 +45,13 @@ const deleteCommunity = async (req, res) => {
 
 // Controller for a user to leave a group
 const leaveGroup = async (req, res) => {
-    const { groupId, userId } = req.body;
+    const { groupId } = req.body;
+    // Get user ID from JWT token (added by verifyToken middleware)
+    const userId = req.user.UserID;
 
     // Check for required inputs
-    if (!groupId || !userId) {
-        return res.status(400).json({ error: 'Group ID and User ID are required' });
+    if (!groupId) {
+        return res.status(400).json({ error: 'Group ID is required' });
     }
 
     try {
@@ -65,11 +67,13 @@ const leaveGroup = async (req, res) => {
 
 // Controller to check if a user is already a member of a group
 const checkMembership = async (req, res) => {
-    const { groupId, userId } = req.params;
+    const { groupId } = req.params;
+    // Get user ID from JWT token (added by verifyToken middleware)
+    const userId = req.user.UserID;
 
     // Validate parameters
-    if (!groupId || !userId) {
-        return res.status(400).json({ error: 'Group ID and User ID are required' });
+    if (!groupId) {
+        return res.status(400).json({ error: 'Group ID is required' });
     }
 
     try {
