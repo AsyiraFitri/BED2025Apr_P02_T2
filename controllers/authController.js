@@ -11,14 +11,14 @@ async function registerUser(req, res) {
     const { email, password, first_name, last_name, phone_number } = req.body;
     if (!email || !password || !first_name || !last_name)
       return res.status(400).json({ error: "Missing required fields" });
-
+    email = email.trim().toLowerCase();
     const pool = await sql.connect(dbConfig);
 
     // Check if user exists
     const existingUser = await pool
       .request()
       .input("email", sql.VarChar, email)
-      .query("SELECT * FROM Users WHERE email = @email");
+      .query("SELECT * FROM Users WHERE LOWER(email) = LOWER(@email)");
 
     if (existingUser.recordset.length > 0) {
       return res.status(400).json({ error: "User already exists" });
