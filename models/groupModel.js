@@ -111,14 +111,14 @@ class GroupModel {
                 .query(`
                     SELECT 
                         m.Name,
-                        -- Assign role based on whether user is the group admin
+                        -- Assign role based on whether user is the group owner
                         CASE 
-                            WHEN m.UserID = hg.AdminID THEN 'Admin'
+                            WHEN m.UserID = hg.OwnerID THEN 'Owner'
                             ELSE 'Member'
                         END as Role,
-                        -- Sort Admin first, then Members
+                        -- Sort Owner first, then Members
                         CASE 
-                            WHEN m.UserID = hg.AdminID THEN 1
+                            WHEN m.UserID = hg.OwnerID THEN 1
                             ELSE 2
                         END as SortOrder
                     FROM Members m
@@ -134,6 +134,22 @@ class GroupModel {
         } 
         catch (error) {
             throw new Error(`Database error in getMemberListWithRoles: ${error.message}`);
+        }
+    }
+
+    // Method to check if a user is the owner of a group
+    static async checkGroupOwnership(groupId, userId) {
+        try {
+            const pool = await sql.connect(config);
+            const result = await pool.request()
+                .input('GroupID', sql.Int, groupId)
+                .input('UserID', sql.Int, userId)
+                .query('SELECT COUNT(*) as ownerCount FROM HobbyGroups WHERE GroupID = @GroupID AND OwnerID = @UserID');
+            // Returns true if user is the owner
+            return result.recordset[0].ownerCount > 0;
+        } 
+        catch (error) {
+            throw new Error(`Database error in checkGroupOwnership: ${error.message}`);
         }
     }
 }

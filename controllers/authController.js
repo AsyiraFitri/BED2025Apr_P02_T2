@@ -33,7 +33,8 @@ async function registerUser(req, res) {
       .input("first_name", sql.VarChar, first_name)
       .input("last_name", sql.VarChar, last_name)
       .input("phone_number", phone_number || null)
-      .query("INSERT INTO Users (email, password, first_name, last_name, phone_number) VALUES (@email, @password, @first_name, @last_name, @phone_number)");
+      .input("role", sql.VarChar, "user") // Default role is user
+      .query("INSERT INTO Users (email, password, first_name, last_name, phone_number, role) VALUES (@email, @password, @first_name, @last_name, @phone_number, @role)");
 
     res.status(201).json({ message: "User registered" });
   } catch (error) {
@@ -74,7 +75,8 @@ async function loginUser(req, res) {
         UserID: user.recordset[0].UserID, 
         email: user.recordset[0].email,
         first_name: user.recordset[0].first_name,
-        last_name: user.recordset[0].last_name
+        last_name: user.recordset[0].last_name,
+        role: user.recordset[0].role || 'user'
       },
       process.env.JWT_SECRET_KEY,
       { expiresIn: "24h" }
@@ -89,6 +91,7 @@ async function loginUser(req, res) {
         email: user.recordset[0].email,
         first_name: user.recordset[0].first_name,
         last_name: user.recordset[0].last_name,
+        role: user.recordset[0].role || 'user',
         FullName: `${user.recordset[0].first_name} ${user.recordset[0].last_name}`.trim()
       }
     });

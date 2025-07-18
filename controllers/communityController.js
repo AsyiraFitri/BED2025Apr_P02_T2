@@ -23,14 +23,17 @@ const getAllGroups = async (req, res) => {
 
 // Controller to create a new hobby group
 const createGroup = async (req, res) => {
-  const { groupName, groupDescription, adminId } = req.body; // Extract data from request body
+  // Get user details from JWT token (added by verifyAdmin middleware)
+  const ownerId = req.user.UserID;
+  const { groupName, groupDescription } = req.body; // Extract data from request body
+  
   // Validate: group name must be provided
   if (!groupName) {
     return res.status(400).json({ error: 'Group name is required' });
   }
   try {
     // Call model to insert new group into database
-    const newGroupId = await CommunityModel.createGroup(groupName, groupDescription, adminId);
+    const newGroupId = await CommunityModel.createGroup(groupName, groupDescription, ownerId);
     // Send success response with new group ID
     res.status(201).json({
       message: 'Group added successfully',
@@ -77,7 +80,11 @@ const loginUser = async (req, res) => {
 
 // Controller to join a user to a group
 const joinGroup = async (req, res) => {
-  const { groupId, userId, fullName } = req.body; // Extract data from frontend
+  // Get user details from JWT token (added by verifyToken middleware)
+  const userId = req.user.UserID;
+  const fullName = `${req.user.first_name} ${req.user.last_name}`.trim();
+  const { groupId } = req.body; // Extract group ID from request body
+  
   try {
     await CommunityModel.joinGroup(userId, groupId, fullName); // Add user to group in DB
     res.status(201).json({ message: 'Joined group successfully' }); // Success message

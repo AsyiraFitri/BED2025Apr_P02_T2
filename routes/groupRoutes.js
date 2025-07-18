@@ -1,21 +1,22 @@
 const express = require('express');
 const router = express.Router();
 const controller = require('../controllers/groupController');
-const validateGroup = require('../middlewares/validateGroup');
+const { validateGroup, validateGroupOwnership } = require('../middlewares/validateGroup');
+const { verifyToken } = require('../middlewares/authorizeUser');
 require('dotenv').config();
 
 const firebaseAdmin = require('../public/js/firebaseChat'); 
 
 // Routes
-router.get('/checkMembership/:groupId/:userId', controller.checkMembership);
+router.get('/checkMembership/:groupId', verifyToken, controller.checkMembership);
 router.get('/memberCount/:groupId', controller.getMemberCount);
 router.get('/memberList/:groupId', controller.getMemberList);
 router.get('/channels/:groupId', controller.getChannels);
-router.patch('/saveDesc', controller.saveDesc);
-router.post('/createChannel', controller.createChannel);
-router.delete('/deleteChannel', controller.deleteChannel);
-router.delete('/deleteCommunity', controller.deleteCommunity);
-router.post('/leaveGroup', controller.leaveGroup);
+router.patch('/saveDesc', verifyToken, validateGroupOwnership, controller.saveDesc); // Only owner can change description
+router.post('/createChannel', verifyToken, validateGroupOwnership, controller.createChannel); // Only owner can create channels
+router.delete('/deleteChannel', verifyToken, validateGroupOwnership, controller.deleteChannel); // Only owner can delete channels
+router.delete('/deleteCommunity', verifyToken, validateGroupOwnership, controller.deleteCommunity); // Only owner can delete group
+router.post('/leaveGroup', verifyToken, controller.leaveGroup);
 
 router.get('/firebase/channels/:groupId/:channelName', async (req, res) => {
   try {
@@ -32,17 +33,15 @@ router.get('/firebase/channels/:groupId/:channelName', async (req, res) => {
 router.post('/firebase/channels/:groupId/:channelName', async (req, res) => {
   try {
     const { groupId, channelName } = req.params;
-    const { message, userId, userName } = req.body;
+    const { message } = req.body;
     const channelId = `${groupId}_${channelName}`;
-    const messageData = {
-      text: message,
-      userId: userId,
-      userName: userName,
-      groupId: groupId,
-      channelName: channelName
-    };
+    const token = req.headers.authorization; // Get JWT token from Authorization header
     
-    const messageId = await firebaseAdmin.createMessage(channelId, messageData);
+    if (!token) {
+      return res.status(401).json({ error: 'No authorization token provided' });
+    }
+    
+    const messageId = await firebaseAdmin.createMessage(channelId, message, groupId, channelName, token);
     res.json({ success: true, messageId });
   } 
   catch (error) {
