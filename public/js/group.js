@@ -1,3 +1,23 @@
+// Utility function to get user details from JWT token
+function getUserFromToken() {
+  const token = sessionStorage.getItem('token');
+  if (!token) return null;
+  
+  try {
+    // Decode JWT payload (base64 decode the middle part)
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    return {
+      UserID: payload.userId || payload.UserID,
+      role: payload.role,
+      username: payload.username || payload.name,
+      email: payload.email
+    };
+  } catch (error) {
+    console.error('Invalid token:', error);
+    return null;
+  }
+}
+
 // Loads and displays group details when the page loads
 async function loadGroupDetails() {
   const params = new URLSearchParams(window.location.search);
@@ -17,7 +37,13 @@ async function loadGroupDetails() {
     const group = await res.json();
 
     // Get current user information for permission checking
-    const user = JSON.parse(sessionStorage.getItem("user"));
+    const user = getUserFromToken();
+    if (!user) {
+      alert('Please log in first');
+      window.location.href = 'login.html';
+      return;
+    }
+    
     const userId = user.UserID;
     const userRole = user.role;
     
@@ -346,7 +372,13 @@ function createChatInterface(channelName) {
   if (!mainContent) return;
   
   // Check user permissions for restricted channels
-  const user = JSON.parse(sessionStorage.getItem("user"));
+  const user = getUserFromToken();
+  if (!user) {
+    alert('Please log in first');
+    window.location.href = 'login.html';
+    return;
+  }
+  
   const userRole = user.role;
   const isAdmin = userRole === 'admin';
   
@@ -744,7 +776,7 @@ function displayMessages(messages) {
   if (!chatMessages) return;
   
   // Get current user info for message styling
-  const currentUser = JSON.parse(sessionStorage.getItem("user"));
+  const currentUser = getUserFromToken();
   
   // Handle empty state
   if (messages.length === 0) {
@@ -894,7 +926,7 @@ async function sendMessage() {
   if (!messageText || !currentGroupId || !currentChannel) return;
   
   // Get user authentication info
-  const currentUser = JSON.parse(sessionStorage.getItem("user"));
+  const currentUser = getUserFromToken();
   const token = sessionStorage.getItem("token");
   
   if (!currentUser || !token) {

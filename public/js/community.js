@@ -1,20 +1,48 @@
+// JWT utility function to decode user from token
+function getUserFromToken() {
+  const token = sessionStorage.getItem('token');
+  if (!token) {
+    return null;
+  }
+
+  try {
+    // JWT tokens have format: header.payload.signature
+    const base64Url = token.split('.')[1];
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    const jsonPayload = decodeURIComponent(
+      atob(base64).split('').map(function(c) {
+        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+      }).join('')
+    );
+    return JSON.parse(jsonPayload);
+  } catch (error) {
+    console.error('Error decoding JWT token:', error);
+    return null;
+  }
+}
+
 // Add safe authentication check function
 function checkUserAuthentication() {
-  const user = sessionStorage.getItem('user');
   const token = sessionStorage.getItem('token');
   
-  if (!user || !token) {
+  if (!token) {
     alert('Please log in first');
     window.location.href = 'login.html';
     return null;
   }
   
   try {
-    return JSON.parse(user);
+    const user = getUserFromToken();
+    if (!user) {
+      alert('Please log in again');
+      sessionStorage.removeItem('token');
+      window.location.href = 'login.html';
+      return null;
+    }
+    return user;
   } catch (error) {
     console.error('Error parsing user data:', error);
     alert('Please log in again');
-    sessionStorage.removeItem('user');
     sessionStorage.removeItem('token');
     window.location.href = 'login.html';
     return null;
