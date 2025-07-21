@@ -17,7 +17,25 @@ async function getHelpRequests(req, res) {
     res.status(500).json({ error: 'Internal server error' });
   }
 }
+const { createHelpRequest } = require('../models/request-helpModel');
+
+async function postHelpRequest(req, res) {
+  try {
+    const requestData = req.body;
+
+    // TO validate
+
+    await createHelpRequest(requestData);
+
+    res.status(201).json({ message: 'Request submitted successfully!' });
+  } catch (error) {
+    console.error('Error creating help request:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+}
 
 module.exports = {
-  getHelpRequests
+  getHelpRequests,
+  postHelpRequest
 };
+
