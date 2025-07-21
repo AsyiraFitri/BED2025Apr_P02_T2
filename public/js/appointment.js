@@ -22,6 +22,13 @@ function formatTime(timeStr) {
   return `${displayHour}:${m} ${isPM ? 'PM' : 'AM'}`;
 }
 
+function formatDateForDB(dateStr) {
+  const date = new Date(dateStr);
+  if (isNaN(date)) return null; // or throw error, depending on your logic
+  return date.toISOString().slice(0, 10); // returns 'YYYY-MM-DD'
+}
+
+
 // ===== Google Calendar Integration =====
 
 // On page load, check if redirected back from Google OAuth with tokens in URL hash
@@ -63,7 +70,7 @@ function updateGoogleCalendarButtons() {
 }
 
 // Sends appointment data to backend which syncs it with Google Calendar API
-async function syncToGoogleCalendar() {
+async function syncToGoogleCalendar(specificAppointment = null) {
   // Get tokens from sessionStorage
   const tokens = JSON.parse(sessionStorage.getItem("google_tokens"));
   if (!tokens) {
@@ -71,8 +78,13 @@ async function syncToGoogleCalendar() {
     return;
   }
 
-  // Fetch appointments by calling updateAppointmentDisplay()
-  const appointments = await updateAppointmentDisplay();
+  // Get all appointments if no specific appointment provided
+  let appointments;
+  if (specificAppointment) {
+    appointments = [specificAppointment];
+  } else {
+    appointments = await updateAppointmentDisplay();
+  }
 
   if (!appointments || (Array.isArray(appointments) && appointments.length === 0)) {
     console.warn('No appointments to sync.');
@@ -84,15 +96,17 @@ async function syncToGoogleCalendar() {
 
   for (const appointment of appointmentsArray) {
     try {
-      console.log("Syncing appointment to Google Calendar with data:", appointment);
+      console.log('Formatted date to send:', new Date(appointment.AppointmentDate).toISOString().split('T')[0]);
 
       const response = await fetch('/google/sync', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          tokens,                    // OAuth tokens for authentication
+          tokens,
+          appointmentId: appointment.AppointmentID,
+          googleEventId: appointment.GoogleEventID || null,  // Send existing GoogleEventID if present
           title: appointment.Title,
-          date: new Date(appointment.AppointmentDate).toISOString().split('T')[0],
+          date: new Date(appointment.AppointmentDate).toISOString().split('T')[0], // YYYY-MM-DD
           time: appointment.AppointmentTime,
           location: appointment.Location,
           notes: appointment.Notes
@@ -103,7 +117,26 @@ async function syncToGoogleCalendar() {
 
       if (response.ok) {
         console.log(`Synced "${appointment.Title}" to Google Calendar. Event link: ${result.link}`);
-        // Optionally show a toast or UI feedback here
+
+        // Only update backend if GoogleEventID is missing or changed
+        if (!appointment.GoogleEventID || appointment.GoogleEventID !== result.eventID) {
+          await fetch(`/api/appointments/${appointment.AppointmentID}`, {
+            method: 'PUT',
+            headers: getAuthHeaders({ 'Content-Type': 'application/json' }),
+            body: JSON.stringify({
+              AppointmentDate: new Date(appointment.AppointmentDate).toISOString().slice(0, 10),
+              AppointmentTime: appointment.AppointmentTime,
+              Title: appointment.Title,
+              Location: appointment.Location,
+              DoctorName: appointment.DoctorName,
+              Notes: appointment.Notes,
+              GoogleEventID: result.eventID  // Update with returned Google Event ID
+            })
+          });
+
+          appointment.GoogleEventID = result.eventID;
+          console.log(`Updated appointment ${appointment.AppointmentID} with new GoogleEventID: ${result.eventID}`);
+        }
       } else {
         console.warn('Google sync error:', result.error);
       }
@@ -111,7 +144,11 @@ async function syncToGoogleCalendar() {
       console.error('Google sync failed for appointment:', appointment, err);
     }
   }
+
+  showToast('All appointments synced to Google Calendar successfully', 'success');
+  updateGoogleCalendarButtons();
 }
+
 
 
 // ===== Appointment Card UI Functions =====

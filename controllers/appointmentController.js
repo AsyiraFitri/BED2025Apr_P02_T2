@@ -50,6 +50,8 @@ async function createAppointment(req, res) {
       DoctorName: req.body.DoctorName,
       Notes: req.body.Notes || "No special instructions",
       UserID: req.body.UserID 
+      // GoogleEventID will be set after syncing to Google Calendar
+      
     };
 
     await appointmentModel.createAppointment(appointment);
@@ -75,7 +77,8 @@ async function updateAppointment(req, res) {
       Title: req.body.Title,
       Location: req.body.Location,
       DoctorName: req.body.DoctorName,
-      Notes: req.body.Notes || "No special instructions"
+      Notes: req.body.Notes || "No special instructions",
+      GoogleEventID: req.body.GoogleEventID || null // Optional, if syncing to Google Calendar  
     };
 
     await appointmentModel.updateAppointment(id, appointment);

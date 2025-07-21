@@ -94,6 +94,10 @@ async function createAppointment(app) {
     request.input("doctor", sql.NVarChar, app.DoctorName);
     request.input("notes", sql.NVarChar, app.Notes);
     request.input("userId", sql.Int, app.UserID);
+    // If GoogleEventID is provided, include it in the insert
+    if (app.GoogleEventID) {
+      request.input("googleEventId", sql.NVarChar, app.GoogleEventID);
+    }
 
     await request.query(query);
   } catch (error) {
@@ -123,7 +127,8 @@ async function updateAppointment(id, data) {
           Title = @title,
           Location = @location,
           DoctorName = @doctor,
-          Notes = @notes
+          Notes = @notes,
+          GoogleEventID = @googleEventId
       WHERE AppointmentID = @id
     `;
 
@@ -135,6 +140,7 @@ async function updateAppointment(id, data) {
     request.input("location", sql.NVarChar, data.Location);
     request.input("doctor", sql.NVarChar, data.DoctorName);
     request.input("notes", sql.NVarChar, data.Notes);
+    request.input("googleEventId", sql.NVarChar, data.GoogleEventID || null); // Optional
 
     await request.query(query);
   } catch (error) {

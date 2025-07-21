@@ -1,7 +1,7 @@
 const { google } = require('googleapis');
 require('dotenv').config();
 
-console.log ('OAuth2 Redirect URI:', process.env.REDIRECT);
+console.log('OAuth2 Redirect URI:', process.env.REDIRECT);
 const oauth2Client = new google.auth.OAuth2(
   process.env.CLIENT_ID,
   process.env.SECRET_ID,
@@ -15,7 +15,7 @@ function loginWithGoogle(req, res) {
     scope: ['https://www.googleapis.com/auth/calendar'],
     prompt: 'consent'
   });
-    console.log("Redirecting to Google OAuth URL:", url);
+  console.log("Redirecting to Google OAuth URL:", url);
   res.redirect(url);
 }
 
@@ -40,7 +40,7 @@ async function syncAppointment(req, res) {
     return res.status(401).json({ error: 'Missing access token' });
   }
 
-  const { title, date, time, location, notes } = req.body;
+  const { title, date, time, location, notes, appointmentId, googleEventId } = req.body;
 
   // Basic validation
   if (!date || !time) {
@@ -56,8 +56,13 @@ async function syncAppointment(req, res) {
   // 30 minutes appointment length
   const endDateTime = new Date(startDateTime.getTime() + 30 * 60000);
 
-  const auth = new google.auth.OAuth2();
+  const auth = new google.auth.OAuth2(
+    process.env.CLIENT_ID,
+    process.env.SECRET_ID,
+    process.env.REDIRECT
+  );
   auth.setCredentials(tokens);
+
   const calendar = google.calendar({ version: 'v3', auth });
 
   const event = {
@@ -65,12 +70,40 @@ async function syncAppointment(req, res) {
     location,
     description: notes || '',
     start: { dateTime: startDateTime.toISOString(), timeZone: 'Asia/Singapore' },
-    end: { dateTime: endDateTime.toISOString(), timeZone: 'Asia/Singapore' }
+    end: { dateTime: endDateTime.toISOString(), timeZone: 'Asia/Singapore' },
+    extendedProperties: {
+      private: {
+        websiteAppointmentId: appointmentId // Store our ID in Google event
+      }
+    }
   };
 
   try {
-    const result = await calendar.events.insert({ calendarId: 'primary', resource: event });
-    res.json({ message: 'Appointment synced', link: result.data.htmlLink });
+    // Check if this appointment already exists in Google Calendar
+
+    let result;
+
+    if (googleEventId) {
+      // Update the existing Google Calendar event
+      result = await calendar.events.update({
+        calendarId: 'primary',
+        eventId: googleEventId,
+        resource: event
+      });
+    } else {
+      // Create new event
+      result = await calendar.events.insert({
+        calendarId: 'primary',
+        resource: event
+      });
+    }
+    console.log("Google Calendar event synced:", result.data);
+
+    res.json({
+      message: 'Appointment synced',
+      link: result.data.htmlLink,
+      eventID: result.data.id
+    });
   } catch (err) {
     console.error("Google Calendar sync failed:", err);
     res.status(500).json({ error: 'Failed to sync appointment' });
