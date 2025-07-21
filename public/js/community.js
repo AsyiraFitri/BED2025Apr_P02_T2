@@ -2,8 +2,10 @@
 function getUserFromToken() {
   const token = sessionStorage.getItem('token');
   if (!token) {
-    return null;
-  }
+    alert('Please log in first');
+    window.location.href = 'login.html';
+    return;
+    }
 
   try {
     // JWT tokens have format: header.payload.signature
@@ -15,7 +17,8 @@ function getUserFromToken() {
       }).join('')
     );
     return JSON.parse(jsonPayload);
-  } catch (error) {
+  } 
+  catch (error) {
     console.error('Error decoding JWT token:', error);
     return null;
   }
@@ -73,85 +76,8 @@ if (modal && addBtns && closeBtn && form) {
     window.onclick = (e) => {
         if (e.target === modal) modal.style.display = 'none';
     };
-
-    // Handle form submission for creating a new community group
-    form.addEventListener('submit', async (e) => {
-        e.preventDefault(); // Prevent page reload
-
-        // Check user authentication and admin role
-        const user = checkUserAuthentication();
-        if (!user) return;
-
-        // Check if user has admin role
-        if (user.role !== 'admin') {
-            alert('Only administrators can create groups');
-            return;
-        }
-
-        // Get JWT token for authentication
-        const token = sessionStorage.getItem('token');
-        if (!token) {
-            alert('Please log in first');
-            window.location.href = 'login.html';
-            return;
-        }
-
-        // Get input values from form
-        const groupName = document.getElementById('groupName').value.trim();
-        const groupDescription = document.getElementById('groupDescription').value.trim();
-
-        try {
-            // Send POST request to create new group with JWT token
-            const response = await fetch('/api/hobby-groups', {
-                method: 'POST',
-                headers: { 
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify({ groupName, groupDescription }),
-            });
-
-            if (response.ok) {
-                const data = await response.json(); // Parse response
-                alert('Community group added!');
-                modal.style.display = 'none';
-                form.reset(); // Reset form inputs
-
-                // Get group ID from response
-                const groupId = data.groupId;
-
-                // Auto-join the group after creation
-                try {
-                    const joinResponse = await fetch('/api/hobby-groups/join', {
-                        method: 'POST',
-                        headers: { 
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${token}`
-                        },
-                        body: JSON.stringify({ groupId })
-                    });
-
-                    const joinData = await joinResponse.json();
-
-                    if (joinResponse.status === 201) {
-                        // Redirect to group page after successful join
-                        window.location.href = `group.html?id=${groupId}`;
-                    } else {
-                        alert('Failed to join group.');
-                    }
-                } catch (err) {
-                    console.error('Error joining group:', err);
-                    alert('Error joining group.');
-                }
-            } else {
-                alert('Failed to add group.');
-            }
-        } catch (error) {
-            alert('Error connecting to server.');
-            console.error(error);
-        }
-    });
-} else {
+} 
+else {
     console.warn('Modal elements not found - modal functionality disabled');
 }
 
@@ -160,10 +86,20 @@ async function loadGroups() {
     try {
         const res = await fetch('/api/hobby-groups'); // Fetch all groups
         const groups = await res.json();
-        const container = document.getElementById('communityCards');
+        
+        // Wait for DOM to be ready with multiple retries if needed
+        let container = document.getElementById('communityCards');
+        let retries = 0;
+        const maxRetries = 10;
+        
+        while (!container && retries < maxRetries) {
+            await new Promise(resolve => setTimeout(resolve, 100));
+            container = document.getElementById('communityCards');
+            retries++;
+        }
         
         if (!container) {
-            console.error('communityCards container not found');
+            console.error('communityCards container not found - DOM might not be ready after retries');
             return;
         }
 
@@ -196,7 +132,8 @@ async function loadGroups() {
                     });
                     const membershipData = await membershipRes.json();
                     isMember = membershipData.isMember;
-                } catch (error) {
+                } 
+                catch (error) {
                     console.error('Error checking membership:', error);
                 }
             }
@@ -209,7 +146,8 @@ async function loadGroups() {
                 btn.addEventListener('click', () => {
                     window.location.href = `group.html?id=${group.GroupID}`;
                 });
-            } else {
+            } 
+            else {
                 // If not a member, show "Join" button
                 btn.textContent = 'Join';
                 btn.addEventListener('click', async () => {
@@ -238,10 +176,12 @@ async function loadGroups() {
                         if (response.status === 201) {
                             alert(data.message);
                             window.location.href = `group.html?id=${groupId}`;
-                        } else {
+                        } 
+                        else {
                             alert('Failed to join group.');
                         }
-                    } catch (err) {
+                    } 
+                    catch (err) {
                         console.error('Error joining group:', err);
                         alert('Error joining group.');
                     }
@@ -254,7 +194,8 @@ async function loadGroups() {
             card.appendChild(btn);
             container.appendChild(card);
         }
-    } catch (error) {
+    } 
+    catch (error) {
         console.error('Error loading groups:', error);
     }
 }
@@ -293,15 +234,25 @@ document.addEventListener('DOMContentLoaded', function() {
             const user = checkUserAuthentication();
             if (!user) return;
 
+            // Always get the token for authenticated requests
+            const token = sessionStorage.getItem('token');
+            if (!token) {
+                alert('Please log in first');
+                window.location.href = 'login.html';
+                return;
+            }
+
             const groupName = document.getElementById('groupName').value.trim();
             const groupDescription = document.getElementById('groupDescription').value.trim();
-            const adminId = user.UserID;
 
             try {
                 const response = await fetch('/api/hobby-groups', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ groupName, groupDescription, adminId }),
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ groupName, groupDescription }),
                 });
 
                 if (response.ok) {
@@ -311,41 +262,51 @@ document.addEventListener('DOMContentLoaded', function() {
                     form.reset();
 
                     const groupId = data.groupId;
-                    const userId = user.UserID;
-                    const fullName = user.FullName;
 
                     try {
-                        const response = await fetch('/api/hobby-groups/join', {
+                        const joinResponse = await fetch('/api/hobby-groups/join', {
                             method: 'POST',
-                            headers: { 
+                            headers: {
                                 'Content-Type': 'application/json',
                                 'Authorization': `Bearer ${token}`
                             },
                             body: JSON.stringify({ groupId })
                         });
 
-                        const data = await response.json();
+                        const joinData = await joinResponse.json();
 
-                        if (response.status === 201) {
-                            window.location.href = `group.html?id=${groupId}`;
-                        } else {
-                            alert('Failed to join group.');
+                        if (joinResponse.status === 201) {
+                        // Debug: show joinResponse status and groupId
+                        alert('Join response status: ' + joinResponse.status + '\nGroup ID: ' + groupId + '\nJoin data: ' + JSON.stringify(joinData));
+                        console.log('Join response status:', joinResponse.status);
+                        console.log('Group ID:', groupId);
+                        console.log('Join data:', joinData);
+                        // Redirect to the group page after successful group creation and join
+                        window.location.href = `group.html?id=${groupId}`;
+                        } 
+                        else {
+                        alert('Failed to join group. Status: ' + joinResponse.status + '\nJoin data: ' + JSON.stringify(joinData));
+                        console.log('Failed to join group. Status:', joinResponse.status, 'Join data:', joinData);
                         }
-                    } catch (err) {
+                    } 
+                    catch (err) {
                         console.error('Error joining group:', err);
                         alert('Error joining group.');
                     }
-                } else {
+                } 
+                else {
                     alert('Failed to add group.');
                 }
-            } catch (error) {
+            } 
+            catch (error) {
                 alert('Error connecting to server.');
                 console.error(error);
             }
         });
         
         console.log('Modal functionality initialized successfully');
-    } else {
+    } 
+    else {
         console.warn('Modal elements not found - modal functionality disabled');
         console.log('Modal:', modal);
         console.log('Add buttons:', addBtns.length);

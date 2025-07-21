@@ -398,44 +398,17 @@ function createChatInterface(channelName) {
   
   // Clear any existing content and configure for full-height chat layout
   mainContent.innerHTML = '';
-  mainContent.style.cssText = `
-    background: white;
-    border-radius: 12px;
-    padding: 0;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-    display: flex;
-    flex-direction: column;
-    height: calc(100vh - 180px);
-    min-height: 600px;
-    overflow: hidden;
-  `;
+  mainContent.className = 'main-content-chat';
   
   // Create scrollable messages container
   const messagesContainer = document.createElement('div');
   messagesContainer.id = 'chatMessages';
-  messagesContainer.style.cssText = `
-    flex: 1;
-    padding: 2rem;
-    overflow-y: auto;
-    background: #f8f9fa;
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-  `;
   
   // Create loading state shown while messages are being fetched
   const loadingDiv = document.createElement('div');
-  loadingDiv.style.cssText = `
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    height: 100%;
-    color: #666;
-    text-align: center;
-  `;
+  loadingDiv.className = 'loading-state';
   loadingDiv.innerHTML = `
-    <div style="font-size: 48px; margin-bottom: 16px;">💬</div>
+    <div class="loading-icon">💬</div>
     <div>Loading messages for #${channelName}...</div>
   `;
   messagesContainer.appendChild(loadingDiv);
@@ -447,67 +420,19 @@ function createChatInterface(channelName) {
   if (showMessageInput) {
     // Create input area with textarea and send button
     const inputArea = document.createElement('div');
-    inputArea.style.cssText = `
-      padding: 2rem;
-      background: white;
-      border-radius: 0 0 12px 12px;
-      display: flex;
-      gap: 15px;
-      align-items: flex-end;
-      flex-shrink: 0;
-    `;
+    inputArea.className = 'input-area';
     inputArea.innerHTML = `
-      <textarea id="messageInput" placeholder="Type a message in #${channelName}... (Press Enter to send, Shift+Enter for new line)" style="
-        flex: 1;
-        padding: 2px 16px;
-        border: 1px solid #ddd;
-        border-radius: 12px;
-        outline: none;
-        font-size: 14px;
-        font-family: inherit;
-        resize: none;
-        height: 48px;
-        min-height: 48px;
-        max-height: 120px;
-        overflow-y: auto;
-        line-height: 1.4;
-        background: #f8f9fa;
-        transition: border-color 0.2s;
-      "></textarea>
-      <button id="sendButton" onclick="sendMessage()" style="
-        background: #007bff;
-        color: white;
-        border: none;
-        border-radius: 30px;
-        width: 48px;
-        height: 48px;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 18px;
-        transition: all 0.2s;
-        flex-shrink: 0;
-        box-shadow: 0 2px 8px rgba(0,123,255,0.3);
-      " onmouseover="this.style.backgroundColor='#0056b3'; this.style.transform='scale(1.05)'" onmouseout="this.style.backgroundColor='#007bff'; this.style.transform='scale(1)'">➤</button>
+      <textarea id="messageInput" placeholder="Type a message in #${channelName}... (Press Enter to send, Shift+Enter for new line)"></textarea>
+      <button id="sendButton" onclick="sendMessage()">➤</button>
     `;
     mainContent.appendChild(inputArea);
   } 
   else {
     // Show read-only message for restricted channels
     const restrictedMessage = document.createElement('div');
-    restrictedMessage.style.cssText = `
-      padding: 2rem;
-      background: #f8f9fa;
-      border-radius: 0 0 12px 12px;
-      text-align: center;
-      color: #666;
-      font-style: italic;
-      border-top: 1px solid #e0e0e0;
-      flex-shrink: 0;
-    `;
+    restrictedMessage.className = 'restricted-message';
     restrictedMessage.innerHTML = `
-      <div style="font-size: 14px;">
+      <div>
         📢 Only admins and group owners can post in #${channelName}
       </div>
     `;
@@ -750,20 +675,24 @@ async function loadChannelMessages() {
 
       // Convert Firebase message format to display format
       const formattedMessages = messages.map(msg => ({
+        id: msg.id, // Include message ID for edit/delete functionality
         SenderID: msg.userId,
         MessageText: msg.text,
         Timestamp: msg.timestamp ? new Date(msg.timestamp._seconds * 1000) : new Date(),
-        SenderName: msg.userName || `User ${msg.userId}`
+        SenderName: msg.userName || `User ${msg.userId}`,
+        edited: msg.edited || false // Track if message was edited
       }));
       
       // Display the formatted messages
       displayMessages(formattedMessages);
-    } else {
+    } 
+    else {
       // If API fails, show empty state
       displayMessages([]);
     }
     
-  } catch (error) {
+  } 
+  catch (error) {
     console.error('Error loading messages:', error);
     // On error, show empty state
     displayMessages([]);
@@ -781,19 +710,8 @@ function displayMessages(messages) {
   // Handle empty state
   if (messages.length === 0) {
     chatMessages.innerHTML = `
-      <div class="empty-chat" style="
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        flex: 1;
-        height: 100%;
-        min-height: 300px;
-        color: #666;
-        text-align: center;
-        margin: 0;
-      ">
-        <div class="empty-chat-icon" style="font-size: 48px; margin-bottom: 16px;">💬</div>
+      <div class="empty-chat">
+        <div class="empty-chat-icon">💬</div>
         <div>No messages yet. Start the conversation!</div>
       </div>
     `;
@@ -821,85 +739,116 @@ function createMessageElement(message, currentUser) {
   const isOwnMessage = message.SenderID === currentUser.UserID;
   
   // Style the message container with card-like appearance
-  messageDiv.style.cssText = `
-    background: white;
-    border-radius: 12px;
-    padding: 1.5rem;
-    margin-bottom: 1rem;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-    border: 1px solid #e0e0e0;
-    ${isOwnMessage ? 'border-left: 4px solid #007bff;' : ''}
-  `;
+  messageDiv.className = `message-container ${isOwnMessage ? 'own-message' : ''}`;
   
   // Create message header with avatar and user info
   const header = document.createElement('div');
-  header.style.cssText = `
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    margin-bottom: 1rem;
-  `;
+  header.className = 'message-header';
+  
+  // Add three-dot menu for own messages
+  if (isOwnMessage) {
+    const menuButton = document.createElement('button');
+    menuButton.className = 'message-menu-button';
+    menuButton.innerHTML = '⋮';
+    menuButton.title = 'Message options';
+    
+    // Create dropdown menu
+    const dropdownMenu = document.createElement('div');
+    dropdownMenu.className = 'message-dropdown';
+    
+    // Edit option
+    const editOption = document.createElement('button');
+    editOption.className = 'dropdown-option';
+    editOption.innerHTML = 'Edit';
+    editOption.onmouseover = () => editOption.style.background = '#f8f9fa';
+    editOption.onmouseout = () => editOption.style.background = 'none';
+    editOption.onclick = (e) => {
+      e.stopPropagation();
+      dropdownMenu.style.display = 'none';
+      editMessage(message.id, messageDiv);
+    };
+    
+    // Delete option
+    const deleteOption = document.createElement('button');
+    deleteOption.className = 'dropdown-option delete';
+    deleteOption.innerHTML = 'Delete';
+    deleteOption.onmouseover = () => deleteOption.style.background = '#fef2f2';
+    deleteOption.onmouseout = () => deleteOption.style.background = 'none';
+    deleteOption.onclick = (e) => {
+      e.stopPropagation();
+      dropdownMenu.style.display = 'none';
+      deleteMessage(message.id, messageDiv);
+    };
+    
+    // Add options to dropdown
+    dropdownMenu.appendChild(editOption);
+    dropdownMenu.appendChild(deleteOption);
+    
+    // Toggle dropdown on button click
+    menuButton.onclick = (e) => {
+      e.stopPropagation();
+      const isVisible = dropdownMenu.style.display === 'block';
+      
+      // Hide all other dropdowns
+      document.querySelectorAll('.message-dropdown').forEach(dropdown => {
+        dropdown.style.display = 'none';
+      });
+      
+      dropdownMenu.style.display = isVisible ? 'none' : 'block';
+    };
+    
+    // Close dropdown when clicking outside
+    document.addEventListener('click', () => {
+      dropdownMenu.style.display = 'none';
+    });
+    
+    menuButton.onmouseover = () => menuButton.style.background = '#f0f0f0';
+    menuButton.onmouseout = () => menuButton.style.background = 'none';
+    
+    dropdownMenu.className = 'message-dropdown';
+    menuButton.appendChild(dropdownMenu);
+    header.appendChild(menuButton);
+  }
   
   // Create circular avatar with user's initial
   const avatar = document.createElement('div');
-  avatar.style.cssText = `
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    background: ${isOwnMessage ? '#007bff' : '#6c757d'};
-    color: white;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: bold;
-    font-size: 14px;
-    flex-shrink: 0;
-  `;
+  avatar.className = `message-avatar ${isOwnMessage ? 'own' : 'other'}`;
+  avatar.style.background = isOwnMessage ? '#007bff' : '#6c757d';
   avatar.textContent = (message.SenderName || message.SenderID.toString()).charAt(0).toUpperCase();
   
   // Create container for author name and timestamp
   const authorInfo = document.createElement('div');
-  authorInfo.style.cssText = `
-    display: flex;
-    flex-direction: column;
-    flex: 1;
-  `;
+  authorInfo.className = 'author-info';
   
   // Author name
   const author = document.createElement('div');
-  author.style.cssText = `
-    font-weight: 600;
-    color: #333;
-    font-size: 14px;
-  `;
+  author.className = 'author-name';
   author.textContent = message.SenderName || `User ${message.SenderID}`;
   
   // Message timestamp
   const time = document.createElement('div');
-  time.style.cssText = `
-    font-size: 12px;
-    color: #666;
-    opacity: 0.8;
-  `;
+  time.className = 'message-time';
   time.textContent = formatMessageTime(message.Timestamp);
   
   // Create message content area
   const content = document.createElement('div');
-  content.style.cssText = `
-    margin-bottom: 0;
-    color: #333;
-    font-size: 14px;
-    line-height: 1.6;
-  `;
+  content.className = 'message-content';
   
   // Message text with line break preservation
   const text = document.createElement('div');
-  text.style.cssText = `
-    white-space: pre-wrap;
-    word-wrap: break-word;
-    margin: 0;
-  `;
-  text.textContent = message.MessageText;
+  text.className = 'message-text';
+  
+  // Set the actual message text content with line break handling
+  const messageText = (message.MessageText || '').replace(/\n/g, '<br>');
+  text.innerHTML = messageText;
+  
+  // Add edited indicator if message was edited
+  if (message.edited) {
+    const editedIndicator = document.createElement('span');
+    editedIndicator.className = 'edited-indicator';
+    editedIndicator.textContent = ' (edited)';
+    text.appendChild(editedIndicator);
+  }
   
   // Assemble all components into the message element
   authorInfo.appendChild(author);
@@ -909,6 +858,9 @@ function createMessageElement(message, currentUser) {
   content.appendChild(text);
   messageDiv.appendChild(header);
   messageDiv.appendChild(content);
+  
+  // Store message ID on the element for later reference
+  messageDiv.dataset.messageId = message.id;
   
   return messageDiv;
 }
@@ -962,7 +914,8 @@ async function sendMessage() {
         await loadChannelMessages();
       }, 500);
       
-    } else {
+    } 
+    else {
       // Handle API error
       const error = await response.json();
       alert(`Failed to send message: ${error.error}`);
@@ -992,10 +945,12 @@ function formatMessageTime(timestamp) {
     // Less than 1 hour: show minutes or "just now"
     const minutes = Math.floor(diffInHours * 60);
     return minutes < 1 ? 'just now' : `${minutes}m ago`;
-  } else if (diffInHours < 24) {
+  } 
+  else if (diffInHours < 24) {
     // 1-24 hours: show hours
     return `${Math.floor(diffInHours)}h ago`;
-  } else {
+  } 
+  else {
     // More than 24 hours: show date
     return date.toLocaleDateString();
   }
@@ -1024,3 +979,152 @@ window.addEventListener('beforeunload', function() {
     clearInterval(messagePollingInterval);
   }
 });
+
+// Edit a message (user's own messages only)
+async function editMessage(messageId, messageElement) {
+  const messageTextDiv = messageElement.querySelector('.message-text');
+  
+  // Get original text without the "(edited)" indicator and convert <br> back to newlines
+  let originalText = messageTextDiv.innerHTML;
+  if (originalText.includes('<span class="edited-indicator">')) {
+    originalText = originalText.replace(/<span class="edited-indicator">.*?<\/span>/g, '');
+  }
+  originalText = originalText.replace(/<br>/g, '\n').trim();
+  
+  // Create edit textarea
+  const editTextarea = document.createElement('textarea');
+  editTextarea.className = 'edit-textarea';
+  editTextarea.value = originalText;
+  
+  // Create action buttons container
+  const editActions = document.createElement('div');
+  editActions.className = 'edit-actions';
+  
+  // Save button
+  const saveButton = document.createElement('button');
+  saveButton.className = 'edit-save-btn';
+  saveButton.textContent = 'Save';
+  saveButton.onmouseover = () => saveButton.style.background = '#218838';
+  saveButton.onmouseout = () => saveButton.style.background = '#28a745';
+  
+  // Cancel button
+  const cancelButton = document.createElement('button');
+  cancelButton.className = 'edit-cancel-btn';
+  cancelButton.textContent = 'Cancel';
+  cancelButton.onmouseover = () => cancelButton.style.background = '#5a6268';
+  cancelButton.onmouseout = () => cancelButton.style.background = '#6c757d';
+  
+  // Save edit functionality
+  saveButton.onclick = async () => {
+    const newText = editTextarea.value.trim();
+    if (!newText) {
+      alert('Message cannot be empty');
+      return;
+    }
+    
+    if (newText === originalText) {
+      // No changes, just cancel
+      cancelEdit();
+      return;
+    }
+    
+    try {
+      const token = sessionStorage.getItem('token');
+      const response = await fetch(`/api/groups/firebase/messages/${messageId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          groupId: currentGroupId,
+          channelName: currentChannel,
+          newText: newText
+        })
+      });
+      
+      if (response.ok) {
+        // Update the message display - clear existing content and set new text with line breaks
+        const newTextWithBreaks = newText.replace(/\n/g, '<br>');
+        messageTextDiv.innerHTML = newTextWithBreaks;
+        
+        // Add "edited" indicator
+        const editedIndicator = document.createElement('span');
+        editedIndicator.className = 'edited-indicator';
+        editedIndicator.textContent = ' (edited)';
+        messageTextDiv.appendChild(editedIndicator);
+        
+        cancelEdit();
+      } 
+      else {
+        const error = await response.json();
+        alert(`Failed to edit message: ${error.error || 'Unknown error'}`);
+      }
+    } 
+    catch (error) {
+      console.error('Error editing message:', error);
+      alert('Failed to edit message. Please try again.');
+    }
+  };
+  
+  // Cancel edit functionality
+  const cancelEdit = () => {
+    messageTextDiv.style.display = 'block';
+    editTextarea.remove();
+    editActions.remove();
+  };
+  
+  cancelButton.onclick = cancelEdit;
+  
+  // Replace message text with edit interface
+  messageTextDiv.style.display = 'none';
+  editActions.appendChild(saveButton);
+  editActions.appendChild(cancelButton);
+  messageTextDiv.parentNode.appendChild(editTextarea);
+  messageTextDiv.parentNode.appendChild(editActions);
+  
+  // Focus and select text in textarea
+  editTextarea.focus();
+  editTextarea.select();
+}
+
+// Delete a message (user's own messages only)
+async function deleteMessage(messageId, messageElement) {
+  // Confirm deletion
+  if (!confirm('Are you sure you want to delete this message? This action cannot be undone.')) {
+    return;
+  }
+  
+  try {
+    const token = sessionStorage.getItem('token');
+    const response = await fetch(`/api/groups/firebase/messages/${messageId}`, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({
+        groupId: currentGroupId,
+        channelName: currentChannel
+      })
+    });
+    
+    if (response.ok) {
+      // Remove message element with fade animation
+      messageElement.style.transition = 'opacity 0.3s ease-out';
+      messageElement.style.opacity = '0';
+      
+      setTimeout(() => {
+        messageElement.remove();
+      }, 300);
+    } 
+    else {
+      const error = await response.json();
+      alert(`Failed to delete message: ${error.error || 'Unknown error'}`);
+    }
+  } 
+  catch (error) {
+    console.error('Error deleting message:', error);
+    alert('Failed to delete message. Please try again.');
+  }
+}

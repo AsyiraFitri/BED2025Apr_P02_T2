@@ -117,11 +117,93 @@ async function createChannel(groupId, channelName, token) {
   }
 }
 
+// Update a message (only if user owns the message)
+async function updateMessage(messageId, newText, token, groupId, channelName) {
+  try {
+    // Get user details from JWT token
+    const user = getUserFromToken(token);
+    
+    const parentDocId = 'NvOli6bXb837LgM9eSJh';
+    const messageRef = db
+      .collection('groupMessage')
+      .doc(parentDocId)
+      .collection('messages')
+      .doc(messageId);
+
+    // Get the message first to verify ownership
+    const messageDoc = await messageRef.get();
+    
+    if (!messageDoc.exists) {
+      throw new Error('Message not found');
+    }
+    
+    const messageData = messageDoc.data();
+    
+    // Check if user owns the message
+    if (messageData.userId !== user.userId) {
+      throw new Error('You can only edit your own messages');
+    }
+    
+    // Update the message
+    await messageRef.update({
+      text: newText,
+      edited: true,
+      editedAt: admin.firestore.FieldValue.serverTimestamp()
+    });
+    
+    return { success: true };
+  } 
+  catch (error) {
+    console.error('Error updating message:', error);
+    throw error;
+  }
+}
+
+// Delete a message (only if user owns the message)
+async function deleteMessage(messageId, token, groupId, channelName) {
+  try {
+    // Get user details from JWT token
+    const user = getUserFromToken(token);
+    
+    const parentDocId = 'NvOli6bXb837LgM9eSJh';
+    const messageRef = db
+      .collection('groupMessage')
+      .doc(parentDocId)
+      .collection('messages')
+      .doc(messageId);
+
+    // Get the message first to verify ownership
+    const messageDoc = await messageRef.get();
+    
+    if (!messageDoc.exists) {
+      throw new Error('Message not found');
+    }
+    
+    const messageData = messageDoc.data();
+    
+    // Check if user owns the message
+    if (messageData.userId !== user.userId) {
+      throw new Error('You can only delete your own messages');
+    }
+    
+    // Delete the message
+    await messageRef.delete();
+    
+    return { success: true };
+  } 
+  catch (error) {
+    console.error('Error deleting message:', error);
+    throw error;
+  }
+}
+
 module.exports = {
   admin,
   db,
   createMessage,
   getMessages,
   createChannel,
+  updateMessage,
+  deleteMessage,
   getUserFromToken
 };

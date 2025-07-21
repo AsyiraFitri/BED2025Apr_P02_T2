@@ -3,7 +3,7 @@ const GroupModel = require('../models/groupModel');
 const sql = require('mssql');
 const config = require('../dbConfig');
 
-// Controller to update a group's description
+// Update a group's description
 const saveDesc = async (req, res) => {
     const { groupId, newDescription } = req.body;
 
@@ -23,7 +23,7 @@ const saveDesc = async (req, res) => {
     }
 };
 
-// Controller to delete a group and its members
+// Delete a group and its members
 const deleteCommunity = async (req, res) => {
     const { groupId } = req.body;
 
@@ -43,18 +43,21 @@ const deleteCommunity = async (req, res) => {
     }
 };
 
-// Controller for a user to leave a group
+// User leaves a group
 const leaveGroup = async (req, res) => {
     const { groupId } = req.body;
-    // Get user ID from JWT token (added by verifyToken middleware)
     const userId = req.user.UserID;
 
-    // Check for required inputs
     if (!groupId) {
         return res.status(400).json({ error: 'Group ID is required' });
     }
 
     try {
+        // Check if the user is the owner of the group
+        const isOwner = await GroupModel.checkGroupOwnership(groupId, userId);
+        if (isOwner) {
+            return res.status(403).json({ error: 'Group owners cannot leave their own group. You may delete the group instead.' });
+        }
         // Remove the user from the group in the DB
         await GroupModel.removeUserFromGroup(groupId, userId);
         res.status(200).json({ message: 'Left the group successfully' });
@@ -65,7 +68,7 @@ const leaveGroup = async (req, res) => {
     }
 };
 
-// Controller to check if a user is already a member of a group
+// Check if a user is already a member of a group
 const checkMembership = async (req, res) => {
     const { groupId } = req.params;
     // Get user ID from JWT token (added by verifyToken middleware)
@@ -87,7 +90,7 @@ const checkMembership = async (req, res) => {
     }
 };
 
-// Controller to get the number of members in a group
+// Get the number of members in a group
 const getMemberCount = async (req, res) => {
     const { groupId } = req.params;
 
@@ -107,7 +110,7 @@ const getMemberCount = async (req, res) => {
     }
 };
 
-// Controller to retrieve list of all members with their roles (Admin/Member)
+// Retrieve list of all members with their roles (Admin/Member)
 const getMemberList = async (req, res) => {
     const { groupId } = req.params;
 
@@ -127,7 +130,7 @@ const getMemberList = async (req, res) => {
     }
 };
 
-// Controller to get all channels for a group
+// Get all channels for a group
 const getChannels = async (req, res) => {
     const groupId = req.params.groupId;
 
@@ -148,7 +151,7 @@ const getChannels = async (req, res) => {
     }
 };
 
-// Controller to create a new channel (admin only)
+// Create a new channel (admin only)
 const createChannel = async (req, res) => {
     const { groupId, channelName } = req.body;
 
@@ -192,7 +195,7 @@ const createChannel = async (req, res) => {
     }
 };
 
-// Controller to delete a channel (admin only)
+// Delete a channel (admin only)
 const deleteChannel = async (req, res) => {
     const { groupId, channelName } = req.body;
 
@@ -214,7 +217,7 @@ const deleteChannel = async (req, res) => {
     }
 };
 
-// Export all controller functions for use in routes
+// Export all functions for use in routes
 module.exports = {
     saveDesc,
     deleteCommunity,

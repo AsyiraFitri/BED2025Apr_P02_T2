@@ -1,12 +1,18 @@
-// Import the community model that handles database logic
-const CommunityModel = require('../models/communityModel');
+// Import the community model functions that handle database logic
+const {
+  getAllGroups: getAllGroupsModel,
+  createGroup: createGroupModel,
+  getGroupById: getGroupByIdModel,
+  authenticateUser: authenticateUserModel,
+  joinGroup: joinGroupModel
+} = require('../models/communityModel');
 
-// Controller to fetch all hobby groups
+// Fetch all hobby groups
 const getAllGroups = async (req, res) => {
   console.log('=== getAllGroups called ===');
   try {
     console.log('Fetching all groups from database...');
-    const groups = await CommunityModel.getAllGroups(); // Retrieve all groups from DB
+    const groups = await getAllGroupsModel(); // Retrieve all groups from DB
     console.log('Query result:', groups);    
     // Ensure we always return an array
     if (!Array.isArray(groups)) {
@@ -21,7 +27,7 @@ const getAllGroups = async (req, res) => {
   }
 };
 
-// Controller to create a new hobby group
+// Create a new hobby group
 const createGroup = async (req, res) => {
   // Get user details from JWT token (added by verifyAdmin middleware)
   const ownerId = req.user.UserID;
@@ -33,7 +39,7 @@ const createGroup = async (req, res) => {
   }
   try {
     // Call model to insert new group into database
-    const newGroupId = await CommunityModel.createGroup(groupName, groupDescription, ownerId);
+    const newGroupId = await createGroupModel(groupName, groupDescription, ownerId);
     // Send success response with new group ID
     res.status(201).json({
       message: 'Group added successfully',
@@ -46,11 +52,11 @@ const createGroup = async (req, res) => {
   }
 };
 
-// Controller to get a single group by its ID
+// Get a single group by its ID
 const getGroupById = async (req, res) => {
   const groupId = req.params.id; // Extract group ID from URL parameter
   try {
-    const group = await CommunityModel.getGroupById(groupId); // Fetch group from DB by ID
+    const group = await getGroupByIdModel(groupId); // Fetch group from DB by ID
     if (!group) {
       return res.status(404).json({ message: 'Group not found' }); // If group doesn't exist
     }
@@ -62,11 +68,11 @@ const getGroupById = async (req, res) => {
   }
 };
 
-// Controller to handle user login
+// Handle user login
 const loginUser = async (req, res) => {
   const { email, password } = req.body; // Get email and password from frontend
   try {
-    const user = await CommunityModel.authenticateUser(email, password); // Check credentials in DB
+    const user = await authenticateUserModel(email, password); // Check credentials in DB
     if (!user) {
       return res.status(401).json({ success: false, message: 'Invalid credentials' }); // Authentication failed
     }
@@ -78,7 +84,7 @@ const loginUser = async (req, res) => {
   }
 };
 
-// Controller to join a user to a group
+// Join a user to a group
 const joinGroup = async (req, res) => {
   // Get user details from JWT token (added by verifyToken middleware)
   const userId = req.user.UserID;
@@ -86,8 +92,14 @@ const joinGroup = async (req, res) => {
   const { groupId } = req.body; // Extract group ID from request body
   
   try {
-    await CommunityModel.joinGroup(userId, groupId, fullName); // Add user to group in DB
-    res.status(201).json({ message: 'Joined group successfully' }); // Success message
+    const result = await joinGroupModel(userId, groupId, fullName); // Add user to group in DB
+    if (result === true || result === 'duplicate') {
+      // User was already a member, just joined, or duplicate key error
+      res.status(200).json({ message: 'Already a member or joined successfully' });
+    } else {
+      // Fallback, but should not happen
+      res.status(201).json({ message: 'Joined group successfully' });
+    }
   } 
   catch (error) {
     console.error('Error in joinGroup:', error);
