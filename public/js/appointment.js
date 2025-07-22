@@ -228,10 +228,22 @@ async function handleAppointmentsDeleteConfirmation() {
   const modalElement = document.getElementById('confirmDeleteModal');
   const modal = bootstrap.Modal.getInstance(modalElement);
   try {
+    
+    showToast('Appointment deleted successfully');
+    
+    // delete from Google Calendar if synced
+    const cachedAppointment = appointmentCache[idToDelete];
+    if (cachedAppointment?.GoogleEventID) {
+      const tokens = JSON.parse(sessionStorage.getItem('tokens'));
+      if (tokens) {
+        await deleteGoogleEvent(cachedAppointment.GoogleEventID, tokens);
+      }
+    }
+
     await deleteAppointment(idToDelete);
     delete appointmentCache[idToDelete];
     updateAppointmentDisplayFromCache();
-    showToast('Appointment deleted successfully');
+
   } catch {
     alert('Error deleting appointment');
   } finally {

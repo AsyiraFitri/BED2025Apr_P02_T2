@@ -1,55 +1,66 @@
 import { showToast, getAuthHeaders } from './health-utils.js';
 import { updateAppointmentDisplay } from './appointment.js';
 
-// On page load, check if redirected back from Google OAuth with tokens in URL hash
-const hash = window.location.hash.substr(1);
-const tokensEncoded = new URLSearchParams(hash).get("tokens");
+const TOKEN_STORAGE_KEY = 'google_tokens';
 
-if (tokensEncoded) {
+// Extract and store Google OAuth tokens from URL hash (if any)
+(function initGoogleTokensFromHash() {
+  const hash = window.location.hash.substr(1);
+  const tokensEncoded = new URLSearchParams(hash).get('tokens');
+  if (!tokensEncoded) return;
+
   try {
     const tokens = JSON.parse(decodeURIComponent(tokensEncoded));
-    sessionStorage.setItem("google_tokens", JSON.stringify(tokens));
-    updateGoogleCalendarButtons();
+    sessionStorage.setItem(TOKEN_STORAGE_KEY, JSON.stringify(tokens));
   } catch (err) {
-    console.error("Invalid token format:", err);
+    console.error('Invalid token format in URL hash:', err);
   }
-  updateGoogleCalendarButtons();
-}
+})();
 
+// Update Google Connect and Sync buttons based on token presence
 function updateGoogleCalendarButtons() {
-  const tokens = sessionStorage.getItem("google_tokens");
-  const connectBtn = document.getElementById("connectGoogleBtn");
-  const syncBtn = document.getElementById("syncGoogleBtn");
-  const hint = document.getElementById("googleButtonHint");
+  const tokens = sessionStorage.getItem(TOKEN_STORAGE_KEY);
+  const connectBtn = document.getElementById('connectGoogleBtn');
+  const syncBtn = document.getElementById('syncGoogleBtn');
+  const hint = document.getElementById('googleButtonHint');
 
   if (tokens) {
-    connectBtn.style.display = "none";
-    syncBtn.style.display = "inline-block";
+    connectBtn.style.display = 'none';
+    syncBtn.style.display = 'inline-block';
     syncBtn.disabled = false;
-    hint.textContent = "You are connected! You can sync your appointments now.";
+    hint.textContent = 'You are connected! You can sync your appointments now.';
   } else {
-    connectBtn.style.display = "inline-block";
-    syncBtn.style.display = "inline-block";
+    connectBtn.style.display = 'inline-block';
+    syncBtn.style.display = 'inline-block';
     syncBtn.disabled = true;
-    hint.textContent = "Please connect your Google Calendar first.";
+    hint.textContent = 'Please connect your Google Calendar first.';
   }
 }
 
-// Create new Google Calendar event
+// Prepare payload for backend Google Calendar API calls
+function buildEventPayload(appointment, tokens, googleEventId = null) {
+  return {
+    Tokens: tokens,
+    GoogleEventID: googleEventId !== null ? googleEventId : appointment.GoogleEventID || null,
+    AppointmentID: appointment.AppointmentID,
+    Title: appointment.Title,
+    AppointmentDate: new Date(appointment.AppointmentDate).toISOString().split('T')[0], // YYYY-MM-DD
+    AppointmentTime: appointment.AppointmentTime,
+    Location: appointment.Location,
+    DoctorName: appointment.DoctorName,
+    Notes: appointment.Notes || 'No special instructions'
+  };
+}
+
+// Create new Google event and update backend with event ID
 async function createGoogleEvent(appointment, tokens) {
+  const payload = buildEventPayload(appointment, tokens);
+
   try {
     const response = await fetch('/google/sync', {
       method: 'POST',
       headers: getAuthHeaders({ 'Content-Type': 'application/json' }),
-      body: JSON.stringify({
-        tokens,
-        appointmentId: appointment.AppointmentID,
-        title: appointment.Title,
-        date: new Date(appointment.AppointmentDate).toISOString().split('T')[0],
-        time: appointment.AppointmentTime,
-        location: appointment.Location,
-        notes: appointment.Notes
-      })
+      body: JSON.stringify(payload)
     });
 
     const result = await response.json();
@@ -58,72 +69,63 @@ async function createGoogleEvent(appointment, tokens) {
       return null;
     }
 
-    console.log(`Created Google event for "${appointment.Title}", eventID: ${result.eventID}`);
-
     // Update backend with new GoogleEventID
+    const updatePayload = buildEventPayload(appointment, tokens, result.eventId);
+
     const updateResponse = await fetch(`/api/appointments/${appointment.AppointmentID}`, {
       method: 'PUT',
       headers: getAuthHeaders({ 'Content-Type': 'application/json' }),
-      body: JSON.stringify({ GoogleEventID: result.eventID })
+      body: JSON.stringify(updatePayload)
     });
 
     if (!updateResponse.ok) {
-      const err = await updateResponse.text();
-      console.warn(`Failed to update appointment with GoogleEventID: ${err}`);
+      const errText = await updateResponse.text();
+      console.warn('Failed to update appointment with GoogleEventID:', errText);
     } else {
-      appointment.GoogleEventID = result.eventID;
+      appointment.GoogleEventID = result.eventId;
     }
 
-    return result.eventID;
-
+    return result.eventId;
   } catch (err) {
-    console.error('Create Google event error:', err);
+    console.error('Error creating Google event:', err);
     return null;
   }
 }
 
-// Update existing Google Calendar event
+// Update existing Google event by event ID
 async function updateGoogleEvent(appointment, tokens) {
-  if (!appointment.GoogleEventID) {
-    console.warn('No GoogleEventID to update.');
+  const googleEventId = appointment.GoogleEventID;
+  if (!googleEventId) {
+    console.warn('No GoogleEventID found for update.');
     return null;
   }
 
+  const payload = buildEventPayload(appointment, tokens);
+
   try {
-    const response = await fetch(`/google/sync/${appointment.GoogleEventID}`, {
+    const response = await fetch(`/google/sync/${googleEventId}`, {
       method: 'PUT',
       headers: getAuthHeaders({ 'Content-Type': 'application/json' }),
-      body: JSON.stringify({
-        tokens,
-        googleEventId: appointment.GoogleEventID,
-        appointmentId: appointment.AppointmentID,
-        title: appointment.Title,
-        date: new Date(appointment.AppointmentDate).toISOString().split('T')[0],
-        time: appointment.AppointmentTime,
-        location: appointment.Location,
-        notes: appointment.Notes
-      })
+      body: JSON.stringify(payload)
     });
 
     const result = await response.json();
-
     if (!response.ok) {
       console.warn('Update Google event failed:', result.error);
       return null;
     }
 
-    console.log(`Updated Google event for "${appointment.Title}", eventID: ${appointment.GoogleEventID}`);
-
-    return appointment.GoogleEventID;
-
+    return googleEventId;
   } catch (err) {
-    console.error('Update Google event error:', err);
+    console.error('Error updating Google event:', err);
     return null;
   }
 }
 
-// Delete Google Calendar event by event ID
+// Delete a Google Calendar event by event ID
 async function deleteGoogleEvent(googleEventId, tokens) {
+    console.log('Authorization header:', req.headers.authorization);
+
   if (!googleEventId) {
     console.warn('No GoogleEventID provided for deletion');
     return false;
@@ -132,7 +134,11 @@ async function deleteGoogleEvent(googleEventId, tokens) {
   try {
     const response = await fetch(`/google/sync/${googleEventId}`, {
       method: 'DELETE',
-      headers: getAuthHeaders({ 'Content-Type': 'application/json' })
+      headers: {
+        'Content-Type': 'application/json',
+        // Send Google OAuth access token here!
+        'Authorization': `Bearer ${tokens.access_token}`
+      }
     });
 
     if (!response.ok) {
@@ -141,25 +147,29 @@ async function deleteGoogleEvent(googleEventId, tokens) {
       return false;
     }
 
-    console.log(`Deleted Google event with ID: ${googleEventId}`);
     return true;
-
   } catch (err) {
-    console.error('Google event deletion failed:', err);
+    console.error('Error deleting Google event:', err);
     return false;
   }
 }
 
+
+// Sync all appointments: create or update events on Google Calendar
 async function syncAllAppointments() {
-  const tokens = JSON.parse(sessionStorage.getItem("google_tokens"));
-  if (!tokens) {
-    console.warn('No Google tokens found. Please connect your account.');
+  const tokensStr = sessionStorage.getItem(TOKEN_STORAGE_KEY);
+  if (!tokensStr) {
+    console.warn('No Google tokens found. Connect your account first.');
     return;
   }
 
+  const tokens = JSON.parse(tokensStr);
+
+  // Fetch and update UI, returns appointment array
   const appointments = await updateAppointmentDisplay();
-  if (!appointments || appointments.length === 0) {
-    console.warn('No appointments to sync.');
+
+  if (!appointments?.length) {
+    console.warn('No appointments available to sync.');
     return;
   }
 

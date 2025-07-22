@@ -80,6 +80,7 @@ async function updateAppointment(req, res) {
       Notes: req.body.Notes || "No special instructions",
       GoogleEventID: req.body.GoogleEventID || null // Optional, if syncing to Google Calendar  
     };
+    console.log("Updating appointment with date:", appointment.AppointmentDate);
 
     await appointmentModel.updateAppointment(id, appointment);
     res.json({ message: "Appointment updated successfully", appointment});
