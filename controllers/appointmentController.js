@@ -43,7 +43,7 @@ async function getAppointmentById(req, res) {
 async function createAppointment(req, res) {
   try {
     const appointment = {
-      date: req.body.AppointmentDate,
+      AppointmentDate: req.body.AppointmentDate,
       AppointmentTime: req.body.AppointmentTime,
       Title: req.body.Title,
       Location: req.body.Location,
@@ -82,10 +82,10 @@ async function updateAppointment(req, res) {
     };
 
     await appointmentModel.updateAppointment(id, appointment);
-    res.json({ message: "Appointment updated successfully" });
+    res.json({ message: "Appointment updated successfully", appointment});
   } catch (error) {
     console.error("Controller error (updateAppointment):", error);
-    res.status(500).json({ error: "Failed to update appointment" });
+    res.status(500).json({ error: "Failed to update appointment"});
   }
 }
 

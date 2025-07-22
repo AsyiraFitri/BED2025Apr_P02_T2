@@ -82,8 +82,8 @@ async function createAppointment(app) {
   try {
     connection = await sql.connect(dbConfig);
     const query = `
-      INSERT INTO Appointments (AppointmentDate, AppointmentTime, Title, Location, DoctorName, Notes, UserID)
-      VALUES (@date, @time, @title, @location, @doctor, @notes, @userId)
+      INSERT INTO Appointments (AppointmentDate, AppointmentTime, Title, Location, DoctorName, Notes, UserID, GoogleEventID)
+      VALUES (@date, @time, @title, @location, @doctor, @notes, @userId, @googleEventId);
     `;
 
     const request = connection.request();
@@ -94,10 +94,7 @@ async function createAppointment(app) {
     request.input("doctor", sql.NVarChar, app.DoctorName);
     request.input("notes", sql.NVarChar, app.Notes);
     request.input("userId", sql.Int, app.UserID);
-    // If GoogleEventID is provided, include it in the insert
-    if (app.GoogleEventID) {
-      request.input("googleEventId", sql.NVarChar, app.GoogleEventID);
-    }
+    request.input("googleEventId", sql.NVarChar, app.GoogleEventID || null); // Optional
 
     await request.query(query);
   } catch (error) {

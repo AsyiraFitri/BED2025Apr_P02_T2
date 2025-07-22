@@ -70,43 +70,52 @@ function updateGoogleCalendarButtons() {
 }
 
 // Sends appointment data to backend which syncs it with Google Calendar API
-async function syncToGoogleCalendar(specificAppointment = null) {
+async function syncToGoogleCalendar() {
   // Get tokens from sessionStorage
   const tokens = JSON.parse(sessionStorage.getItem("google_tokens"));
   if (!tokens) {
     console.warn('No Google tokens found. Please connect your account.');
     return;
   }
-
-  // Get all appointments if no specific appointment provided
-  let appointments;
-  if (specificAppointment) {
-    appointments = [specificAppointment];
-  } else {
-    appointments = await updateAppointmentDisplay();
-  }
-
-  if (!appointments || (Array.isArray(appointments) && appointments.length === 0)) {
+  const appointments = await updateAppointmentDisplay(); // Fetch latest appointments
+  if (!appointments || appointments.length === 0) {
     console.warn('No appointments to sync.');
     return;
   }
 
-  // Normalize in case a single appointment object is returned
+  console.log('Syncing appointments to Google Calendar:', appointments);
+
+  // Normalize to array if single object
   const appointmentsArray = Array.isArray(appointments) ? appointments : [appointments];
 
   for (const appointment of appointmentsArray) {
     try {
-      console.log('Formatted date to send:', new Date(appointment.AppointmentDate).toISOString().split('T')[0]);
+      // Validate AppointmentDate
+      if (!appointment.AppointmentDate || isNaN(new Date(appointment.AppointmentDate))) {
+        console.warn("Invalid AppointmentDate, skipping appointment:", appointment);
+        continue;
+      }
 
+      // Validate AppointmentID for updates
+      if (!appointment.AppointmentID) {
+        console.warn("Missing AppointmentID, skipping update for appointment:", appointment);
+        continue;
+      }
+
+      // Format date as YYYY-MM-DD for Google Calendar
+      const formattedDate = new Date(appointment.AppointmentDate).toISOString().split('T')[0];
+      console.log('Formatted date to send:', formattedDate);
+
+      // POST to Google Calendar sync endpoint
       const response = await fetch('/google/sync', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           tokens,
           appointmentId: appointment.AppointmentID,
-          googleEventId: appointment.GoogleEventID || null,  // Send existing GoogleEventID if present
+          googleEventId: appointment.GoogleEventID || null,
           title: appointment.Title,
-          date: new Date(appointment.AppointmentDate).toISOString().split('T')[0], // YYYY-MM-DD
+          date: formattedDate,
           time: appointment.AppointmentTime,
           location: appointment.Location,
           notes: appointment.Notes
@@ -118,24 +127,29 @@ async function syncToGoogleCalendar(specificAppointment = null) {
       if (response.ok) {
         console.log(`Synced "${appointment.Title}" to Google Calendar. Event link: ${result.link}`);
 
-        // Only update backend if GoogleEventID is missing or changed
+        // Update backend only if GoogleEventID is missing or different
         if (!appointment.GoogleEventID || appointment.GoogleEventID !== result.eventID) {
-          await fetch(`/api/appointments/${appointment.AppointmentID}`, {
+          const updateResponse = await fetch(`/api/appointments/${appointment.AppointmentID}`, {
             method: 'PUT',
             headers: getAuthHeaders({ 'Content-Type': 'application/json' }),
             body: JSON.stringify({
-              AppointmentDate: new Date(appointment.AppointmentDate).toISOString().slice(0, 10),
+              AppointmentDate: formattedDate,
               AppointmentTime: appointment.AppointmentTime,
               Title: appointment.Title,
               Location: appointment.Location,
               DoctorName: appointment.DoctorName,
               Notes: appointment.Notes,
-              GoogleEventID: result.eventID  // Update with returned Google Event ID
+              GoogleEventID: result.eventID
             })
           });
 
-          appointment.GoogleEventID = result.eventID;
-          console.log(`Updated appointment ${appointment.AppointmentID} with new GoogleEventID: ${result.eventID}`);
+          if (!updateResponse.ok) {
+            const err = await updateResponse.text();
+            console.warn(`Failed to update appointment ${appointment.AppointmentID}:`, err);
+          } else {
+            appointment.GoogleEventID = result.eventID;
+            console.log(`Updated appointment ${appointment.AppointmentID} with new GoogleEventID: ${result.eventID}`);
+          }
         }
       } else {
         console.warn('Google sync error:', result.error);
@@ -148,6 +162,7 @@ async function syncToGoogleCalendar(specificAppointment = null) {
   showToast('All appointments synced to Google Calendar successfully', 'success');
   updateGoogleCalendarButtons();
 }
+
 
 
 
@@ -238,13 +253,13 @@ async function updateAppointmentDisplay() {
     } else {
       container.innerHTML = '<p class="text-danger">No appointment data found.</p>';
     }
-
-    return appointments;  // <== Return fetched data for google calendar sync
+    return appointments;  // Return appointments for syncing
   } catch {
     document.getElementById('appointmentContainer').innerHTML = '<p class="text-danger">Failed to load appointments.</p>';
     return null;  // Return null on error
   }
 }
+
 
 
 // Opens the modal with a blank form to add a new appointment
