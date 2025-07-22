@@ -1,3 +1,5 @@
+import { showToast, showDeleteModal, showSaveFeedback, getAuthToken, getAuthHeaders } from './health-utils.js';
+
 // Generate schedule times based on frequency
 function generateSchedule(frequency) {
     const schedules = {
@@ -97,7 +99,7 @@ async function updateMedicationDisplay() {
         } else if (medications?.MedicationID) {
             container.appendChild(createMedicationCard(medications.MedicationID, medications));
         } else {
-            container.innerHTML = '<p class="text-danger">Add a Medication!</p>';
+            container.innerHTML = '<p class="text-danger">Login/Sign Up to add a medication!</p>';
         }
     } catch (error) {
         console.error('Error fetching medications:', error);

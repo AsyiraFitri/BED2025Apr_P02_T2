@@ -110,35 +110,105 @@ async function syncAppointment(req, res) {
   }
 }
 
+async function editAppointment(req, res) {
+  const tokens = req.body.tokens;
+  const eventId = req.params.eventId;
 
-// Step 4: Get upcoming events
-async function listEvents(req, res) {
+  if (!tokens || !tokens.access_token) {
+    return res.status(401).json({ error: 'Missing access token' });
+  }
+
+  const { title, date, time, location, notes } = req.body;
+
+  if (!date || !time) {
+    return res.status(400).json({ error: 'Missing date or time' });
+  }
+
+  const startDateTime = new Date(`${date}T${time}`);
+  if (isNaN(startDateTime.getTime())) {
+    return res.status(400).json({ error: 'Invalid date or time format' });
+  }
+
+  const endDateTime = new Date(startDateTime.getTime() + 30 * 60000); // 30 mins
+
+  const auth = new google.auth.OAuth2(
+    process.env.CLIENT_ID,
+    process.env.SECRET_ID,
+    process.env.REDIRECT
+  );
+  auth.setCredentials(tokens);
+
+  const calendar = google.calendar({ version: 'v3', auth });
+
+  const updatedEvent = {
+    summary: title,
+    location,
+    description: notes || '',
+    start: { dateTime: startDateTime.toISOString(), timeZone: 'Asia/Singapore' },
+    end: { dateTime: endDateTime.toISOString(), timeZone: 'Asia/Singapore' }
+  };
+
+  try {
+    const result = await calendar.events.update({
+      calendarId: 'primary',
+      eventId,
+      resource: updatedEvent
+    });
+
+    res.json({
+      message: 'Appointment updated',
+      link: result.data.htmlLink,
+      eventID: result.data.id
+    });
+  } catch (err) {
+    console.error('Google Calendar update failed:', err);
+    res.status(500).json({ error: 'Failed to update appointment' });
+  }
+}
+
+async function deleteAppointment(req, res) {
+  const eventId = req.params.eventId;
   const tokenHeader = req.headers.authorization?.split(' ')[1];
-  if (!tokenHeader) return res.status(401).send('Missing access token');
 
-  const credentials = JSON.parse(decodeURIComponent(tokenHeader));
-  const auth = new google.auth.OAuth2();
-  auth.setCredentials(credentials);
+  if (!tokenHeader) {
+    return res.status(401).json({ error: 'Missing access token' });
+  }
+
+  let tokens;
+  try {
+    tokens = JSON.parse(decodeURIComponent(tokenHeader));
+  } catch (err) {
+    return res.status(400).json({ error: 'Invalid token format' });
+  }
+
+  const auth = new google.auth.OAuth2(
+    process.env.CLIENT_ID,
+    process.env.SECRET_ID,
+    process.env.REDIRECT
+  );
+  auth.setCredentials(tokens);
+
   const calendar = google.calendar({ version: 'v3', auth });
 
   try {
-    const result = await calendar.events.list({
+    await calendar.events.delete({
       calendarId: 'primary',
-      timeMin: new Date().toISOString(),
-      maxResults: 10,
-      singleEvents: true,
-      orderBy: 'startTime'
+      eventId
     });
-    res.json(result.data.items);
+    res.json({ message: 'Appointment deleted' });
   } catch (err) {
-    console.error('Fetch events failed:', err);
-    res.status(500).send('Error fetching events');
+    console.error('Google Calendar delete failed:', err);
+    res.status(500).json({ error: 'Failed to delete appointment' });
   }
 }
+
+
+
 
 module.exports = {
   loginWithGoogle,
   handleCallback,
   syncAppointment,
-  listEvents
+  editAppointment,
+  deleteAppointment
 };
