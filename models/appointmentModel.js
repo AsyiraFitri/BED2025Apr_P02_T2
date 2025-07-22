@@ -87,7 +87,7 @@ async function createAppointment(app) {
     `;
 
     const request = connection.request();
-    request.input("date", sql.Date, new Date(app.date));
+    request.input("date", sql.Date, new Date(app.AppointmentDate));
     request.input("time", sql.VarChar, app.AppointmentTime);
     request.input("title", sql.NVarChar, app.Title);
     request.input("location", sql.NVarChar, app.Location);

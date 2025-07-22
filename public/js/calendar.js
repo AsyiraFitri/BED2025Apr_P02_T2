@@ -2,11 +2,10 @@ import { showToast, getAuthHeaders } from './health-utils.js';
 import { updateAppointmentDisplay } from './appointment.js';
 
 // On page load, check if redirected back from Google OAuth with tokens in URL hash
-const hash = window.location.hash.substr(1);  // Remove leading '#'
+const hash = window.location.hash.substr(1);
 const tokensEncoded = new URLSearchParams(hash).get("tokens");
 
 if (tokensEncoded) {
-  // Decode and parse tokens, then store them in sessionStorage for later use
   try {
     const tokens = JSON.parse(decodeURIComponent(tokensEncoded));
     sessionStorage.setItem("google_tokens", JSON.stringify(tokens));
@@ -14,27 +13,24 @@ if (tokensEncoded) {
   } catch (err) {
     console.error("Invalid token format:", err);
   }
-
-  // Update UI buttons to reflect that the user is now connected
   updateGoogleCalendarButtons();
 }
 
-// Updates the display and enable/disable state of Connect and Sync buttons
 function updateGoogleCalendarButtons() {
-  const tokens = sessionStorage.getItem("google_tokens"); // Check if tokens exist
+  const tokens = sessionStorage.getItem("google_tokens");
   const connectBtn = document.getElementById("connectGoogleBtn");
   const syncBtn = document.getElementById("syncGoogleBtn");
-  const hint = document.getElementById("googleButtonHint"); // Text hint for user
+  const hint = document.getElementById("googleButtonHint");
 
   if (tokens) {
-    connectBtn.style.display = "none";   // Hide Connect button if connected
+    connectBtn.style.display = "none";
     syncBtn.style.display = "inline-block";
-    syncBtn.disabled = false;             // Enable Sync button to allow syncing
+    syncBtn.disabled = false;
     hint.textContent = "You are connected! You can sync your appointments now.";
   } else {
-    connectBtn.style.display = "inline-block";  // Show Connect button if not connected
-    syncBtn.style.display = "inline-block";     // Show Sync button but disable it
-    syncBtn.disabled = true;                     // Disable Sync until connected
+    connectBtn.style.display = "inline-block";
+    syncBtn.style.display = "inline-block";
+    syncBtn.disabled = true;
     hint.textContent = "Please connect your Google Calendar first.";
   }
 }
@@ -42,9 +38,9 @@ function updateGoogleCalendarButtons() {
 // Create new Google Calendar event
 async function createGoogleEvent(appointment, tokens) {
   try {
-    const response = await fetch('/google/create', {  // Assuming your backend has /google/create
+    const response = await fetch('/google/sync', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: getAuthHeaders({ 'Content-Type': 'application/json' }),
       body: JSON.stringify({
         tokens,
         appointmentId: appointment.AppointmentID,
@@ -94,9 +90,9 @@ async function updateGoogleEvent(appointment, tokens) {
   }
 
   try {
-    const response = await fetch('/google/update', {  // Assuming backend has /google/update
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+    const response = await fetch(`/google/sync/${appointment.GoogleEventID}`, {
+      method: 'PUT',
+      headers: getAuthHeaders({ 'Content-Type': 'application/json' }),
       body: JSON.stringify({
         tokens,
         googleEventId: appointment.GoogleEventID,
@@ -134,15 +130,13 @@ async function deleteGoogleEvent(googleEventId, tokens) {
   }
 
   try {
-    const response = await fetch('/google/delete', {  // Backend endpoint
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ tokens, googleEventId })
+    const response = await fetch(`/google/sync/${googleEventId}`, {
+      method: 'DELETE',
+      headers: getAuthHeaders({ 'Content-Type': 'application/json' })
     });
 
-    const result = await response.json();
-
     if (!response.ok) {
+      const result = await response.json();
       console.warn('Delete Google event failed:', result.error);
       return false;
     }
@@ -156,7 +150,6 @@ async function deleteGoogleEvent(googleEventId, tokens) {
   }
 }
 
-// Sync all appointments: create or update Google events accordingly
 async function syncAllAppointments() {
   const tokens = JSON.parse(sessionStorage.getItem("google_tokens"));
   if (!tokens) {
@@ -181,11 +174,10 @@ async function syncAllAppointments() {
   showToast('All appointments synced to Google Calendar successfully', 'success');
 }
 
-// Export functions
 export {
   createGoogleEvent,
   updateGoogleEvent,
   deleteGoogleEvent,
   syncAllAppointments,
-    updateGoogleCalendarButtons
+  updateGoogleCalendarButtons
 };
