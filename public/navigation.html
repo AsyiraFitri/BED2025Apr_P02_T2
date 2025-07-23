@@ -79,10 +79,30 @@
       </div>
 
       <!-- nearby services -->
-      <section class="nearby-services">
+      <!-- <section class="nearby-services">
         <h3>Nearby Services</h3>
-        <!-- services content here -->
-      </section>
+        <label for="categorySelect">Select a Category:</label>
+        <select id="categorySelect">
+          <option value="hospital">Hospital</option>
+          <option value="supermarket">Supermarket</option>
+          <option value="park">Park</option>
+          <option value="community_center">Community Center</option>
+          <option value="food">Hawker Centers / Cafes</option>
+        </select>
+        <button id="showNearbyServices" class="btn btn-primary">Show Nearby Services</button>
+        <div id="servicesList"> -->
+          <!-- list of nearby services will be populated here -->
+       <!--  </div>
+      </section> -->
+      <!-- user Location Modal -->
+      <!-- <div id="locationModal" class="modal">
+        <div class="modal-content">
+          <span class="close-btn" id="closeLocationModal">&times;</span>
+          <h3>Enter Your Location</h3>
+          <input type="text" id="manualLocation" class="form-control" placeholder="Enter your preferred location" />
+          <button id="submitLocationBtn" class="save-btn">Submit Location</button>
+        </div>
+      </div>-->
     </aside>
 
     <!-- main map & info -->
@@ -129,5 +149,4 @@
 
   <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA8x9IAovxWerTpmCphVaD73fHHItmGOfg&libraries=places&callback=initMap"></script>
 </body>
-
 </html>
