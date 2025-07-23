@@ -215,4 +215,7 @@ router.get('/events/:groupId', async (req, res) => {
   }
 });
 
+// Get user details by userId (for event author display)
+router.get('/user/:userId', controller.getUserDetailsById);
+
 module.exports = router;

@@ -456,13 +456,20 @@ function createChatInterface(channelName) {
       mainContent.appendChild(events);
       document.getElementById("chatMessages").style.display = 'none';
     if (hasAdminPrivileges) {
+      // Match chat input area spacing and alignment
       const eventForm = document.createElement('div');
+      eventForm.className = 'input-area';
       eventForm.style.display = 'flex';
+      eventForm.style.gap = '15px';
+      eventForm.style.alignItems = 'flex-end';
       eventForm.style.justifyContent = 'flex-end';
-      eventForm.className = 'event-form';
+      eventForm.style.background = 'white';
+      eventForm.style.borderRadius = '0 0 12px 12px';
+      eventForm.style.padding = '2rem';
+      eventForm.style.flexShrink = '0';
       const createbutton = document.createElement('button');
       createbutton.id = 'eventSubmitBtn';
-      createbutton.textContent = '+ Create Event';
+      createbutton.textContent = '+';
       createbutton.onclick = () => {
         showEventCreationForm();
       };
@@ -600,64 +607,7 @@ async function submitEventForm(groupId) {
   catch (error) {
     alert('Error creating event');
   }
-}
-
-// Post a sample event to the events channel (for testing/demo)
-async function postSampleEvent() {
-  const groupId = currentGroupId || new URLSearchParams(window.location.search).get('id');
-  const token = sessionStorage.getItem('token');
-  if (!groupId || !token) {
-    alert('Please log in and select a group.');
-    return;
-  }
-  const sampleEvent = {
-    title: "Sample Event: Community Meetup",
-    description: "Join us for a fun and friendly meetup! 🎉<br>Snacks and drinks provided.",
-    date: new Date(Date.now() + 86400000).toISOString().slice(0, 10) // tomorrow
-  };
-  try {
-    const response = await fetch(`/api/groups/events/${groupId}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      },
-      body: JSON.stringify(sampleEvent)
-    });
-    if (response.ok) {
-      // Force update the events channel UI even if not re-selected
-      const eventsDiv = document.getElementById('eventsChannel');
-      if (eventsDiv && eventsDiv.style.display !== 'none') {
-        // Directly fetch and update events list
-        eventsDiv.innerHTML = '<div>Loading events...</div>';
-        fetch(`/api/events/${groupId}`)
-          .then(res => res.json())
-          .then(events => {
-            if (!Array.isArray(events) || events.length === 0) {
-              eventsDiv.innerHTML = '<div>No events found.</div>';
-              return;
-            }
-            eventsDiv.innerHTML = events.map(event =>
-              `<div class="event-card">
-                <div class="event-title">${event.Title || event.title}</div>
-                <div class="event-meta">🗓️ ${event.EventDate || event.date}</div>
-                <div class="event-meta">📍 ${event.Location || 'Community Hall'}</div>
-                <div class="event-desc">${event.Description || event.description || ''}</div>
-              </div>`
-            ).join('');
-          });
-      }
-      alert('Sample event posted!');
-    } 
-    else {
-      const data = await response.json();
-      alert(data.error || 'Failed to post sample event');
-    }
-  } 
-  catch (err) {
-    alert('Error posting sample event');
-  }
-}
+};
 
 // Initializes Firebase and loads all group data
 window.onload = async function() {
@@ -1354,48 +1304,179 @@ function renderEventList(events) {
     container.innerHTML = '<div style="padding:2rem;text-align:center;color:#888;">No events yet.</div>';
     return;
   }
+  // Get current user ID for own-message logic
+  const currentUser = getUserFromToken();
+  const currentUserId = currentUser && currentUser.UserID;
   events.forEach(event => {
+    // Create a chat-like message container for each event
     const card = document.createElement('div');
-    card.className = 'event-card';
-    card.innerHTML = `
+    let cardClass = 'message-container event-card';
+    if (currentUserId && event.CreatedBy && String(event.CreatedBy) === String(currentUserId)) {
+      cardClass += ' own-message';
+    }
+    card.className = cardClass;
+
+    // Message header with creator info and avatar
+    const header = document.createElement('div');
+    header.className = 'message-header';
+
+    // Avatar (first letter of creator name)
+    const avatar = document.createElement('div');
+    avatar.className = 'message-avatar other';
+    avatar.style.background = '#4e8cff';
+    let creator = event.CreatorName || event.Creator || event.CreatedBy;
+    if (typeof creator !== 'string') {
+      creator = 'Event';
+    }
+    avatar.textContent = creator.charAt(0).toUpperCase();
+
+    // Author info
+    const authorInfo = document.createElement('div');
+    authorInfo.className = 'author-info';
+    const author = document.createElement('div');
+    author.className = 'author-name';
+    // Set a placeholder while fetching full name
+    author.textContent = 'Loading...';
+    // Fetch full name using CreatedBy (userID)
+    if (event.CreatedBy) {
+      fetch(`/api/groups/user/${event.CreatedBy}`)
+        .then(res => res.ok ? res.json() : null)
+        .then(data => {
+          // Try to use the correct property for full name
+          let fullName = data && (data.name || data.fullName || data.username);
+          if (fullName) {
+            author.textContent = fullName;
+            // Update avatar letter to first letter of full name
+            avatar.textContent = fullName.charAt(0).toUpperCase();
+          } 
+          else {
+            author.textContent = `User ${event.CreatedBy}`;
+            avatar.textContent = 'U';
+          }
+        })
+        .catch(() => {
+          author.textContent = `User ${event.CreatedBy}`;
+          avatar.textContent = 'U';
+        });
+    } 
+    else {
+      author.textContent = 'Unknown';
+      avatar.textContent = 'U';
+    }
+    const time = document.createElement('div');
+    time.className = 'message-time';
+    time.textContent = formatEventDate(event.CreatedAt);
+    authorInfo.appendChild(author);
+    authorInfo.appendChild(time);
+    header.appendChild(avatar);
+    header.appendChild(authorInfo);
+
+    // Card content
+    const content = document.createElement('div');
+    content.className = 'message-content';
+    content.innerHTML = `
       <div class="event-title">${event.Title}</div>
+      <div class="event-desc">${event.Description || ''}</div>
       <div class="event-meta">🗓️ ${formatEventDate(event.EventDate)}</div>
       <div class="event-meta">⏰ ${formatEventTime(event.StartTime)} - ${formatEventTime(event.EndTime)}</div>
-      <div class="event-meta">📍 ${event.Location}</div>
-      <div class="event-desc">${event.Description || ''}</div>
-      <div class="event-footer">
-        <button class="event-btn" data-event-id="${event.EventID}">Delete</button>
-      </div>
+      <div class="event-meta">📍 ${event.Location}</div>   
     `;
-    // Add delete button handler
-    const deleteBtn = card.querySelector('.event-btn');
-    deleteBtn.onclick = async function() {
-      if (!confirm('Are you sure you want to delete this event?')) return;
-      const token = sessionStorage.getItem('token');
-      try {
-        const response = await fetch(`/api/groups/events/${event.EventID}`, {
-          method: 'DELETE',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-          }
-        });
-        if (response.ok) {
-          alert('Event deleted successfully.');
+
+    // Footer for layout only
+    const footer = document.createElement('div');
+    footer.className = 'event-footer';
+
+    // Add three-dot menu to header for own events
+    if (currentUserId && event.CreatedBy && String(event.CreatedBy) === String(currentUserId)) {
+      // Three-dot vertical menu button
+      const menuButton = document.createElement('button');
+      menuButton.className = 'event-menu-button';
+      menuButton.innerHTML = '&#8942;'; // vertical ellipsis
+      menuButton.title = 'Event options';
+      // Styling moved to CSS: .event-menu-button
+      menuButton.classList.add('event-menu-button-topright');
+
+      // Dropdown menu
+      const dropdownMenu = document.createElement('div');
+      dropdownMenu.className = 'event-dropdown';
+      // Styling moved to CSS: .event-dropdown
+      dropdownMenu.classList.add('event-dropdown-topright');
+
+      // Edit option
+      const editOption = document.createElement('button');
+      editOption.className = 'dropdown-option';
+      editOption.textContent = 'Edit';
+      // Styling moved to CSS: .dropdown-option
+      editOption.onclick = (e) => {
+        e.stopPropagation();
+        dropdownMenu.style.display = 'none';
+        // TODO: Implement event edit logic here
+        alert('Edit event feature coming soon!');
+      };
+
+      // Delete option (uses existing delete logic)
+      const deleteOption = document.createElement('button');
+      deleteOption.className = 'dropdown-option delete';
+      deleteOption.textContent = 'Delete';
+      // Styling moved to CSS: .dropdown-option.delete
+      deleteOption.onclick = async function(e) {
+        e.stopPropagation();
+        dropdownMenu.style.display = 'none';
+        if (!confirm('Are you sure you want to delete this event?')) return;
+        const token = sessionStorage.getItem('token');
+        try {
+          const response = await fetch(`/api/groups/events/${event.EventID}`, {
+            method: 'DELETE',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
+            }
+          });
+          if (response.ok) {
+            alert('Event deleted successfully.');
             const params = new URLSearchParams(window.location.search);
             const groupId = params.get('id');
-          await loadGroupEvents(groupId); // Refresh event list
+            await loadGroupEvents(groupId); // Refresh event list
+          } 
+          else {
+            const data = await response.json();
+            alert('Failed to delete event');
+          }
         } 
-        else {
-          const data = await response.json();
-          alert('Failed to delete event');
+        catch (err) {
+          alert('Error deleting event: ' + err);
         }
-      } 
-      catch (err) {
-        alert('Error deleting event: ' + err);
-      }
-    };
-    
+      };
+
+      dropdownMenu.appendChild(editOption);
+      dropdownMenu.appendChild(deleteOption);
+
+      // Toggle dropdown on button click
+      menuButton.onclick = (e) => {
+        e.stopPropagation();
+        // Hide all other dropdowns
+        document.querySelectorAll('.event-dropdown').forEach(dropdown => {
+          dropdown.style.display = 'none';
+        });
+        dropdownMenu.style.display = dropdownMenu.style.display === 'block' ? 'none' : 'block';
+      };
+
+      // Close dropdown when clicking outside
+      document.addEventListener('click', () => {
+        dropdownMenu.style.display = 'none';
+      });
+
+      // Positioning: relative parent for dropdown
+      header.classList.add('event-header-relative');
+      header.appendChild(menuButton);
+      header.appendChild(dropdownMenu);
+    }
+    // For non-own events, no menu
+
+    // Assemble card
+    card.appendChild(header);
+    card.appendChild(content);
+    card.appendChild(footer);
     container.appendChild(card);
   });
 }
@@ -1409,12 +1490,29 @@ function formatEventDate(dateStr) {
 
 // Format event time (HH:mm:ss or HH:mm to readable)
 function formatEventTime(timeStr) {
+  console.log('Formatting time:', timeStr);
   if (!timeStr) return '';
-  // If timeStr is like '10:00', just return as is
-  if (/^\d{2}:\d{2}$/.test(timeStr)) return timeStr;
-  // If timeStr is like '10:00:00', trim seconds
-  return timeStr.slice(0,5);
+
+  try {
+    // Parse the ISO time string to a Date object
+    const date = new Date(timeStr);
+
+    // Use toLocaleTimeString to format to 12-hour clock with AM/PM
+    const options = {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true,
+      timeZone: 'UTC' // Ensure UTC to match the 'Z' in ISO string
+    };
+
+    return date.toLocaleTimeString('en-US', options);
+  } 
+  catch (e) {
+    console.error('Invalid time string:', timeStr);
+    return timeStr;
+  }
 }
+
 
 // Shows the event creation form modal
 function showEventCreationForm() {

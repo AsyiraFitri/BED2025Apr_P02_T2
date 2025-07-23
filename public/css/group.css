@@ -1093,3 +1093,157 @@ body {
 .edit-cancel-btn:hover {
     background: #5a6268;
 }
+
+/* Event card styles */
+.event-card {
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 1rem;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  border: 1px solid #e0e0e0;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: none;
+  box-sizing: border-box;
+  transition: box-shadow 0.2s;
+}
+
+.event-card.own-message {
+  border-left: 4px solid #007bff;
+}
+
+.event-card:not(.own-message) {
+  border-left: 4px solid #4e8cff;
+}
+
+.event-card:hover {
+  box-shadow: 0 4px 16px rgba(78,140,255,0.15);
+}
+
+.event-menu-button.event-menu-button-topright {
+  font-size: 20px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0 8px;
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 20;
+}
+
+.event-dropdown.event-dropdown-topright {
+  display: none;
+  position: absolute;
+  right: 8px;
+  top: 36px;
+  background: #fff;
+  border: 1px solid #eee;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  z-index: 30;
+  min-width: 100px;
+}
+
+.dropdown-option {
+  width: 100%;
+  padding: 8px;
+  border: none;
+  background: none;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.dropdown-option:hover {
+  background: #f8f9fa;
+}
+
+.dropdown-option.delete:hover {
+  background: #fef2f2;
+}
+
+.event-header-relative {
+  position: relative;
+}
+
+.event-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #2d3a4a;
+  margin-bottom: 0.5rem;
+}
+
+.event-meta {
+  font-size: 0.95rem;
+  color: #4e8cff;
+  margin-bottom: 0.5rem;
+}
+
+.event-desc {
+  font-size: 1rem;
+  color: #444;
+  margin-bottom: 0.7rem;
+}
+
+.event-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+.event-btn {
+  background: #4e8cff;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  padding: 0.4rem 1rem;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.event-btn:hover {
+  background: #2563eb;
+}
+
+/* Event submit button styled like sendButton */
+#eventSubmitBtn {
+  background: #007bff;
+  color: white;
+  border: none;
+  border-radius: 30px;
+  width: 48px;
+  height: 48px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  transition: all 0.2s;
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(0,123,255,0.3);
+}
+
+#eventSubmitBtn:hover {
+  background-color: #0056b3;
+  transform: scale(1.05);
+}
+
+#eventSubmitBtn:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+
+#eventsChannel {
+  flex: 1;
+  padding: 2rem;
+  overflow-y: auto;
+  background: #f8f9fa;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  box-sizing: border-box;
+}

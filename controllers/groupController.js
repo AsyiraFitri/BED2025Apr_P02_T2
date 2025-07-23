@@ -217,6 +217,21 @@ const deleteChannel = async (req, res) => {
     }
 };
 
+// Get user details by userId (for event author display)
+const getUserDetailsById = async (req, res) => {
+    const userId = req.params.userId;
+    try {
+        const user = await GroupModel.getUserDetailsById(userId);
+        if (!user) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+        res.json({ name: user.name });
+    } 
+    catch (err) {
+        res.status(500).json({ error: 'Server error' });
+    }
+};
+
 // Export all functions for use in routes
 module.exports = {
     saveDesc,
@@ -227,5 +242,6 @@ module.exports = {
     getMemberList,
     getChannels,
     createChannel,
-    deleteChannel
+    deleteChannel,
+    getUserDetailsById
 };

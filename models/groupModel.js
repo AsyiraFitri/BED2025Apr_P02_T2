@@ -215,6 +215,26 @@ async function deleteEvent(eventId) {
     }
 }
 
+// Get user details by userId (for event author display)
+async function getUserDetailsById(userId) {
+    try {
+        // Ensure userId is an integer
+        const userIdInt = parseInt(userId, 10);
+        if (isNaN(userIdInt)) throw new Error('Invalid userId');
+        const pool = await sql.connect(config);
+        const result = await pool.request()
+            .input('UserID', sql.Int, userIdInt)
+            .query(`SELECT TOP 1 first_name, last_name FROM Users WHERE UserID = @UserID`);
+        if (result.recordset.length === 0) return null;
+        const { first_name, last_name } = result.recordset[0];
+        const fullName = [first_name, last_name].filter(Boolean).join(' ');
+        return { name: fullName };
+    } 
+    catch (error) {
+        throw new Error(`Database error in getUserDetailsById: ${error.message}`);
+    }
+}
+
 module.exports = {
     updateDescription,
     deleteGroupWithMembers,
@@ -225,5 +245,6 @@ module.exports = {
     checkGroupOwnership,
     createEvent,
     getEvents,
-    deleteEvent
+    deleteEvent,
+    getUserDetailsById
 };
