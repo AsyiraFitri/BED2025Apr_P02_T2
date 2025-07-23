@@ -142,6 +142,31 @@ button:hover {
     justify-content: space-between;
     align-items: center;
 }
+/* Ensure the .step-guide is properly styled */
+.step-guide {
+  max-height: 400px;
+  overflow-y: auto; /* Ensures scrolling if content exceeds available space */
+  padding: 10px;
+  border: 1px solid #ccc;
+  margin-top: 20px;
+  background-color: #f9f9f9;
+  border-radius: 5px;
+}
+
+.step-guide h4 {
+  margin-bottom: 10px;
+}
+
+.step {
+  margin-bottom: 10px;
+  padding: 8px;
+  background-color: #e9ecef;
+  border-radius: 5px;
+}
+
+.step strong {
+  font-weight: bold;
+}
 
 .bookmark,
 .add-note {
@@ -346,4 +371,9 @@ button:hover {
 #savedPlacesList li:hover {
     background-color: #f1c6d8; /* soft pinkish background */
     cursor: pointer;
+}
+
+
+#locationModal {
+    display: none;
 }
