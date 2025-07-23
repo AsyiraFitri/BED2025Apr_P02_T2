@@ -59,7 +59,8 @@ const validateGroupOwnership = async (req, res, next) => {
         
         // If the user is the owner, allow the request to proceed to the next middleware or route handler
         next();
-    } catch (error) {
+    } 
+    catch (error) {
         // Catch any errors during the database check and log them
         console.error('Error validating group ownership:', error);
         
@@ -98,34 +99,21 @@ const preventAdminDeleteGroup = (req, res, next) => {
 
 // Modified validateGroupOwnership that excludes admin privileges for delete operations
 const validateGroupOwnershipForDelete = async (req, res, next) => {
-    // Retrieve groupId from URL parameters (req.params) or from the request body (req.body) if it's not found in params
     const groupId = req.params.groupId || req.body.groupId;
-    
-    // Get the ID of the user making the request
     const userId = req.user.UserID;
-    
-    // If groupId is not provided in either the URL params or request body, return an error
     if (!groupId) {
         return res.status(400).json({ error: 'Group ID is required' });
     }
-
     try {
-        // For delete operations, do NOT allow admin privileges - only actual owners can delete
-        // Check if user is the actual owner of the specified group
+        // For delete operations, do NOT allow admin privileges, only actual owners can delete
         const isOwner = await GroupModel.checkGroupOwnership(groupId, userId);
-        
-        // If the user is not the owner, return a forbidden error (403)
         if (!isOwner) {
             return res.status(403).json({ error: 'Only the group owner can delete this group' });
         }
-        
-        // If the user is the owner, allow the request to proceed to the next middleware or route handler
         next();
-    } catch (error) {
-        // Catch any errors during the database check and log them
+    } 
+    catch (error) {
         console.error('Error validating group ownership:', error);
-        
-        // Return a server error if something goes wrong
         res.status(500).json({ error: 'Internal Server Error', details: error.message });
     }
 };

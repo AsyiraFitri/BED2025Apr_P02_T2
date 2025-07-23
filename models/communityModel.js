@@ -76,6 +76,7 @@ async function createGroup(groupName, groupDescription, ownerId) {
             
             // Add each admin to the group with their full name
             for (const admin of adminResult.recordset) {
+                if( admin.UserID === ownerId) continue; // Skip if it's the owner
                 const fullName = `${admin.first_name} ${admin.last_name}`.trim();
                 await transaction.request()
                     .input('UserID', sql.Int, admin.UserID)
@@ -167,7 +168,8 @@ async function joinGroup(userId, groupId, fullName) {
                 .input('GroupID', sql.Int, groupId)
                 .input('Name', sql.NVarChar(500), fullName)
                 .query('INSERT INTO Members (UserID, GroupID, Name) VALUES (@UserID, @GroupID, @Name)');
-        } catch (insertError) {
+        } 
+        catch (insertError) {
             // If duplicate key error, return 'duplicate' so controller can handle
             if (insertError.message && insertError.message.includes('UNIQUE KEY constraint') && insertError.message.includes('Members')) {
                 return 'duplicate';

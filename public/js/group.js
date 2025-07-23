@@ -12,7 +12,8 @@ function getUserFromToken() {
       username: payload.username || payload.name,
       email: payload.email
     };
-  } catch (error) {
+  } 
+  catch (error) {
     console.error('Invalid token:', error);
     return null;
   }
@@ -74,7 +75,11 @@ async function loadGroupDetails() {
 
     // Display group information in the UI
     document.getElementById('groupTitle').textContent = group.GroupName;
-    document.getElementById('groupDesc').textContent = group.GroupDescription;
+    // Fix: Only set groupDesc if it exists
+    const groupDescElem = document.getElementById('groupDesc');
+    if (groupDescElem) {
+      groupDescElem.textContent = group.GroupDescription;
+    }
     document.getElementById('descriptionText').textContent = group.GroupDescription;
     document.getElementById('descriptionTextarea').value = group.GroupDescription;
     document.querySelector('.settings-title').textContent = group.GroupName;
@@ -88,7 +93,14 @@ async function loadGroupDetails() {
   } 
   catch (err) {
     // Handle errors in loading group details
-    document.getElementById('groupTitle').textContent = 'Error loading group.';
+    console.error('Error loading group details:', err);
+    const groupTitleElem = document.getElementById('groupTitle');
+    if (groupTitleElem) {
+      groupTitleElem.textContent = 'Error loading group.';
+    } 
+    else {
+      console.warn("groupTitle element not found in DOM. Can't display error message.");
+    }
   }
 }
 
@@ -200,7 +212,7 @@ async function loadChannels(groupId) {
         const channelButton = document.createElement('button');
         channelButton.className = 'sidebar-item' + (index === 0 ? ' active' : '');
         channelButton.textContent = `#${channel.ChannelName}`;
-        channelButton.onclick = (event) => selectChannel(channel.ChannelName, event);
+        channelButton.addEventListener('click', (event) => selectChannel(channel.ChannelName, event));
         sidebar.appendChild(channelButton);
       });
       
@@ -338,39 +350,59 @@ async function deleteChannel(channelName) {
 
 // Handles channel selection from sidebar
 // Updates UI state, creates chat interface, loads messages and starts polling
-function selectChannel(channelName, event) {
+async function selectChannel(channelName, event) {
   // Update sidebar visual state - remove active from all, add to selected
+  console.log("Selecting channel:", channelName);
+  console.log("Event target:", event && event.target);
   document.querySelectorAll('.sidebar-item').forEach(item => {
     item.classList.remove('active');
   });
-  
-  // Add active class to the clicked channel button
   if (event && event.target) {
     event.target.classList.add('active');
   }
-  
-  // Set current channel for message operations
+
   currentChannel = channelName;
-  
-  // Get group ID from URL for API calls
   const params = new URLSearchParams(window.location.search);
   currentGroupId = params.get('id');
-  
-  // Create the chat interface in the main content area
+
+  if (channelName == 'events') {
+    console.log("Loading events channel");
+
+    const mainContent = document.getElementById('mainContent');
+    if (mainContent) {
+      mainContent.innerHTML = '';
+      mainContent.className = 'main-content';
+    }
+    loadGroupEvents(currentGroupId);
+    const eventsDiv = document.getElementById('eventsChannel');
+    if (eventsDiv) {
+      eventsDiv.style.display = 'block';
+      eventsDiv.innerHTML = '<div>Loading events...</div>';
+      // Ensure loadGroupEvents is always called and DOM is ready
+      window.requestAnimationFrame(() => {
+        if (typeof loadGroupEvents === 'function') {
+          loadGroupEvents(currentGroupId);
+        }
+      });
+    }
+  } 
+  else {
+    const eventsDiv = document.getElementById('eventsChannel');
+    if (eventsDiv) {
+      eventsDiv.style.display = 'none';
+    }
+
+  }
   createChatInterface(channelName);
-  
-  // Load existing messages for this channel
   loadChannelMessages();
-  
-  // Start polling for new messages every 30 seconds
   startMessagePolling();
 }
-
 // Create complete chat interface in main-content area
 function createChatInterface(channelName) {
-  const mainContent = document.querySelector('.main-content');
+  const mainContent = document.getElementById('mainContent');
+  console.log(mainContent);
   if (!mainContent) return;
-  
+
   // Check user permissions for restricted channels
   const user = getUserFromToken();
   if (!user) {
@@ -378,32 +410,32 @@ function createChatInterface(channelName) {
     window.location.href = 'login.html';
     return;
   }
-  
+
   const userRole = user.role;
   const isAdmin = userRole === 'admin';
-  
+
   // Get group owner information (fetch this if not available)
   let isOwner = false;
   const params = new URLSearchParams(window.location.search);
   const groupId = params.get('id');
-  
+
   // Check if current user is owner (info should be available from loadGroupDetails)
   const groupTitle = document.getElementById('groupTitle').textContent;
   const editButton = document.getElementById('editDescBtn');
   isOwner = !editButton.classList.contains('hidden');
-  
+
   const hasAdminPrivileges = isOwner || isAdmin;
   const isRestrictedChannel = channelName === 'announcements' || channelName === 'events';
   const showMessageInput = !isRestrictedChannel || hasAdminPrivileges;
-  
+
   // Clear any existing content and configure for full-height chat layout
   mainContent.innerHTML = '';
   mainContent.className = 'main-content-chat';
-  
+
   // Create scrollable messages container
   const messagesContainer = document.createElement('div');
   messagesContainer.id = 'chatMessages';
-  
+
   // Create loading state shown while messages are being fetched
   const loadingDiv = document.createElement('div');
   loadingDiv.className = 'loading-state';
@@ -412,21 +444,70 @@ function createChatInterface(channelName) {
     <div>Loading messages for #${channelName}...</div>
   `;
   messagesContainer.appendChild(loadingDiv);
-  
+
   // Assemble the chat interface
   mainContent.appendChild(messagesContainer);
-  
-  // Only add input area if user has permission to send messages
-  if (showMessageInput) {
-    // Create input area with textarea and send button
+  console.log(hasAdminPrivileges, "isOwner:", isOwner, "isAdmin:", isAdmin, "showMessageInput:", showMessageInput);
+  // Only for "events" channel: show event form instead of message input
+  if (channelName == 'events') {
+      const events = document.createElement('div');
+      events.id = 'eventsChannel';
+      events.style.display = 'block';
+      mainContent.appendChild(events);
+      document.getElementById("chatMessages").style.display = 'none';
+    if (hasAdminPrivileges) {
+      const eventForm = document.createElement('div');
+      eventForm.style.display = 'flex';
+      eventForm.style.justifyContent = 'flex-end';
+      eventForm.className = 'event-form';
+      const createbutton = document.createElement('button');
+      createbutton.id = 'eventSubmitBtn';
+      createbutton.textContent = '+ Create Event';
+      createbutton.onclick = () => {
+        showEventCreationForm();
+      };
+      eventForm.appendChild(createbutton);
+      mainContent.appendChild(eventForm);
+    }
+    // No input for non-admins/owners in events channel
+  } 
+  else if (showMessageInput) {
+    // Create input area with textarea and send button (with + icon)
     const inputArea = document.createElement('div');
+
     inputArea.className = 'input-area';
     inputArea.innerHTML = `
-      <textarea id="messageInput" placeholder="Type a message in #${channelName}... (Press Enter to send, Shift+Enter for new line)"></textarea>
+      <textarea id="messageInput"></textarea>
       <button id="sendButton" onclick="sendMessage()">➤</button>
     `;
     mainContent.appendChild(inputArea);
-  } 
+
+    // Always update the placeholder after adding to DOM
+    const messageInput = inputArea.querySelector('#messageInput');
+    if (messageInput) {
+      messageInput.placeholder = `Type a message in #${channelName}... (Press Enter to send, Shift+Enter for new line)`;
+
+      // Remove all previous event listeners by replacing the node
+      const newInput = messageInput.cloneNode(true);
+      messageInput.parentNode.replaceChild(newInput, messageInput);
+
+      // Add event listeners to the new textarea
+      newInput.addEventListener('input', function() {
+        this.style.height = '48px';
+        this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+      });
+
+      newInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter' && !e.shiftKey) {
+          e.preventDefault();
+          sendMessage();
+        }
+      });
+
+      newInput.style.height = '48px';
+      newInput.focus();
+    }
+  }
   else {
     // Show read-only message for restricted channels
     const restrictedMessage = document.createElement('div');
@@ -438,27 +519,143 @@ function createChatInterface(channelName) {
     `;
     mainContent.appendChild(restrictedMessage);
   }
-  
+
   // Set up event listeners for the message input textarea (only if input exists)
   const messageInput = document.getElementById('messageInput');
   if (messageInput) {
-    // Auto-resize textarea based on content (up to max height)
-    messageInput.addEventListener('input', function() {
+    // Always set the placeholder to match the current channel
+    messageInput.setAttribute(
+      'placeholder',
+      `Type a message in #${channelName}... (Press Enter to send, Shift+Enter for new line)`
+    );
+
+    // Remove all previous event listeners by replacing the node
+    const newInput = messageInput.cloneNode(true);
+    messageInput.parentNode.replaceChild(newInput, messageInput);
+
+    // Add event listeners to the new textarea
+    newInput.addEventListener('input', function() {
       this.style.height = '48px';
       this.style.height = Math.min(this.scrollHeight, 120) + 'px';
     });
-    
-    // Handle Enter key behavior: Enter = send, Shift+Enter = new line
-    messageInput.addEventListener('keypress', function(e) {
+
+    newInput.addEventListener('keypress', function(e) {
       if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault();
         sendMessage();
       }
     });
-    
-    // Set initial height and focus the input
-    messageInput.style.height = '48px';
-    messageInput.focus();
+
+    newInput.style.height = '48px';
+    newInput.focus();
+  }
+}
+
+// Add this function to handle event form submission for SQL DB
+async function submitEventForm(groupId) {
+  const title = document.getElementById('eventTitle').value.trim();
+  const description = document.getElementById('eventDescription').value.trim();
+  const date = document.getElementById('eventDate').value;
+  const token = sessionStorage.getItem('token');
+
+  if (!title || !description || !date) {
+    alert('Please fill in all fields.');
+    return;
+  }
+  if (!token) {
+    alert('Please log in first');
+    window.location.href = 'login.html';
+    return;
+  }
+
+  try {
+    const response = await fetch(`/api/groups/events/${groupId}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({
+        title,
+        description,
+        date
+      })
+    });
+    if (response.ok) {
+      alert('Event created successfully!');
+      // Optionally clear form fields
+      document.getElementById('eventTitle').value = '';
+      document.getElementById('eventDescription').value = '';
+      document.getElementById('eventDate').value = '';
+      // Optionally reload events/messages here
+      if (typeof loadGroupEvents === 'function') {
+        loadGroupEvents(groupId);
+      }
+    } 
+    else {
+      const data = await response.json();
+      alert(data.error || 'Failed to create event');
+    }
+  } 
+  catch (error) {
+    alert('Error creating event');
+  }
+}
+
+// Post a sample event to the events channel (for testing/demo)
+async function postSampleEvent() {
+  const groupId = currentGroupId || new URLSearchParams(window.location.search).get('id');
+  const token = sessionStorage.getItem('token');
+  if (!groupId || !token) {
+    alert('Please log in and select a group.');
+    return;
+  }
+  const sampleEvent = {
+    title: "Sample Event: Community Meetup",
+    description: "Join us for a fun and friendly meetup! 🎉<br>Snacks and drinks provided.",
+    date: new Date(Date.now() + 86400000).toISOString().slice(0, 10) // tomorrow
+  };
+  try {
+    const response = await fetch(`/api/groups/events/${groupId}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify(sampleEvent)
+    });
+    if (response.ok) {
+      // Force update the events channel UI even if not re-selected
+      const eventsDiv = document.getElementById('eventsChannel');
+      if (eventsDiv && eventsDiv.style.display !== 'none') {
+        // Directly fetch and update events list
+        eventsDiv.innerHTML = '<div>Loading events...</div>';
+        fetch(`/api/events/${groupId}`)
+          .then(res => res.json())
+          .then(events => {
+            if (!Array.isArray(events) || events.length === 0) {
+              eventsDiv.innerHTML = '<div>No events found.</div>';
+              return;
+            }
+            eventsDiv.innerHTML = events.map(event =>
+              `<div class="event-card">
+                <div class="event-title">${event.Title || event.title}</div>
+                <div class="event-meta">🗓️ ${event.EventDate || event.date}</div>
+                <div class="event-meta">📍 ${event.Location || 'Community Hall'}</div>
+                <div class="event-desc">${event.Description || event.description || ''}</div>
+              </div>`
+            ).join('');
+          });
+      }
+      alert('Sample event posted!');
+    } 
+    else {
+      const data = await response.json();
+      alert(data.error || 'Failed to post sample event');
+    }
+  } 
+  catch (err) {
+    alert('Error posting sample event');
   }
 }
 
@@ -861,7 +1058,6 @@ function createMessageElement(message, currentUser) {
   
   // Store message ID on the element for later reference
   messageDiv.dataset.messageId = message.id;
-  
   return messageDiv;
 }
 
@@ -1127,4 +1323,215 @@ async function deleteMessage(messageId, messageElement) {
     console.error('Error deleting message:', error);
     alert('Failed to delete message. Please try again.');
   }
+}
+
+// Fetch and display all events for the current group
+async function loadGroupEvents(groupId) {
+  console.log('Loading events for group ID:', groupId);
+  if (!groupId) return;
+  try {
+    const response = await fetch(`/api/groups/events/${groupId}`);
+    if (!response.ok) throw new Error('Failed to fetch events');
+    const events = await response.json();
+    renderEventList(events);
+  } 
+  catch (error) {
+    console.error('Error loading events:', error);
+    renderEventList([]);
+  }
+}
+
+// Render a list of event cards in the events channel
+function renderEventList(events) {
+  let container = document.getElementById('eventsChannel');
+  if (!container) {
+    container = document.createElement('div');
+    container.id = 'eventsChannel';
+    document.getElementById('mainContent').appendChild(container);
+  }
+  container.innerHTML = '';
+  if (!events || events.length === 0) {
+    container.innerHTML = '<div style="padding:2rem;text-align:center;color:#888;">No events yet.</div>';
+    return;
+  }
+  events.forEach(event => {
+    const card = document.createElement('div');
+    card.className = 'event-card';
+    card.innerHTML = `
+      <div class="event-title">${event.Title}</div>
+      <div class="event-meta">🗓️ ${formatEventDate(event.EventDate)}</div>
+      <div class="event-meta">⏰ ${formatEventTime(event.StartTime)} - ${formatEventTime(event.EndTime)}</div>
+      <div class="event-meta">📍 ${event.Location}</div>
+      <div class="event-desc">${event.Description || ''}</div>
+      <div class="event-footer">
+        <button class="event-btn" data-event-id="${event.EventID}">Delete</button>
+      </div>
+    `;
+    // Add delete button handler
+    const deleteBtn = card.querySelector('.event-btn');
+    deleteBtn.onclick = async function() {
+      if (!confirm('Are you sure you want to delete this event?')) return;
+      const token = sessionStorage.getItem('token');
+      try {
+        const response = await fetch(`/api/groups/events/${event.EventID}`, {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        if (response.ok) {
+          alert('Event deleted successfully.');
+            const params = new URLSearchParams(window.location.search);
+            const groupId = params.get('id');
+          await loadGroupEvents(groupId); // Refresh event list
+        } 
+        else {
+          const data = await response.json();
+          alert('Failed to delete event');
+        }
+      } 
+      catch (err) {
+        alert('Error deleting event: ' + err);
+      }
+    };
+    
+    container.appendChild(card);
+  });
+}
+
+// Format event date (YYYY-MM-DD to readable)
+function formatEventDate(dateStr) {
+  if (!dateStr) return '';
+  const d = new Date(dateStr);
+  return d.toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' });
+}
+
+// Format event time (HH:mm:ss or HH:mm to readable)
+function formatEventTime(timeStr) {
+  if (!timeStr) return '';
+  // If timeStr is like '10:00', just return as is
+  if (/^\d{2}:\d{2}$/.test(timeStr)) return timeStr;
+  // If timeStr is like '10:00:00', trim seconds
+  return timeStr.slice(0,5);
+}
+
+// Shows the event creation form modal
+function showEventCreationForm() {
+  // Remove any existing modal
+  const existingModal = document.getElementById('eventModalOverlay');
+  if (existingModal) existingModal.remove();
+
+  // Create overlay
+  const overlay = document.createElement('div');
+  overlay.id = 'eventModalOverlay';
+  overlay.style.position = 'fixed';
+  overlay.style.top = '0';
+  overlay.style.left = '0';
+  overlay.style.width = '100vw';
+  overlay.style.height = '100vh';
+  overlay.style.background = 'rgba(0,0,0,0.4)';
+  overlay.style.zIndex = '9999';
+  overlay.style.display = 'flex';
+  overlay.style.justifyContent = 'center';
+  overlay.style.alignItems = 'center';
+
+  // Create modal form container
+  const modal = document.createElement('div');
+  modal.style.background = '#fff';
+  modal.style.padding = '32px 24px';
+  modal.style.borderRadius = '12px';
+  modal.style.boxShadow = '0 4px 24px rgba(0,0,0,0.15)';
+  modal.style.minWidth = '320px';
+  modal.style.maxWidth = '90vw';
+  modal.style.position = 'relative';
+
+  // Build form
+  const form = document.createElement('form');
+  form.id = 'eventCreateForm';
+  form.innerHTML = `
+    <h2 style="margin-bottom:16px;text-align:center;">Create Event</h2>
+    <div style="margin-bottom:12px;">
+      <label>Event Title</label><br>
+      <input type="text" id="eventTitleInput" style="width:100%;padding:8px;margin-top:4px;" required maxlength="100">
+    </div>
+    <div style="margin-bottom:12px;">
+      <label>Event Description</label><br>
+      <textarea id="eventDescriptionInput" style="width:100%;padding:8px;margin-top:4px;" required maxlength="500"></textarea>
+    </div>
+    <div style="margin-bottom:12px;">
+      <label>Start Time</label><br>
+      <input type="datetime-local" id="eventStartInput" style="width:100%;padding:8px;margin-top:4px;" required>
+    </div>
+    <div style="margin-bottom:12px;">
+      <label>End Time</label><br>
+      <input type="datetime-local" id="eventEndInput" style="width:100%;padding:8px;margin-top:4px;" required>
+    </div>
+    <div style="margin-bottom:16px;">
+      <label>Location</label><br>
+      <input type="text" id="eventLocationInput" style="width:100%;padding:8px;margin-top:4px;" required maxlength="100">
+    </div>
+    <button type="submit" style="width:100%;padding:10px 0;background:#007bff;color:#fff;border:none;border-radius:6px;font-size:16px;">Create Event</button>
+  `;
+
+  // Submit handler
+  form.onsubmit = async function(e) {
+    e.preventDefault();
+    const title = document.getElementById('eventTitleInput').value.trim();
+    const start = document.getElementById('eventStartInput').value;
+    const end = document.getElementById('eventEndInput').value;
+    const location = document.getElementById('eventLocationInput').value.trim();
+    // Log values for debugging
+    console.log('Event Created:', { title, start, end, location });
+
+    // Prepare additional fields
+    const description = document.getElementById('eventDescriptionInput').value.trim();
+    const groupId = currentGroupId; // Use your global groupId variable
+    const channelName = "events"; // Or get from context
+    const eventDate = start.split('T')[0]; // Extract date from start datetime
+    const startTime = start.split('T')[1]; // Extract time from start datetime
+    const endTime = end.split('T')[1]; // Extract time from end datetime
+    const token = sessionStorage.getItem('token');
+
+    try {
+      const response = await fetch('/api/groups/createEvent', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          groupId,
+          channelName,
+          title,
+          description,
+          eventDate,
+          startTime,
+          endTime,
+          location
+        })
+      });
+      if (response.ok) {
+        alert('Event created successfully!');
+        overlay.remove();
+        await loadGroupEvents(currentGroupId);
+      } 
+      else {
+        const data = await response.json();
+        alert(data.error || 'Failed to create event');
+      }
+    } 
+    catch (err) {
+      alert('Error creating event');
+    }
+  };
+
+  // Clicking outside closes modal
+  overlay.onclick = function(e) {
+    if (e.target === overlay) overlay.remove();
+  };
+
+  modal.appendChild(form);
+  overlay.appendChild(modal);
+  document.body.appendChild(overlay);
 }

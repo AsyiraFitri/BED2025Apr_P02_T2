@@ -1,24 +1,39 @@
-// JWT utility function to decode user from token
+// JWT utility function to decode user information from a token
 function getUserFromToken() {
+  // Retrieve the JWT token from sessionStorage
   const token = sessionStorage.getItem('token');
+
+  // If the token doesn't exist, alert the user and redirect to login page
   if (!token) {
     alert('Please log in first');
     window.location.href = 'login.html';
     return;
-    }
+  }
 
   try {
-    // JWT tokens have format: header.payload.signature
+    // JWT tokens are formatted as: header.payload.signature
+    // Split the token and extract the payload (the second part)
     const base64Url = token.split('.')[1];
+
+    // Convert base64 URL-safe format to standard base64
     const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+
+    // Decode the base64 string into a JSON string
     const jsonPayload = decodeURIComponent(
-      atob(base64).split('').map(function(c) {
-        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-      }).join('')
+      atob(base64) // Decode base64 to ASCII string
+        .split('') // Convert string to array of characters
+        .map(function(c) {
+          // Convert each character to its percent-encoded form
+          return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+        })
+        .join('') // Join all encoded characters into a single string
     );
+
+    // Parse the JSON string and return the resulting user object
     return JSON.parse(jsonPayload);
   } 
   catch (error) {
+    // If any error occurs during decoding/parsing, log it and return null
     console.error('Error decoding JWT token:', error);
     return null;
   }
@@ -43,7 +58,8 @@ function checkUserAuthentication() {
       return null;
     }
     return user;
-  } catch (error) {
+  } 
+  catch (error) {
     console.error('Error parsing user data:', error);
     alert('Please log in again');
     sessionStorage.removeItem('token');
@@ -86,26 +102,13 @@ async function loadGroups() {
     try {
         const res = await fetch('/api/hobby-groups'); // Fetch all groups
         const groups = await res.json();
-        
-        // Wait for DOM to be ready with multiple retries if needed
+        // Only run this code if the communityCards container exists
         let container = document.getElementById('communityCards');
-        let retries = 0;
-        const maxRetries = 10;
-        
-        while (!container && retries < maxRetries) {
-            await new Promise(resolve => setTimeout(resolve, 100));
-            container = document.getElementById('communityCards');
-            retries++;
-        }
-        
-        if (!container) {
-            console.error('communityCards container not found - DOM might not be ready after retries');
-            return;
-        }
+        if (!container) return; // Do nothing if not on the community page
 
         // Get JWT token for authentication
         const token = sessionStorage.getItem('token');
-        container.innerHTML = ''; // Clear existing content
+        container.innerHTML = '';
 
         for (const group of groups) {
             const card = document.createElement('div');
@@ -262,37 +265,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     form.reset();
 
                     const groupId = data.groupId;
-
-                    try {
-                        const joinResponse = await fetch('/api/hobby-groups/join', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'Authorization': `Bearer ${token}`
-                            },
-                            body: JSON.stringify({ groupId })
-                        });
-
-                        const joinData = await joinResponse.json();
-
-                        if (joinResponse.status === 201) {
-                        // Debug: show joinResponse status and groupId
-                        alert('Join response status: ' + joinResponse.status + '\nGroup ID: ' + groupId + '\nJoin data: ' + JSON.stringify(joinData));
-                        console.log('Join response status:', joinResponse.status);
-                        console.log('Group ID:', groupId);
-                        console.log('Join data:', joinData);
-                        // Redirect to the group page after successful group creation and join
-                        window.location.href = `group.html?id=${groupId}`;
-                        } 
-                        else {
-                        alert('Failed to join group. Status: ' + joinResponse.status + '\nJoin data: ' + JSON.stringify(joinData));
-                        console.log('Failed to join group. Status:', joinResponse.status, 'Join data:', joinData);
-                        }
-                    } 
-                    catch (err) {
-                        console.error('Error joining group:', err);
-                        alert('Error joining group.');
-                    }
+                    window.location.href = `group.html?id=${groupId}`;
                 } 
                 else {
                     alert('Failed to add group.');

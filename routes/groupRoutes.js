@@ -29,14 +29,35 @@ router.post('/createChannel', verifyToken, validateGroupOwnership, controller.cr
 // Delete a channel from a group (owner only)
 router.delete('/deleteChannel', verifyToken, validateGroupOwnership, controller.deleteChannel);
 
+// Create a new event in a group (owner only)
+const groupModel = require('../models/groupModel');
+router.post('/createEvent', verifyToken, validateGroupOwnership, async (req, res) => {
+  try {
+    const {
+      groupId, channelName, title, description, eventDate, startTime, endTime, location
+    } = req.body;
+    
+    const user = req.user; // Populated by verifyToken middleware
+    if (!groupId || !title || !eventDate || !startTime || !endTime || !location) {
+      return res.status(400).json({ error: 'Missing required event fields.' });
+    }
+    const creatorId = user.UserID || user.userId;
+
+    // Call the model function with all fields
+    await groupModel.createEvent(groupId, channelName, title, description, eventDate, startTime, endTime, location, creatorId);
+    res.json({ success: true, message: 'Event created successfully.' });
+  } 
+  catch (error) {
+    console.error('Error creating event:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // Delete community/group (owner only)
-// Business logic: Admins maintain oversight and should not delete groups they monitor
-router.delete('/deleteCommunity', verifyToken, preventAdminDeleteGroup, validateGroupOwnershipForDelete, controller.deleteCommunity);
+router.delete('/deleteCommunity', verifyToken, validateGroupOwnershipForDelete, controller.deleteCommunity);
 
-
-
-// Restrictions: Admins cannot leave groups due to oversight responsibilities
-// Business logic: Only members can leave group
+// Restrictions: Admins cannot leave groups as they monitor and maintain oversight
+// Only members can leave group
 router.post('/leaveGroup', verifyToken, preventAdminLeaveGroup, controller.leaveGroup);
 
 // GET messages from a specific channel in a group
@@ -170,5 +191,28 @@ router.get('/firebase-config', (req, res) => {
   res.json(firebaseConfig);
 });
 
-// Export the router for use in the main application
+// Delete an event by eventId (protected)
+router.delete('/events/:eventId', verifyToken, async (req, res) => {
+  try {
+    const eventId = req.params.eventId;
+    await groupModel.deleteEvent(eventId);
+    res.json({ success: true, message: 'Event deleted successfully.' });
+  } catch (error) {
+    console.error('Error deleting event:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Get all events for a group
+router.get('/events/:groupId', async (req, res) => {
+  try {
+    const groupId = req.params.groupId;
+    const events = await groupModel.getEvents(groupId);
+    res.json(events);
+  } catch (error) {
+    console.error('Error fetching events:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 module.exports = router;
