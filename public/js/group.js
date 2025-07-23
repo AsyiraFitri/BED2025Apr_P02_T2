@@ -1513,7 +1513,6 @@ function formatEventTime(timeStr) {
   }
 }
 
-
 // Shows the event creation form modal
 function showEventCreationForm() {
   // Remove any existing modal
@@ -1523,113 +1522,97 @@ function showEventCreationForm() {
   // Create overlay
   const overlay = document.createElement('div');
   overlay.id = 'eventModalOverlay';
-  overlay.style.position = 'fixed';
-  overlay.style.top = '0';
-  overlay.style.left = '0';
-  overlay.style.width = '100vw';
-  overlay.style.height = '100vh';
-  overlay.style.background = 'rgba(0,0,0,0.4)';
-  overlay.style.zIndex = '9999';
-  overlay.style.display = 'flex';
-  overlay.style.justifyContent = 'center';
-  overlay.style.alignItems = 'center';
+  overlay.className = 'event-modal-overlay';
 
   // Create modal form container
   const modal = document.createElement('div');
-  modal.style.background = '#fff';
-  modal.style.padding = '32px 24px';
-  modal.style.borderRadius = '12px';
-  modal.style.boxShadow = '0 4px 24px rgba(0,0,0,0.15)';
-  modal.style.minWidth = '320px';
-  modal.style.maxWidth = '90vw';
-  modal.style.position = 'relative';
+  modal.className = 'event-modal-container';
 
-  // Build form
-  const form = document.createElement('form');
-  form.id = 'eventCreateForm';
-  form.innerHTML = `
-    <h2 style="margin-bottom:16px;text-align:center;">Create Event</h2>
-    <div style="margin-bottom:12px;">
-      <label>Event Title</label><br>
-      <input type="text" id="eventTitleInput" style="width:100%;padding:8px;margin-top:4px;" required maxlength="100">
-    </div>
-    <div style="margin-bottom:12px;">
-      <label>Event Description</label><br>
-      <textarea id="eventDescriptionInput" style="width:100%;padding:8px;margin-top:4px;" required maxlength="500"></textarea>
-    </div>
-    <div style="margin-bottom:12px;">
-      <label>Start Time</label><br>
-      <input type="datetime-local" id="eventStartInput" style="width:100%;padding:8px;margin-top:4px;" required>
-    </div>
-    <div style="margin-bottom:12px;">
-      <label>End Time</label><br>
-      <input type="datetime-local" id="eventEndInput" style="width:100%;padding:8px;margin-top:4px;" required>
-    </div>
-    <div style="margin-bottom:16px;">
-      <label>Location</label><br>
-      <input type="text" id="eventLocationInput" style="width:100%;padding:8px;margin-top:4px;" required maxlength="100">
-    </div>
-    <button type="submit" style="width:100%;padding:10px 0;background:#007bff;color:#fff;border:none;border-radius:6px;font-size:16px;">Create Event</button>
-  `;
-
-  // Submit handler
-  form.onsubmit = async function(e) {
-    e.preventDefault();
-    const title = document.getElementById('eventTitleInput').value.trim();
-    const start = document.getElementById('eventStartInput').value;
-    const end = document.getElementById('eventEndInput').value;
-    const location = document.getElementById('eventLocationInput').value.trim();
-    // Log values for debugging
-    console.log('Event Created:', { title, start, end, location });
-
-    // Prepare additional fields
-    const description = document.getElementById('eventDescriptionInput').value.trim();
-    const groupId = currentGroupId; // Use your global groupId variable
-    const channelName = "events"; // Or get from context
-    const eventDate = start.split('T')[0]; // Extract date from start datetime
-    const startTime = start.split('T')[1]; // Extract time from start datetime
-    const endTime = end.split('T')[1]; // Extract time from end datetime
-    const token = sessionStorage.getItem('token');
-
-    try {
-      const response = await fetch('/api/groups/createEvent', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          groupId,
-          channelName,
-          title,
-          description,
-          eventDate,
-          startTime,
-          endTime,
-          location
-        })
-      });
-      if (response.ok) {
-        alert('Event created successfully!');
-        overlay.remove();
-        await loadGroupEvents(currentGroupId);
-      } 
-      else {
-        const data = await response.json();
-        alert(data.error || 'Failed to create event');
+  // Load modal HTML from group.html
+  fetch('group.html')
+    .then(res => res.text())
+    .then(html => {
+      // Extract modal HTML by id
+      const tempDiv = document.createElement('div');
+      tempDiv.innerHTML = html;
+      const modalContent = tempDiv.querySelector('#eventModalTemplate');
+      if (!modalContent) {
+        alert('Event modal template not found in group.html');
+        return;
       }
-    } 
-    catch (err) {
-      alert('Error creating event');
-    }
-  };
+      modal.innerHTML = modalContent.innerHTML;
+      overlay.appendChild(modal);
+      document.body.appendChild(overlay);
 
-  // Clicking outside closes modal
-  overlay.onclick = function(e) {
-    if (e.target === overlay) overlay.remove();
-  };
+      // Attach submit handler to the form
+      const form = modal.querySelector('#eventCreateForm');
+      if (form) {
+        form.onsubmit = async function(e) {
+          e.preventDefault();
+          const title = document.getElementById('eventTitleInput').value.trim();
+          const description = document.getElementById('eventDescriptionInput').value.trim();
+          const eventDate = document.getElementById('eventDateInput').value;
+          const startTime = document.getElementById('eventStartTimeInput').value;
+          const endTime = document.getElementById('eventEndTimeInput').value;
+          const location = document.getElementById('eventLocationInput').value.trim();
+          const groupId = currentGroupId;
+          const channelName = "events";
+          const token = sessionStorage.getItem('token');
 
-  modal.appendChild(form);
-  overlay.appendChild(modal);
-  document.body.appendChild(overlay);
+          // Validation: all fields required
+          if (!title || !description || !eventDate || !startTime || !endTime || !location) {
+            alert('Please fill in all fields.');
+            return;
+          }
+
+          // Validation: event date must be after today
+          const today = new Date();
+          today.setHours(0,0,0,0); // Set to midnight for date-only comparison
+          const eventDateObj = new Date(eventDate);
+          eventDateObj.setHours(0,0,0,0); // Ensure date-only comparison
+          if (eventDateObj.getTime() <= today.getTime()) {
+            alert('Event date must be after today.');
+            return;
+          }
+
+          // Validation: start time and end time must be valid
+          // Compare start and end time as strings (HH:mm)
+          if (endTime <= startTime) {
+            alert('Event end time must be after start time.');
+            return;
+          }
+
+          try {
+            const response = await fetch('/api/groups/createEvent', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+              },
+              body: JSON.stringify({groupId, channelName, title, description, eventDate, startTime, endTime, location})
+            });
+            if (response.ok) {
+              alert('Event created successfully!');
+              overlay.remove();
+              await loadGroupEvents(currentGroupId);
+            } 
+            else {
+              const data = await response.json();
+              alert(data.error || 'Failed to create event');
+            }
+          } 
+          catch (err) {
+            alert('Error creating event');
+          }
+        };
+      }
+
+      // Clicking outside closes modal
+      overlay.onclick = function(e) {
+        if (e.target === overlay) overlay.remove();
+      };
+    })
+    .catch(() => {
+      alert('Failed to load event modal template from group.html');
+    });
 }

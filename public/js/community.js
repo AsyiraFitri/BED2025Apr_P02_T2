@@ -100,41 +100,40 @@ else {
 // Load and display all existing groups
 async function loadGroups() {
     try {
-        const res = await fetch('/api/hobby-groups'); // Fetch all groups
-        const groups = await res.json();
-        // Only run this code if the communityCards container exists
-        let container = document.getElementById('communityCards');
-        if (!container) return; // Do nothing if not on the community page
+        const res = await fetch('/api/hobby-groups'); // Fetch all groups from API
+        const groups = await res.json(); // Parse response JSON
 
-        // Get JWT token for authentication
-        const token = sessionStorage.getItem('token');
-        container.innerHTML = '';
+        let container = document.getElementById('communityCards');
+        if (!container) return; // Exit if container does not exist (not on community page)
+
+        const token = sessionStorage.getItem('token'); // Get JWT token for auth
+        container.innerHTML = ''; // Clear existing content
 
         for (const group of groups) {
-            const card = document.createElement('div');
+            const card = document.createElement('div'); // Create card element for group
             card.className = 'community-card';
 
-            const title = document.createElement('h3');
+            const title = document.createElement('h3'); // Group title element
             title.textContent = group.GroupName;
 
-            const desc = document.createElement('p');
+            const desc = document.createElement('p'); // Group description element
             desc.textContent = group.GroupDescription;
 
-            const btn = document.createElement('button');
+            const btn = document.createElement('button'); // Join/View Group button
             btn.className = 'join-btn';
 
-            // Check if the logged-in user is already a member
+            // Check if the user is already a member of this group
             let isMember = false;
             if (token) {
                 try {
                     const membershipRes = await fetch(`/api/groups/checkMembership/${group.GroupID}`, {
                         method: 'GET',
                         headers: {
-                            'Authorization': `Bearer ${token}`
+                            'Authorization': `Bearer ${token}` // Pass auth token
                         }
                     });
                     const membershipData = await membershipRes.json();
-                    isMember = membershipData.isMember;
+                    isMember = membershipData.isMember; // Update membership status
                 } 
                 catch (error) {
                     console.error('Error checking membership:', error);
@@ -142,7 +141,7 @@ async function loadGroups() {
             }
 
             if (isMember) {
-                // If already a member, show "View Group" button
+                // If member, show "View Group" button with styling and link
                 btn.textContent = 'View Group';
                 btn.style.backgroundColor = '#e3f2fd';
                 btn.style.color = '#1976d2';
@@ -154,7 +153,6 @@ async function loadGroups() {
                 // If not a member, show "Join" button
                 btn.textContent = 'Join';
                 btn.addEventListener('click', async () => {
-                    // Get JWT token for authentication
                     const token = sessionStorage.getItem('token');
                     if (!token) {
                         alert('Please log in first');
@@ -165,6 +163,7 @@ async function loadGroups() {
                     const groupId = group.GroupID;
 
                     try {
+                        // Attempt to join group via POST request
                         const response = await fetch('/api/hobby-groups/join', {
                             method: 'POST',
                             headers: { 
@@ -174,14 +173,47 @@ async function loadGroups() {
                             body: JSON.stringify({ groupId })
                         });
 
-                        const data = await response.json();
+                        let data = {};
+                        try {
+                            // Try to parse JSON body if present
+                            if (response.headers.get("content-length") !== "0") {
+                                data = await response.json();
+                            }
+                        } 
+                        catch (jsonError) {
+                            console.warn('No JSON body in response');
+                        }
 
                         if (response.status === 201) {
-                            alert(data.message);
+                            // Joined successfully, show alert and redirect
+                            alert('Successfully joined the group!');
                             window.location.href = `group.html?id=${groupId}`;
                         } 
+                        else if (response.status === 200) {
+                            // Double-check membership if response is 200 OK
+                            let isActuallyMember = false;
+                            try {
+                                const membershipRes = await fetch(`/api/groups/checkMembership/${groupId}`, {
+                                    method: 'GET',
+                                    headers: {
+                                        'Authorization': `Bearer ${token}`
+                                    }
+                                });
+                                const membershipData = await membershipRes.json();
+                                isActuallyMember = membershipData.isMember;
+                            } 
+                            catch (err) {}
+                            if (isActuallyMember) {
+                                alert('Successfully joined the group!');
+                                window.location.href = `group.html?id=${groupId}`;
+                            } 
+                            else {
+                                alert(data.message || 'Failed to join group.');
+                            }
+                        } 
                         else {
-                            alert('Failed to join group.');
+                            // Handle other error responses
+                            alert(data.message || 'Failed to join group.');
                         }
                     } 
                     catch (err) {
@@ -191,10 +223,11 @@ async function loadGroups() {
                 });
             }
 
-            // Add elements to the card and append to the container
+            // Append title, description and button to the group card
             card.appendChild(title);
             card.appendChild(desc);
             card.appendChild(btn);
+            // Append card to container on the page
             container.appendChild(card);
         }
     } 
