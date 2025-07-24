@@ -235,6 +235,36 @@ async function getUserDetailsById(userId) {
     }
 }
 
+// Update an event by eventId and groupId
+async function updateEvent(eventId, groupId, title, description, eventDate, startTime, endTime, location) {
+    try {
+        const pool = await sql.connect(config);
+        await pool.request()
+            .input('EventID', sql.Int, eventId)
+            .input('GroupID', sql.Int, groupId)
+            .input('Title', sql.NVarChar(100), title)
+            .input('Description', sql.NVarChar(sql.MAX), description)
+            .input('EventDate', sql.Date, eventDate)
+            .input('StartTime', sql.NVarChar(10), startTime)
+            .input('EndTime', sql.NVarChar(10), endTime)
+            .input('Location', sql.NVarChar(100), location)
+            .query(`
+                UPDATE Events
+                SET Title = @Title,
+                    Description = @Description,
+                    EventDate = @EventDate,
+                    StartTime = @StartTime,
+                    EndTime = @EndTime,
+                    Location = @Location
+                WHERE EventID = @EventID AND GroupID = @GroupID
+            `);
+        return true;
+    } 
+    catch (error) {
+        throw new Error(`Database error in updateEvent: ${error.message}`);
+    }
+}
+
 module.exports = {
     updateDescription,
     deleteGroupWithMembers,
@@ -246,5 +276,6 @@ module.exports = {
     createEvent,
     getEvents,
     deleteEvent,
-    getUserDetailsById
+    getUserDetailsById,
+    updateEvent
 };

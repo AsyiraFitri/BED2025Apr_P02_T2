@@ -5,6 +5,24 @@ const { validateGroup, validateGroupOwnership, preventAdminLeaveGroup, preventAd
 const { verifyToken } = require('../middlewares/authorizeUser');
 require('dotenv').config();
 
+// Update an event by eventId (protected, admin/owner only)
+router.patch('/events/:eventId', verifyToken, validateGroupOwnership, async (req, res) => {
+  try {
+    const eventId = req.params.eventId;
+    const { groupId, title, description, eventDate, startTime, endTime, location } = req.body;
+    if (!groupId || !title || !description || !eventDate || !startTime || !endTime || !location) {
+      return res.status(400).json({ error: 'Missing required event fields.' });
+    }
+    // Call the model function to update the event
+    await groupModel.updateEvent(eventId, groupId, title, description, eventDate, startTime, endTime, location);
+    res.json({ success: true, message: 'Event updated successfully.' });
+  } 
+  catch (error) {
+    console.error('Error updating event:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // Import Firebase admin module for real-time chat functionality
 const firebaseAdmin = require('../public/js/firebaseChat'); 
 

@@ -609,6 +609,40 @@ async function submitEventForm(groupId) {
   }
 };
 
+// Wait for DOM to be fully loaded
+document.addEventListener('DOMContentLoaded', function() {
+  // Get references to event modal elements
+  const eventOverlay = document.getElementById('eventModalOverlay');
+  const eventCloseBtn = document.querySelector('.event-modal-close');
+  const eventForm = document.getElementById('eventCreateForm');
+
+  // Only set up modal functionality if elements exist
+  if (eventOverlay && eventCloseBtn && eventForm) {
+    // Close modal when the close button is clicked
+    eventCloseBtn.onclick = () => {
+      eventOverlay.style.display = 'none';
+      eventForm.reset();
+    };
+
+    // Close modal if the user clicks outside the modal content
+    eventOverlay.onclick = (e) => {
+      if (e.target === eventOverlay) {
+        eventOverlay.style.display = 'none';
+        eventForm.reset();
+      }
+    };
+
+    // Handle form submission for creating a new event
+    eventForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      // ...existing event creation logic...
+    });
+  } 
+  else {
+    console.warn('Event modal elements not found - event modal functionality disabled');
+  }
+});
+
 // Initializes Firebase and loads all group data
 window.onload = async function() {
   // Initialize Firebase connection first
@@ -1410,9 +1444,138 @@ function renderEventList(events) {
       editOption.onclick = (e) => {
         e.stopPropagation();
         dropdownMenu.style.display = 'none';
-        // TODO: Implement event edit logic here
-        alert('Edit event feature coming soon!');
+        // Open event edit modal with pre-filled values
+        showEventEditForm(event);
       };
+
+    // Show event edit modal with pre-filled values
+    function showEventEditForm(event) {
+      // Remove any existing modal
+      const existingModal = document.getElementById('eventModalOverlay');
+      if (existingModal) existingModal.remove();
+
+      // Create overlay
+      const overlay = document.createElement('div');
+      overlay.id = 'eventModalOverlay';
+      overlay.className = 'event-modal-overlay';
+
+      // Create modal form container
+      const modal = document.createElement('div');
+      modal.className = 'event-modal-container';
+
+      // Load modal HTML from group.html
+      fetch('group.html')
+        .then(res => res.text())
+        .then(html => {
+          // Extract modal HTML by id
+          const tempDiv = document.createElement('div');
+          tempDiv.innerHTML = html;
+          const modalContent = tempDiv.querySelector('#eventModalTemplate');
+          if (!modalContent) {
+            alert('Event modal template not found in group.html');
+            return;
+          }
+          modal.innerHTML = modalContent.innerHTML;
+          overlay.appendChild(modal);
+          document.body.appendChild(overlay);
+
+          // Attach close (X) button handler
+          const closeBtn = modal.querySelector('.event-modal-close');
+          const form = modal.querySelector('#eventCreateForm');
+          if (closeBtn && form) {
+            closeBtn.onclick = function() {
+              overlay.remove();
+              form.reset();
+            };
+          }
+
+          // Pre-fill form fields with event data
+          if (form) {
+            form.querySelector('#eventTitleInput').value = event.Title || '';
+            form.querySelector('#eventDescriptionInput').value = event.Description || '';
+            form.querySelector('#eventDateInput').value = event.EventDate ? event.EventDate.slice(0,10) : '';
+            form.querySelector('#eventStartTimeInput').value = event.StartTime || '';
+            form.querySelector('#eventEndTimeInput').value = event.EndTime || '';
+            form.querySelector('#eventLocationInput').value = event.Location || '';
+
+            // Change modal title to 'Update Event'
+            const modalTitle = modal.querySelector('h2');
+            if (modalTitle) modalTitle.textContent = 'Update Event';
+
+            // Change submit button text to 'Update Event'
+            const submitBtn = form.querySelector('button[type="submit"]');
+            if (submitBtn) submitBtn.textContent = 'Update Event';
+
+            // Attach submit handler for updating event
+            form.onsubmit = async function(e) {
+              e.preventDefault();
+              const title = form.querySelector('#eventTitleInput').value.trim();
+              const description = form.querySelector('#eventDescriptionInput').value.trim();
+              const eventDate = form.querySelector('#eventDateInput').value;
+              const startTime = form.querySelector('#eventStartTimeInput').value;
+              const endTime = form.querySelector('#eventEndTimeInput').value;
+              const location = form.querySelector('#eventLocationInput').value.trim();
+              const token = sessionStorage.getItem('token');
+              const params = new URLSearchParams(window.location.search);
+              const groupId = params.get('id');
+
+              // Validation: all fields required
+              if (!title || !description || !eventDate || !startTime || !endTime || !location) {
+                alert('Please fill in all fields.');
+                return;
+              }
+              // Validation: event date must be after today
+              const today = new Date();
+              today.setHours(0,0,0,0);
+              const eventDateObj = new Date(eventDate);
+              eventDateObj.setHours(0,0,0,0);
+              if (eventDateObj.getTime() <= today.getTime()) {
+                alert('Event date must be after today.');
+                return;
+              }
+              // Validation: start time and end time must be valid
+              if (endTime <= startTime) {
+                alert('Event end time must be after start time.');
+                return;
+              }
+
+              try {
+                const response = await fetch(`/api/groups/events/${event.EventID}`, {
+                  method: 'PATCH',
+                  headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                  },
+                  body: JSON.stringify({
+                    groupId, title, description, eventDate, startTime, endTime, location
+                  })
+                });
+                if (response.ok) {
+                  alert('Event updated successfully!');
+                  overlay.remove();
+                  // Reload events list
+                  await loadGroupEvents(groupId);
+                } 
+                else {
+                  const data = await response.json();
+                  alert(data.error || 'Failed to update event');
+                }
+              } 
+              catch (err) {
+                alert('Error updating event');
+              }
+            };
+          }
+
+          // Clicking outside closes modal
+          overlay.onclick = function(e) {
+            if (e.target === overlay) overlay.remove();
+          };
+        })
+        .catch(() => {
+          alert('Failed to load event modal template from group.html');
+        });
+    }
 
       // Delete option (uses existing delete logic)
       const deleteOption = document.createElement('button');
@@ -1471,7 +1634,6 @@ function renderEventList(events) {
       header.appendChild(menuButton);
       header.appendChild(dropdownMenu);
     }
-    // For non-own events, no menu
 
     // Assemble card
     card.appendChild(header);
@@ -1544,8 +1706,17 @@ function showEventCreationForm() {
       overlay.appendChild(modal);
       document.body.appendChild(overlay);
 
-      // Attach submit handler to the form
+      // Attach close (X) button handler
+      const closeBtn = modal.querySelector('.event-modal-close');
       const form = modal.querySelector('#eventCreateForm');
+      if (closeBtn && form) {
+        closeBtn.onclick = function() {
+          overlay.remove();
+          form.reset();
+        };
+      }
+
+      // Attach submit handler to the form
       if (form) {
         form.onsubmit = async function(e) {
           e.preventDefault();
@@ -1577,7 +1748,10 @@ function showEventCreationForm() {
 
           // Validation: start time and end time must be valid
           // Compare start and end time as strings (HH:mm)
-          if (endTime <= startTime) {
+          // Convert startTime and endTime to Date objects for accurate comparison
+          const startDateTime = new Date(`${eventDate}T${startTime}`);
+          const endDateTime = new Date(`${eventDate}T${endTime}`);
+          if (endDateTime <= startDateTime) {
             alert('Event end time must be after start time.');
             return;
           }

@@ -96,34 +96,37 @@
 
   <!-- Event Modal Template (hidden, for JS injection) -->
   <div id="eventModalTemplate" style="display:none;">
-    <form id="eventCreateForm">
+    <div class="event-modal-content">
+      <button type="button" class="event-modal-close" title="Close" style="position:absolute;top:18px;right:18px;background:none;border:none;font-size:1.8rem;line-height:1;color:#666;cursor:pointer;z-index:10;">&times;</button>
       <h2 style="margin-bottom:16px;text-align:center;">Create Event</h2>
-      <div style="margin-bottom:12px;">
-        <label>Event Title</label><br>
-        <input type="text" id="eventTitleInput" style="width:100%;padding:8px;margin-top:4px;" required maxlength="100">
-      </div>
-      <div style="margin-bottom:12px;">
-        <label>Event Description</label><br>
-        <textarea id="eventDescriptionInput" style="width:100%;padding:8px;margin-top:4px;" required maxlength="500"></textarea>
-      </div>
-      <div style="margin-bottom:12px;">
-        <label>Event Date</label><br>
-        <input type="date" id="eventDateInput" style="width:100%;padding:8px;margin-top:4px;" required>
-      </div>
-      <div style="margin-bottom:12px;">
-        <label>Start Time</label><br>
-        <input type="time" id="eventStartTimeInput" style="width:100%;padding:8px;margin-top:4px;" required>
-      </div>
-      <div style="margin-bottom:12px;">
-        <label>End Time</label><br>
-        <input type="time" id="eventEndTimeInput" style="width:100%;padding:8px;margin-top:4px;" required>
-      </div>
-      <div style="margin-bottom:16px;">
-        <label>Location</label><br>
-        <input type="text" id="eventLocationInput" style="width:100%;padding:8px;margin-top:4px;" required maxlength="100">
-      </div>
-      <button type="submit" style="width:100%;padding:10px 0;background:#007bff;color:#fff;border:none;border-radius:6px;font-size:16px;">Create Event</button>
-    </form>
+      <form id="eventCreateForm">
+        <div style="margin-bottom:12px;">
+          <label>Event Title</label><br>
+          <input type="text" id="eventTitleInput" style="width:100%;padding:8px;margin-top:4px;" required maxlength="100">
+        </div>
+        <div style="margin-bottom:12px;">
+          <label>Event Description</label><br>
+          <textarea id="eventDescriptionInput" style="width:100%;padding:8px;margin-top:4px;" required maxlength="500"></textarea>
+        </div>
+        <div style="margin-bottom:12px;">
+          <label>Event Date</label><br>
+          <input type="date" id="eventDateInput" style="width:100%;padding:8px;margin-top:4px;" required>
+        </div>
+        <div style="margin-bottom:12px;">
+          <label>Start Time</label><br>
+          <input type="time" id="eventStartTimeInput" style="width:100%;padding:8px;margin-top:4px;" required>
+        </div>
+        <div style="margin-bottom:12px;">
+          <label>End Time</label><br>
+          <input type="time" id="eventEndTimeInput" style="width:100%;padding:8px;margin-top:4px;" required>
+        </div>
+        <div style="margin-bottom:16px;">
+          <label>Location</label><br>
+          <input type="text" id="eventLocationInput" style="width:100%;padding:8px;margin-top:4px;" required maxlength="100">
+        </div>
+        <button type="submit" style="width:100%;padding:10px 0;background:#007bff;color:#fff;border:none;border-radius:6px;font-size:16px;">Create Event</button>
+      </form>
+    </div>
   </div>
 
   <!-- Firebase v9+ compatibility bundle -->
