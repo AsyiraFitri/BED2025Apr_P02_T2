@@ -252,19 +252,6 @@ async function addChannel() {
   const channelNameInput = document.getElementById('channelNameInput');
   const channelName = channelNameInput.value.trim();
   
-  // Validate that channel name is provided
-  if (!channelName) {
-    alert('Please enter a channel name');
-    return;
-  }
-  
-  // Validate channel name format (alphanumeric with dashes, max 20 chars)
-  const channelNameRegex = /^[a-zA-Z0-9-]+$/;
-  if (!channelNameRegex.test(channelName) || channelName.length > 20) {
-    alert('Channel name must be alphanumeric (with dashes only) and max 20 characters');
-    return;
-  }
-  
   try {
     // Check for valid authentication token
     const token = sessionStorage.getItem('token');
@@ -397,6 +384,7 @@ async function selectChannel(channelName, event) {
   loadChannelMessages();
   startMessagePolling();
 }
+
 // Create complete chat interface in main-content area
 function createChatInterface(channelName) {
   const mainContent = document.getElementById('mainContent');
@@ -565,10 +553,6 @@ async function submitEventForm(groupId) {
   const date = document.getElementById('eventDate').value;
   const token = sessionStorage.getItem('token');
 
-  if (!title || !description || !date) {
-    alert('Please fill in all fields.');
-    return;
-  }
   if (!token) {
     alert('Please log in first');
     window.location.href = 'login.html';
@@ -750,14 +734,23 @@ function deleteCommunity() {
       },
       body: JSON.stringify({ groupId })
     })
-    .then(response => {
+    .then(async response => {
       if (response.ok) {
         alert('Community deleted successfully.');
         // Redirect to community list since this group no longer exists
         window.location.href = 'community.html';
-      } 
-      else {
-        alert('Failed to delete community. Please try again.');
+      } else {
+        let errorMsg = 'Failed to delete community. Please try again.';
+        try {
+          const errorData = await response.json();
+          if (errorData && errorData.error) {
+            errorMsg = errorData.error;
+          }
+        } 
+        catch (err) {
+          console.error('Error parsing response:', err);
+        }
+        alert(errorMsg);
       }
     })
     .catch(err => {
@@ -898,7 +891,14 @@ function displayMessages(messages) {
     `;
     return;
   }
-  
+
+  // Sort messages by timestamp (oldest first)
+  messages.sort((a, b) => {
+    const timeA = a.Timestamp instanceof Date ? a.Timestamp.getTime() : new Date(a.Timestamp).getTime();
+    const timeB = b.Timestamp instanceof Date ? b.Timestamp.getTime() : new Date(b.Timestamp).getTime();
+    return timeA - timeB;
+  });
+
   // Clear the loading/empty state and display messages
   chatMessages.innerHTML = '';
   
@@ -907,7 +907,7 @@ function displayMessages(messages) {
     const messageElement = createMessageElement(message, currentUser);
     chatMessages.appendChild(messageElement);
   });
-  
+
   // Auto-scroll to the bottom to show the latest messages
   chatMessages.scrollTop = chatMessages.scrollHeight;
 }
@@ -1519,26 +1519,6 @@ function renderEventList(events) {
               const params = new URLSearchParams(window.location.search);
               const groupId = params.get('id');
 
-              // Validation: all fields required
-              if (!title || !description || !eventDate || !startTime || !endTime || !location) {
-                alert('Please fill in all fields.');
-                return;
-              }
-              // Validation: event date must be after today
-              const today = new Date();
-              today.setHours(0,0,0,0);
-              const eventDateObj = new Date(eventDate);
-              eventDateObj.setHours(0,0,0,0);
-              if (eventDateObj.getTime() <= today.getTime()) {
-                alert('Event date must be after today.');
-                return;
-              }
-              // Validation: start time and end time must be valid
-              if (endTime <= startTime) {
-                alert('Event end time must be after start time.');
-                return;
-              }
-
               try {
                 const response = await fetch(`/api/groups/events/${event.EventID}`, {
                   method: 'PATCH',
@@ -1729,32 +1709,6 @@ function showEventCreationForm() {
           const groupId = currentGroupId;
           const channelName = "events";
           const token = sessionStorage.getItem('token');
-
-          // Validation: all fields required
-          if (!title || !description || !eventDate || !startTime || !endTime || !location) {
-            alert('Please fill in all fields.');
-            return;
-          }
-
-          // Validation: event date must be after today
-          const today = new Date();
-          today.setHours(0,0,0,0); // Set to midnight for date-only comparison
-          const eventDateObj = new Date(eventDate);
-          eventDateObj.setHours(0,0,0,0); // Ensure date-only comparison
-          if (eventDateObj.getTime() <= today.getTime()) {
-            alert('Event date must be after today.');
-            return;
-          }
-
-          // Validation: start time and end time must be valid
-          // Compare start and end time as strings (HH:mm)
-          // Convert startTime and endTime to Date objects for accurate comparison
-          const startDateTime = new Date(`${eventDate}T${startTime}`);
-          const endDateTime = new Date(`${eventDate}T${endTime}`);
-          if (endDateTime <= startDateTime) {
-            alert('Event end time must be after start time.');
-            return;
-          }
 
           try {
             const response = await fetch('/api/groups/createEvent', {

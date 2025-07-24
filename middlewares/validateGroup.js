@@ -118,10 +118,61 @@ const validateGroupOwnershipForDelete = async (req, res, next) => {
     }
 };
 
+// Middleware to validate event creation and update
+const validateEvent = (req, res, next) => {
+    const { title, description, eventDate, startTime, endTime, location } = req.body;
+
+    // Validation: all fields required
+    if (!title || !description || !eventDate || !startTime || !endTime || !location) {
+        return res.status(400).json({ error: 'Please fill in all fields.' });
+    }
+    // Treat input with only spaces as empty for title
+    if (title.trim().length === 0) {
+        return res.status(400).json({ error: 'Event title cannot be empty or just spaces.' });
+    }
+    // Match group name validation: between 3 and 50 characters, allow any character (including emoji)
+    if (title.trim().length < 3 || title.trim().length > 50) {
+        return res.status(400).json({ error: 'Event title must be between 3 and 50 characters.' });
+    }
+    // Validation: event date must be after today
+    const today = new Date();
+    today.setHours(0,0,0,0); // Set to midnight for date-only comparison
+    const eventDateObj = new Date(eventDate);
+    eventDateObj.setHours(0,0,0,0); // Ensure date-only comparison
+    if (eventDateObj.getTime() <= today.getTime()) {
+        return res.status(400).json({ error: 'Event date must be after today.' });
+    }
+    // Validation: start time and end time must be valid
+    const startDateTime = new Date(`${eventDate}T${startTime}`);
+    const endDateTime = new Date(`${eventDate}T${endTime}`);
+    if (endDateTime <= startDateTime) {
+        return res.status(400).json({ error: 'Event end time must be after start time.' });
+    }
+    next();
+};
+
+// Middleware to validate channel creation and update
+const validateChannel = (req, res, next) => {
+    const { channelName } = req.body;
+    // Check if channel name is provided
+    if (!channelName) return res.status(400).json({ error: 'Channel name is required.' });
+    // Check length
+    if (channelName.length < 3 || channelName.length > 30) return res.status(400).json({ error: 'Channel name must be between 3 and 30 characters.' });
+    // Prevent empty names (including only spaces)
+    if (channelName.trim().length === 0) return res.status(400).json({ error: 'Channel name cannot be empty.' });
+    // Only allow letters and hyphens
+    if (!/^[A-Za-z\-]+$/.test(channelName)) {
+        return res.status(400).json({ error: 'Channel name can only contain letters and hyphens.' });
+    }
+    next();
+};
+
 module.exports = {
     validateGroup,
     validateGroupOwnership,
     preventAdminLeaveGroup,
     preventAdminDeleteGroup,
-    validateGroupOwnershipForDelete
+    validateGroupOwnershipForDelete,
+    validateEvent,
+    validateChannel
 };

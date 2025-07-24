@@ -301,7 +301,17 @@ document.addEventListener('DOMContentLoaded', function() {
                     window.location.href = `group.html?id=${groupId}`;
                 } 
                 else {
-                    alert('Failed to add group.');
+                    let errorMsg = 'Failed to add group.';
+                    try {
+                        const errorData = await response.json();
+                        if (errorData && errorData.message) {
+                            errorMsg = errorData.message;
+                        }
+                    } 
+                    catch (err) {
+                        console.error('Error parsing response:', err);
+                    }
+                    alert(errorMsg);
                 }
             } 
             catch (error) {

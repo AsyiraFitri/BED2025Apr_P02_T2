@@ -1,12 +1,12 @@
 const express = require('express');
 const router = express.Router();
 const controller = require('../controllers/groupController');
-const { validateGroup, validateGroupOwnership, preventAdminLeaveGroup, preventAdminDeleteGroup, validateGroupOwnershipForDelete } = require('../middlewares/validateGroup');
+const { validateGroupOwnership, preventAdminLeaveGroup, validateGroupOwnershipForDelete, validateEvent, validateChannel } = require('../middlewares/validateGroup');
 const { verifyToken } = require('../middlewares/authorizeUser');
 require('dotenv').config();
 
 // Update an event by eventId (protected, admin/owner only)
-router.patch('/events/:eventId', verifyToken, validateGroupOwnership, async (req, res) => {
+router.patch('/events/:eventId', verifyToken, validateGroupOwnership, validateEvent, async (req, res) => {
   try {
     const eventId = req.params.eventId;
     const { groupId, title, description, eventDate, startTime, endTime, location } = req.body;
@@ -42,14 +42,14 @@ router.get('/channels/:groupId', controller.getChannels);
 router.patch('/saveDesc', verifyToken, validateGroupOwnership, controller.saveDesc);
 
 // Create a new channel in a group (owner only)
-router.post('/createChannel', verifyToken, validateGroupOwnership, controller.createChannel);
+router.post('/createChannel', verifyToken, validateGroupOwnership, validateChannel, controller.createChannel);
 
 // Delete a channel from a group (owner only)
 router.delete('/deleteChannel', verifyToken, validateGroupOwnership, controller.deleteChannel);
 
 // Create a new event in a group (owner only)
 const groupModel = require('../models/groupModel');
-router.post('/createEvent', verifyToken, validateGroupOwnership, async (req, res) => {
+router.post('/createEvent', verifyToken, validateGroupOwnership, validateEvent, async (req, res) => {
   try {
     const {
       groupId, channelName, title, description, eventDate, startTime, endTime, location
@@ -72,7 +72,19 @@ router.post('/createEvent', verifyToken, validateGroupOwnership, async (req, res
 });
 
 // Delete community/group (owner only)
-router.delete('/deleteCommunity', verifyToken, validateGroupOwnershipForDelete, controller.deleteCommunity);
+router.delete('/deleteCommunity', verifyToken, validateGroupOwnershipForDelete, async (req, res) => {
+  try {
+    await controller.deleteCommunity(req, res);
+  } 
+  catch (error) {
+    // If forbidden, show custom message
+    if (error && error.status === 403) {
+      return res.status(403).json({ error: 'No access: Only the group owner can delete this group.' });
+    }
+    // Otherwise, show generic error
+    res.status(500).json({ error: error.message || 'Failed to delete community.' });
+  }
+});
 
 // Restrictions: Admins cannot leave groups as they monitor and maintain oversight
 // Only members can leave group
