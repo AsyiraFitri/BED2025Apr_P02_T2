@@ -314,3 +314,21 @@ function setManualLocation() {
 function closeLocationModal() {
   document.getElementById('locationModal').style.display = 'none';
 }
+
+// add event listener for "Clear" button
+document.getElementById('clearNearbyServices').addEventListener('click', clearNearbyServices);
+
+// function to clear nearby services and remove markers
+function clearNearbyServices() {
+  // clear the services list in the UI
+  const servicesList = document.getElementById('servicesList');
+  servicesList.innerHTML = '';
+
+  // remove all service markers from the map
+  serviceMarkers.forEach(marker => marker.setMap(null));
+  serviceMarkers = []; // clear the marker array
+
+  // reset the map view
+  map.setCenter(userLocation); // reset map center to user location
+  map.setZoom(15); // reset zoom level
+}

@@ -310,7 +310,7 @@ button:hover {
 }
 
 .deletePlaceBtn:hover {
-    background-color: #e03131; /* red */
+    background-color: #FF4C3B; /* red */
     color: white;
 }
 
@@ -458,4 +458,19 @@ button:hover {
     background-color: white;
     cursor: pointer;
     margin-bottom: 10px;
+}
+
+/* style the "clear" button */
+.clear-btn {
+  background-color: #dc3545; /* red */
+  color: white;
+  padding: 8px 16px;
+  margin-left: 5px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.clear-btn:hover {
+  background-color: #FF4C3B; /* red */
 }
