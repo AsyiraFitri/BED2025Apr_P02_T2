@@ -3,11 +3,12 @@ let geocoder;
 let directionsService;
 let directionsRenderer;
 let userLocation;  // store user's current location
+let serviceMarkers = []; // store all service markers on map
 
 // initialize the Google Map
 function initMap() {
   map = new google.maps.Map(document.getElementById('map'), {
-    center: { lat: 1.3521, lng: 103.8198 }, // Default to Singapore
+    center: { lat: 1.3521, lng: 103.8198 }, // default to Singapore
     zoom: 12,
   });
 
@@ -22,17 +23,21 @@ function initMap() {
   // autocomplete for "From" and "To" locations
   const fromInput = document.getElementById('fromSelect');
   const toInput = document.getElementById('toSelect');
+  // autocomplete restricted to Singapore (SG)
   const fromAutocomplete = new google.maps.places.Autocomplete(fromInput);
+  fromAutocomplete.setComponentRestrictions({ country: ['SG'] });
+
   const toAutocomplete = new google.maps.places.Autocomplete(toInput);
+  toAutocomplete.setComponentRestrictions({ country: ['SG'] });
 
   // nearby Services Button Click
-  //document.getElementById('showNearbyServices').addEventListener('click', showNearbyServices);
+  document.getElementById('showNearbyServices').addEventListener('click', showNearbyServices);
 
   // location Modal Handling
-  //document.getElementById('submitLocationBtn').addEventListener('click', setManualLocation);
-  //document.getElementById('closeLocationModal').addEventListener('click', closeLocationModal);
+  document.getElementById('submitLocationBtn').addEventListener('click', setManualLocation);
+  document.getElementById('closeLocationModal').addEventListener('click', closeLocationModal);
 
-  // fearch Route Button Click
+  //  search route button click
   document.getElementById('searchRoute').addEventListener('click', searchRoute);
 }
 
@@ -87,106 +92,168 @@ function searchRoute() {
 }
 
 // fetch and categorize nearby services based on the location (user's or preferred)
-/* function fetchNearbyServices(location, category) {
+function fetchNearbyServices(location, category) {
+
   const service = new google.maps.places.PlacesService(map);
-
-  // clear previous services in the list
   const servicesList = document.getElementById('servicesList');
-  servicesList.innerHTML = '';
+  // clear previous markers from map
+  serviceMarkers.forEach(marker => marker.setMap(null));
+  serviceMarkers = [];
+  servicesList.innerHTML = ''; // Clear previous results
 
-  if (category === 'hospital') {
-    service.nearbySearch({
-      location: location,
-      radius: 2000,
-      type: 'hospital',
-    }, (results, status) => {
-      if (status === google.maps.places.PlacesServiceStatus.OK) {
-        displayNearbyServices(results, 'Hospital');
-      }
-    });
-  } else if (category === 'supermarket') {
-    service.nearbySearch({
-      location: location,
-      radius: 2000,
-      type: 'supermarket',
-    }, (results, status) => {
-      if (status === google.maps.places.PlacesServiceStatus.OK) {
-        displayNearbyServices(results, 'Supermarket');
-      }
-    });
-  } else if (category === 'park') {
-    service.nearbySearch({
-      location: location,
-      radius: 2000,
-      type: 'park',
-    }, (results, status) => {
-      if (status === google.maps.places.PlacesServiceStatus.OK) {
-        displayNearbyServices(results, 'Park');
-      }
-    });
-  } else if (category === 'community_center') {
-    service.nearbySearch({
-      location: location,
-      radius: 2000,
-      type: 'community_center',
-    }, (results, status) => {
-      if (status === google.maps.places.PlacesServiceStatus.OK) {
-        displayNearbyServices(results, 'Community Center');
-      }
-    });
-  } else if (category === 'food') {
-    service.nearbySearch({
-      location: location,
-      radius: 2000,
-      type: 'restaurant',
-    }, (results, status) => {
-      if (status === google.maps.places.PlacesServiceStatus.OK) {
-        displayNearbyServices(results, 'Hawker Centers / Cafes');
-      }
-    });
+  let queries = [];
+
+  switch (category) {
+    case 'healthcare':
+      queries = [
+        'hospital',
+        'clinic',
+        'polyclinic',
+        'dental clinic',
+        'pharmacy',
+        'nursing home'
+      ];
+      break;
+
+    case 'market':
+      queries = [
+        'supermarket',
+        'wet market',
+        'mini mart',
+        'convenience store'
+      ];
+      break;
+
+    case 'park':
+      queries = [
+        'park',
+        'neighbourhood park',
+        'nature park'
+      ];
+      break;
+
+    case 'community_services':
+      queries = [
+        'community club',
+        'community centre',
+        'eldercare centre',
+        'dementia friendly go-to-point'
+      ];
+      break;
+
+    case 'food':
+      queries = [
+        'hawker centre',
+        'restaurant',
+        'cafe',
+        'food court',
+        'food stall'
+      ];
+      break;
+
+    default:
+      alert('Unknown category selected.');
+      return;
   }
+
+  const seenPlaceIds = new Set(); // to avoid duplicates
+
+queries.forEach(query => {
+  service.textSearch({
+    location: location,
+    radius: 1000, // increased radius for a broader search area
+    query: query
+  }, (results, status) => {
+    if (status === google.maps.places.PlacesServiceStatus.OK) {
+      results.forEach(place => {
+        // calculate distance between user's location and place location
+        const distance = google.maps.geometry.spherical.computeDistanceBetween(location, place.geometry.location);
+
+        // only show places within 100 meters of the user
+        if (distance <= 800 && !seenPlaceIds.has(place.place_id)) {
+          seenPlaceIds.add(place.place_id);
+          displayNearbyService(place); // Render individually
+        }
+      });
+    }
+  });
+});
 }
 
-// display the nearby services in the UI
-function displayNearbyServices(services, category) {
-  const servicesList = document.getElementById('servicesList');
-  const categoryHeader = document.createElement('h4');
-  categoryHeader.innerText = category;
-  servicesList.appendChild(categoryHeader);
 
-  services.forEach(place => {
-    const serviceItem = document.createElement('div');
-    serviceItem.classList.add('service-item');
-    serviceItem.innerHTML = `
-      <h5>${place.name}</h5>
-      <p>${place.vicinity}</p>
-      <button onclick="getDirections(${place.geometry.location.lat()}, ${place.geometry.location.lng()})">Get Directions</button>
-    `;
-    servicesList.appendChild(serviceItem);
+// display the nearby services in the UI
+function displayNearbyService(place) {
+  const servicesList = document.getElementById('servicesList');
+
+  // create HTML list item
+  const serviceItem = document.createElement('div');
+  serviceItem.classList.add('service-item');
+  serviceItem.innerHTML = `
+    <h5>${place.name}</h5>
+    <p>${place.formatted_address || place.vicinity}</p>
+    <button onclick="getDirections(${place.geometry.location.lat()}, ${place.geometry.location.lng()}, '${place.name.replace(/'/g, "\\'")}')">Get Directions</button>
+  `;
+  servicesList.appendChild(serviceItem);
+
+  // Create marker on map
+  const marker = new google.maps.Marker({
+    position: place.geometry.location,
+    map: map,
+    title: place.name,
+  });
+
+  // add info window on click
+  const infowindow = new google.maps.InfoWindow({
+    content: `<strong>${place.name}</strong><br>${place.formatted_address || place.vicinity}`,
+  });
+
+  marker.addListener('click', () => {
+    infowindow.open(map, marker);
+  });
+
+  // store marker globally so you can clear it later
+  serviceMarkers.push(marker);
+}
+
+
+// get Directions to a service from user's current location
+function getDirections(lat, lng, placeName) {
+  if (!userLocation) {
+    alert('User location is not available');
+    return;
+  }
+
+  const destination = new google.maps.LatLng(lat, lng);
+
+  // set the "To" field to the name instead of address
+  document.getElementById('toSelect').value = placeName;
+
+  // reverse geocode to fill in "From" field
+  geocoder.geocode({ location: userLocation }, (originResults, originStatus) => {
+    if (originStatus === 'OK' && originResults[0]) {
+      const fromAddress = originResults[0].formatted_address;
+      document.getElementById('fromSelect').value = fromAddress;
+
+      const request = {
+        origin: userLocation,
+        destination: destination,
+        travelMode: google.maps.TravelMode.TRANSIT,
+      };
+
+      directionsService.route(request, (response, status) => {
+        if (status === 'OK') {
+          directionsRenderer.setDirections(response);
+        } else {
+          alert('Directions request failed due to ' + status);
+        }
+      });
+
+    } else {
+      alert('Failed to get user address: ' + originStatus);
+    }
   });
 }
 
-// get Directions to a service from user's current location
-function getDirections(lat, lng) {
-  if (userLocation) {
-    const destination = new google.maps.LatLng(lat, lng);
-    const request = {
-      origin: userLocation,
-      destination: destination,
-      travelMode: google.maps.TravelMode.TRANSIT, 
-    };
-
-    directionsService.route(request, (response, status) => {
-      if (status === 'OK') {
-        directionsRenderer.setDirections(response);
-      } else {
-        alert('Directions request failed due to ' + status);
-      }
-    });
-  } else {
-    alert('User location is not available');
-  }
-}
 
 // show user's location and nearby services based on the selected category
 function showNearbyServices() {
@@ -196,16 +263,35 @@ function showNearbyServices() {
     navigator.geolocation.getCurrentPosition(
       (position) => {
         userLocation = new google.maps.LatLng(position.coords.latitude, position.coords.longitude);
+        map.setCenter(userLocation);
+        new google.maps.Marker({
+        position: userLocation,
+        map: map,
+        icon: {
+          path: google.maps.SymbolPath.CIRCLE,
+          scale: 8,
+          fillColor: '#4285F4',
+          fillOpacity: 1,
+          strokeWeight: 2,
+          strokeColor: 'white'
+        },
+        title: 'You are here'
+      });
+        map.setZoom(15);
         fetchNearbyServices(userLocation, selectedCategory);
       },
-      () => {
-        alert('Geolocation not available');
+      (error) => {
+        // if location access denied or error, show the modal
+        console.warn('Geolocation error:', error.message);
+        document.getElementById('locationModal').style.display = 'block';
       }
     );
   } else {
-    alert('Geolocation not supported by this browser');
+    // geolocation not supported
+    document.getElementById('locationModal').style.display = 'block';
   }
 }
+
 
 // set Manual Location
 function setManualLocation() {
@@ -228,4 +314,3 @@ function setManualLocation() {
 function closeLocationModal() {
   document.getElementById('locationModal').style.display = 'none';
 }
- */

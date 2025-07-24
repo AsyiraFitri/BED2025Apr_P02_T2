@@ -9,8 +9,12 @@ body {
 main {
     display: flex;
     flex-direction: row;
-    padding: 40px;
+    padding: 20px;
     gap: 40px;
+    height: 100vh;         
+    overflow-y: auto;
+    position: sticky;
+    top: 0;
 }
 
 /* ===== left panel ===== */
@@ -20,10 +24,17 @@ main {
     padding: 20px;
     background-color: #fff;
     border-radius: 15px;
+    /* make it scrollable */
+    overflow-y: auto;
+    position: sticky;
+    top: 0;
 }
 
 .left-panel section {
-    margin-bottom: 24px;
+    padding: 10px 14px;
+    border: 1px solid #f1c6d8;
+    border-radius: 10px;
+    margin-bottom: 10px;
 }
 
 .left-panel h3 {
@@ -76,7 +87,7 @@ button:hover {
 .route-selection {
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 8px;
 }
 
 .route-selection label {
@@ -142,10 +153,10 @@ button:hover {
     justify-content: space-between;
     align-items: center;
 }
-/* Ensure the .step-guide is properly styled */
+/* ensure the .step-guide is properly styled */
 .step-guide {
-  max-height: 400px;
-  overflow-y: auto; /* Ensures scrolling if content exceeds available space */
+  max-height: 300px;
+  overflow-y: auto; /* ensures scrolling if content exceeds available space */
   padding: 10px;
   border: 1px solid #ccc;
   margin-top: 20px;
@@ -362,9 +373,23 @@ button:hover {
     display: none;  /* ensure modal is hidden on load */
 }
 
+#locationModal {
+    display: none;
+}
 
 /* ===== saved places list item hover effect ===== */
+#savedPlacesList {
+    margin-top: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    max-height: 250px;
+    overflow-y: auto;
+}
 #savedPlacesList li {
+    padding: 10px 14px;
+    border: 1px solid #f1c6d8;
+    border-radius: 10px;
     transition: background-color 0.3s ease, color 0.3s ease;
 }
 
@@ -374,6 +399,50 @@ button:hover {
 }
 
 
-#locationModal {
-    display: none;
+/* ===== nearby services container ===== */
+#servicesList {
+  margin-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+/* each service item */
+.service-item {
+  background-color: #fdf4f7;
+  padding: 12px 16px;
+  border: 1px solid #f1c6d8;
+  border-radius: 10px;
+  transition: box-shadow 0.3s ease;
+}
+
+.service-item:hover {
+  box-shadow: 0 2px 8px rgba(241, 163, 181, 0.3);
+}
+
+.service-item h5 {
+  margin: 0 0 6px;
+  font-size: 16px;
+  color: #e91e63;
+}
+
+.service-item p {
+  margin: 0 0 10px;
+  font-size: 14px;
+  color: #555;
+}
+
+.service-item button {
+  padding: 6px 14px;
+  background-color: #f8c7d6;
+  border: 1px solid #f1a3b5;
+  border-radius: 20px;
+  font-size: 14px;
+  transition: background-color 0.3s ease;
+}
+
+.service-item button:hover {
+  background-color: #f1a3b5;
 }
