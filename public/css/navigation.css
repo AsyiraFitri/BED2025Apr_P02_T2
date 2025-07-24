@@ -16,6 +16,10 @@ main {
     position: sticky;
     top: 0;
 }
+option {
+    background-color: #f1c6d8;
+}
+
 
 /* ===== left panel ===== */
 .left-panel {
@@ -445,4 +449,13 @@ button:hover {
 
 .service-item button:hover {
   background-color: #f1a3b5;
+}
+
+.nearby-services select {
+    padding: 4px;
+    border: 1px solid #f1a3b5; /* pinkish border */
+    border-radius: 15px;
+    background-color: white;
+    cursor: pointer;
+    margin-bottom: 10px;
 }
