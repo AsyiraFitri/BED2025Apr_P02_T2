@@ -30,7 +30,7 @@ document.addEventListener("DOMContentLoaded", () => {
         return alert("Please fill out all fields.");
       }
 
-      const userID = 1; // Replace with session-based user ID if available
+      const userID = 1; // to replace with session-based user ID if available
 
       const requestData = {
         userID,
@@ -140,6 +140,7 @@ function renderRequests(requests) {
             <div style="font-weight: 500; font-size: 14px; color: var(--dark-gray); margin-bottom: 4px;">Status</div>
             <span class="status-badge status-${request.status.toLowerCase()}">${request.status}</span>
           </div>
+          ${request.status === "Pending" ? `<button class="complete-btn" data-id="${request.RequestID}">Complete</button>` : ""}
        ${request.status !== "Completed" ? `<button class="cancel-btn" data-id="${request.RequestID}">Cancel</button>` : ""}
         </div>
       </div>
@@ -155,6 +156,15 @@ function renderRequests(requests) {
       }
     });
   });
+  // Rebind complete buttons
+document.querySelectorAll(".complete-btn").forEach(btn => {
+  btn.addEventListener("click", async function () {
+    if (confirm("Mark this request as completed?")) {
+      const requestId = this.dataset.id;
+      await completeRequest(requestId);
+    }
+  });
+});
 }
 function formatDate(dateStr) {
   const date = new Date(dateStr);

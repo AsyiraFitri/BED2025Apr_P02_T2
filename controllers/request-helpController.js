@@ -1,5 +1,5 @@
 const sql = require('mssql');
-const dbConfig = require('../dbConfig');  // adjust your path
+const dbConfig = require('../dbConfig');  
 // GET - Fetch all help requests
 async function getHelpRequests(req, res) {
     console.log('GET /api/requests called'); // Debug log

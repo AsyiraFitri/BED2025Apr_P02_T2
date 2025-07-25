@@ -5,7 +5,7 @@ const path = require("path");
 const bodyParser = require("body-parser");
 const dbConfig = require("./dbConfig"); // Database configuration
 const dotenv = require("dotenv");
-const requestRoutes = require('./routes/requestRoutes');
+
 
 
 require("dotenv").config(); // Load environment variables from .env file
@@ -65,9 +65,11 @@ app.delete("/places/:placeId", placeController.deletePlace);
 
 
 // Sandi Routes
-
+const requestRoutes = require('./routes/requestRoutes');
+const contactRoutes = require('./routes/emergencyContactRoutes');
 app.use('/api/auth', authRoutes);
 app.use('/api/requests', requestRoutes);
+app.use('/api/contacts', contactRoutes);
 
 
 // ==========================
