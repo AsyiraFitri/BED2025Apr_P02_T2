@@ -1,17 +1,15 @@
-import { 
-  showToast, 
-  showDeleteModal, 
-  showSaveFeedback, 
-  getAuthHeaders, 
-  getPendingDeleteAppointmentId 
+import {
+  showToast,
+  showDeleteModal,
+  showSaveFeedback,
+  getAuthHeaders,
+  getPendingDeleteAppointmentId
 } from './health-utils.js';
 
-import { 
-  createGoogleEvent, 
-  updateGoogleEvent, 
-  deleteGoogleEvent, 
-  syncAllAppointments, 
-  updateGoogleCalendarButtons 
+import {
+  deleteGoogleEvent,
+  syncAllAppointments,
+  updateGoogleCalendarButtons
 } from './calendar.js';
 
 let currentEditingAppointmentId = null; // Tracks currently editing appointment ID or 'new'
@@ -225,31 +223,46 @@ async function editAppointment(id) {
 async function handleAppointmentsDeleteConfirmation() {
   const idToDelete = getPendingDeleteAppointmentId();
   if (!idToDelete) return;
+
   const modalElement = document.getElementById('confirmDeleteModal');
   const modal = bootstrap.Modal.getInstance(modalElement);
+
   try {
-    
-    showToast('Appointment deleted successfully');
-    
-    // delete from Google Calendar if synced
-    const cachedAppointment = appointmentCache[idToDelete];
-    if (cachedAppointment?.GoogleEventID) {
-      const tokens = JSON.parse(sessionStorage.getItem('tokens'));
-      if (tokens) {
-        await deleteGoogleEvent(cachedAppointment.GoogleEventID, tokens);
+    const appointment = appointmentCache[idToDelete];
+    if (!appointment) {
+      throw new Error('Appointment data not found');
+    }
+
+    // 1. Delete from backend first
+    await deleteAppointment(idToDelete);
+    showToast('Appointment deleted successfully', 'success'); // Local deletion toast
+
+    // 2. Handle Google Calendar sync if needed
+    const tokensStr = sessionStorage.getItem('google_tokens');
+    if (tokensStr && appointment.GoogleEventID) {
+      const tokens = JSON.parse(tokensStr);
+      const googleSuccess = await deleteGoogleEvent(appointment, tokens);
+      
+      if (googleSuccess) {
+        showToast('Google Calendar updated successfully', 'success'); // Google-specific toast
+      } else {
+        showToast('Failed to update Google Calendar', 'warning');
       }
     }
 
-    await deleteAppointment(idToDelete);
+    // 3. Update UI
     delete appointmentCache[idToDelete];
     updateAppointmentDisplayFromCache();
 
-  } catch {
-    alert('Error deleting appointment');
+  } catch (err) {
+    console.error('Error deleting appointment:', err);
+    showToast('Failed to delete appointment', 'error');
   } finally {
     if (modal) modal.hide();
   }
 }
+
+
 
 // Handles form submission for creating/updating appointment
 // - Syncs all appointments with Google Calendar after success
@@ -306,8 +319,12 @@ async function handleAppointmentFormSubmit(e) {
     currentEditingAppointmentId = null;
     showToast(`Appointment ${action} successfully`);
 
-    // Sync with Google Calendar (if enabled)
-    await syncAllAppointments();
+    // Sync with Google Calendar only if connected before
+    const tokensStr = sessionStorage.getItem('google_tokens');
+    if (tokensStr) {
+      await syncAllAppointments();
+    }
+
 
   } catch (err) {
     console.error('Error saving appointment:', err);

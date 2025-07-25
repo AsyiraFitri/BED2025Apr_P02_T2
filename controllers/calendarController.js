@@ -55,7 +55,7 @@ async function handleCallback(req, res) {
 }
 
 async function syncAppointment(req, res) {
-  const tokens = req.body.Tokens;
+  const tokens = req.body.tokens;
   if (!tokens || !tokens.access_token) {
     return res.status(401).json({ error: 'Missing access token' });
   }
@@ -119,7 +119,7 @@ async function syncAppointment(req, res) {
 }
 
 async function editAppointment(req, res) {
-  const tokens = req.body.Tokens;
+  const tokens = req.body.tokens;
   const eventId = req.params.eventId;
 
   if (!tokens || !tokens.access_token) {
@@ -167,18 +167,16 @@ async function editAppointment(req, res) {
 
 async function deleteAppointment(req, res) {
   const eventId = req.params.eventId;
-  const accessToken = req.headers.authorization?.split(' ')[1];  // Bearer token
-  
-  if (!accessToken) {
+  const { tokens } = req.body; // Destructure tokens from body
+
+  if (!tokens || !tokens.access_token) {
     return res.status(401).json({ error: 'Missing access token' });
   }
 
-  // Set OAuth client with access token only
-  const auth = createOAuthClient({ access_token: accessToken });
-
-  const calendar = google.calendar({ version: 'v3', auth });
+  const auth = createOAuthClient(tokens);
 
   try {
+    const calendar = google.calendar({ version: 'v3', auth });
     await calendar.events.delete({
       calendarId: CALENDAR_ID,
       eventId
@@ -189,6 +187,7 @@ async function deleteAppointment(req, res) {
     return res.status(500).json({ error: 'Failed to delete appointment' });
   }
 }
+
 
 
 module.exports = {
