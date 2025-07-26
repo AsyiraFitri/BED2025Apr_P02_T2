@@ -1,7 +1,9 @@
 document.addEventListener("DOMContentLoaded", () => {
-  const userId = 1; // user id (replace with dynamic user ID)
+  // const userId = 1; // user id (replace with dynamic user ID)
   const apiBaseUrl = "http://localhost:3000";
-
+  const token = sessionStorage.getItem('token');  // JWT stored in sessionStorage
+  const user = JSON.parse(sessionStorage.getItem('user'));  // Retrieve User object from sessionStorage
+  const userId = user.UserID;
   const savedPlacesList = document.getElementById("savedPlacesList");
   const addPlaceModal = document.getElementById("addPlaceModal");
   const closeModalBtn = document.querySelector(".close-btn");
@@ -11,15 +13,40 @@ document.addEventListener("DOMContentLoaded", () => {
   let currentEditPlaceId = null; // track the place being edited
 
   // load saved places from backend
-  async function loadSavedPlaces() {
-    try {
-      const response = await fetch(`${apiBaseUrl}/api/places/${userId}`);
-      const places = await response.json();
-      displaySavedPlaces(places);
-    } catch (error) {
-      console.error("error loading saved places:", error);
-    }
+async function loadSavedPlaces() {
+
+  if (!token) {
+    console.error("No token found, please log in.");
+    return;
   }
+
+  if (!user) {
+    console.error("No User is found, please log in.");
+    return;
+  }
+
+  try {
+    const response = await fetch(`${apiBaseUrl}/api/places/${userId}`, {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      console.error("Error:", error.error);
+      return;
+    }
+    console.log(user.UserID)
+
+    const places = await response.json();
+    displaySavedPlaces(places);
+  } catch (error) {
+    console.error("Error loading saved places:", error);
+  }
+}
+
+
 
   // display places in the list with optional edit/delete buttons
   function displaySavedPlaces(places) {
@@ -113,109 +140,124 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // add a new place after confirmation and validation
-  async function addNewPlace() {
-    if (!confirm("do you want to add this new place?")) return;
+ async function addNewPlace() {
+  if (!confirm("do you want to add this new place?")) return;
 
-    const placeName = document.getElementById("placeName").value;
-    const address = document.getElementById("address").value;
+  const placeName = document.getElementById("placeName").value;
+  const address = document.getElementById("address").value;
 
-    if (!placeName || !address) {
-      alert("please fill in both fields!");
-      return;
+  if (!placeName || !address) {
+    alert("please fill in both fields!");
+    return;
+  }
+
+  const placeData = { userId, placeName, address };
+
+  try {
+    const response = await fetch(`${apiBaseUrl}/api/places`, {
+      method: "POST",
+      headers: { 
+        'Authorization': `Bearer ${token}`,  // Corrected to use backticks
+        "Content-Type": "application/json" 
+      },
+      body: JSON.stringify(placeData),
+    });
+
+    const result = await response.json();
+    if (response.status === 201) {
+      alert(result.message);
+      loadSavedPlaces();
+      closeModal();
+    } else {
+      alert("failed to add place!");
     }
+  } catch (error) {
+    console.error("error adding place:", error);
+  }
+}
 
-    const placeData = { userId, placeName, address };
-
-    try {
-      const response = await fetch(`${apiBaseUrl}/api/places`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(placeData),
-      });
-
-      const result = await response.json();
-      if (response.status === 201) {
-        alert(result.message);
-        loadSavedPlaces();
-        closeModal();
-      } else {
-        alert("failed to add place!");
+// populate modal for editing a selected place
+function editPlace(placeId) {
+  fetch(`${apiBaseUrl}/api/places/${userId}`, {
+        headers: {
+      'Authorization': `Bearer ${token}`, // Send token in headers
+    }
+  })
+    .then(res => res.json())
+    .then(places => {
+      console.log("Fetched places:", places);
+      const place = places.find(p => p.PlaceID === parseInt(placeId));
+      if (place) {
+        document.getElementById("placeName").value = place.PlaceName;
+        document.getElementById("address").value = place.Address;
+        currentEditPlaceId = place.PlaceID;
+        document.querySelector("#addPlaceModal h3").textContent = "update place";
+        savePlaceBtn.textContent = "update place";
+        addPlaceModal.style.display = "block";
       }
-    } catch (error) {
-      console.error("error adding place:", error);
-    }
-  }
-
-  // populate modal for editing a selected place
-  function editPlace(placeId) {
-    fetch(`${apiBaseUrl}/api/places/${userId}`)
-      .then(res => res.json())
-      .then(places => {
-        const place = places.find(p => p.PlaceID === parseInt(placeId));
-        if (place) {
-          document.getElementById("placeName").value = place.PlaceName;
-          document.getElementById("address").value = place.Address;
-          currentEditPlaceId = place.PlaceID;
-          document.querySelector("#addPlaceModal h3").textContent = "update place";
-          savePlaceBtn.textContent = "update place";
-          addPlaceModal.style.display = "block";
-        }
-      })
-      .catch(err => console.error("error loading place for edit:", err));
-  }
+    })
+    .catch(err => console.error("error loading place for edit:", err));
+}
 
   // update place after confirmation and validation
-  async function updatePlace(placeId) {
-    if (!confirm("do you want to update this place?")) return;
+async function updatePlace(placeId) {
+  if (!confirm("do you want to update this place?")) return;
 
-    const placeName = document.getElementById("placeName").value;
-    const address = document.getElementById("address").value;
+  const placeName = document.getElementById("placeName").value;
+  const address = document.getElementById("address").value;
 
-    if (!placeName || !address) {
-      alert("please fill in both fields!");
-      return;
-    }
-
-    const updatedData = { placeName, address };
-
-    try {
-      const response = await fetch(`${apiBaseUrl}/api/places/${placeId}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(updatedData),
-      });
-
-      const result = await response.json();
-      if (response.ok) {
-        alert(result.message);
-        loadSavedPlaces();
-        closeModal();
-      } else {
-        alert("failed to update place!");
-      }
-    } catch (error) {
-      console.error("error updating place:", error);
-    }
+  if (!placeName || !address) {
+    alert("please fill in both fields!");
+    return;
   }
+
+  const updatedData = { placeName, address };
+
+  try {
+    const response = await fetch(`${apiBaseUrl}/api/places/${placeId}`, {
+      method: "PUT",
+      headers: { 
+        'Authorization': `Bearer ${token}`,  // Corrected to use backticks
+        "Content-Type": "application/json" 
+      },
+      body: JSON.stringify(updatedData),
+    });
+
+    const result = await response.json();
+    if (response.ok) {
+      alert(result.message);
+      loadSavedPlaces();
+      closeModal();
+    } else {
+      alert("failed to update place!");
+    }
+  } catch (error) {
+    console.error("error updating place:", error);
+  }
+}
+
 
   // delete place after confirmation
   async function deletePlace(placeId) {
-    try {
-      const response = await fetch(`${apiBaseUrl}/api/places/${placeId}`, {
-        method: "DELETE",
-      });
+  try {
+    const response = await fetch(`${apiBaseUrl}/api/places/${placeId}`, {
+      headers: { 
+        'Authorization': `Bearer ${token}`  // Corrected to use backticks
+      },
+      method: "DELETE",
+    });
 
-      const result = await response.json();
-      if (response.status === 200) {
-        alert(result.message);
-        loadSavedPlaces();
-      } else {
-        alert("failed to delete place!");
-      }
-    } catch (error) {
-      console.error("error deleting place:", error);
+    const result = await response.json();
+    if (response.status === 200) {
+      alert(result.message);
+      loadSavedPlaces();
+    } else {
+      alert("failed to delete place!");
     }
+  } catch (error) {
+    console.error("error deleting place:", error);
   }
+}
 
   // open modal for adding new place
   document.getElementById("addPlaceBtn").addEventListener("click", () => {
