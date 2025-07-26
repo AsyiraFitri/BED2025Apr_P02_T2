@@ -11,10 +11,6 @@ const dotenv = require("dotenv");
 require("dotenv").config(); // Load environment variables from .env file
 dotenv.config();
 
-//controllers - Asyira
-const { authorizeUser, verifyToken } = require("./middlewares/authorizeUser");
-const placeController = require("./controllers/placeController");
-
 // Initialize app
 const app = express(); // Create the Express app
 const port = process.env.PORT || 3000;
@@ -58,11 +54,10 @@ app.use('/api/friends', friendRoutes);
 app.use('/api/messages', messageRoutes);
 
 // Asyira Routes
-app.get("/places/:userId", placeController.getUserPlaces);
-app.post("/places", placeController.createPlace);
-app.put("/places/:placeId", placeController.updatePlace);
-app.delete("/places/:placeId", placeController.deletePlace);
-
+const placeRoutes = require('./routes/placesRoutes')
+const busArrivalRoutes = require('./routes/busArrivalRoutes')
+app.use('/api/places', placeRoutes)
+app.use('/api/bus-arrivals', busArrivalRoutes)
 
 // Sandi Routes
 const requestRoutes = require('./routes/requestRoutes');
