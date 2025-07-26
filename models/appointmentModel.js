@@ -7,10 +7,13 @@ const dbConfig = require("../dbConfig");
 async function getAppointmentsByUserId(userId) {
   let connection;
   try {
-    connection = await sql.connect(dbConfig); // Connect to the database
-    const query = "SELECT * FROM Appointments WHERE UserID = @userId"; // parameterized query
+    // Connect to the database
+    connection = await sql.connect(dbConfig);
+    
+    // Create parameterized query to prevent SQL injection
+    const query = "SELECT * FROM Appointments WHERE UserID = @userId";
     const request = connection.request();
-    request.input("userId", sql.Int, userId); // bind userId parameter
+    request.input("userId", sql.Int, userId);
     const result = await request.query(query);
 
     // Format time for frontend (remove date portion)
@@ -83,7 +86,7 @@ async function createAppointment(app) {
     connection = await sql.connect(dbConfig);
     const query = `
       INSERT INTO Appointments (AppointmentDate, AppointmentTime, Title, Location, DoctorName, Notes, UserID, GoogleEventID)
-      VALUES (@date, @time, @title, @location, @doctor, @notes, @userId, @googleEventId);
+      VALUES (@date, @time, @title, @location, @doctor, @notes, @userId, @googleEventId)
     `;
 
     const request = connection.request();
@@ -94,7 +97,7 @@ async function createAppointment(app) {
     request.input("doctor", sql.NVarChar, app.DoctorName);
     request.input("notes", sql.NVarChar, app.Notes);
     request.input("userId", sql.Int, app.UserID);
-    request.input("googleEventId", sql.NVarChar, app.GoogleEventID || null); // Optional
+    request.input("googleEventId", sql.NVarChar, app.GoogleEventID || null);
 
     await request.query(query);
   } catch (error) {
@@ -137,7 +140,7 @@ async function updateAppointment(id, data) {
     request.input("location", sql.NVarChar, data.Location);
     request.input("doctor", sql.NVarChar, data.DoctorName);
     request.input("notes", sql.NVarChar, data.Notes);
-    request.input("googleEventId", sql.NVarChar, data.GoogleEventID || null); // Optional
+    request.input("googleEventId", sql.NVarChar, data.GoogleEventID || null);
 
     await request.query(query);
   } catch (error) {

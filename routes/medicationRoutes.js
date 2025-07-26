@@ -1,21 +1,29 @@
 const express = require('express');
 const router = express.Router();
 const medicationController = require('../controllers/medicationController');
-const { verifyToken } = require('../middlewares/authorizeUser');  // <-- import auth middleware
+const { verifyToken } = require('../middlewares/authorizeUser');
+const { validateMedicationId, validateMedicationData } = require('../middlewares/validateMedication');
 
-// Get all medications for a user (userId param, protected)
-router.get('/user/:userid', verifyToken, medicationController.getMedicationsByUserId);
+// All medication routes require user authorization first
+router.use(verifyToken);
 
-// Get medication by medication ID (protected)
-router.get('/:id', verifyToken, medicationController.getMedicationById);
+// GET /medications/user/:userid - Get all medications for a user
+router.get('/user/:userid', medicationController.getMedicationsByUserId);
 
-// Create medication (protected)
-router.post('/', verifyToken, medicationController.createMedication);
+// GET /medications/:id - Get medication by ID
+// Uses validation middleware to check medication ID before calling controller
+router.get('/:id', validateMedicationId(), medicationController.getMedicationById);
 
-// Update medication (protected)
-router.put('/:id', verifyToken, medicationController.updateMedication);
+// POST /medications - Create medication
+// Uses validation middleware to check medication data before calling controller
+router.post('/', validateMedicationData, medicationController.createMedication);
 
-// Delete medication (protected)
-router.delete('/:id', verifyToken, medicationController.deleteMedication);
+// PUT /medications/:id - Update medication
+// Uses validation middleware to check both ID and data before calling controller
+router.put('/:id', validateMedicationId(), validateMedicationData, medicationController.updateMedication);
+
+// DELETE /medications/:id - Delete medication
+// Uses validation middleware to check medication ID before calling controller
+router.delete('/:id', validateMedicationId(), medicationController.deleteMedication);
 
 module.exports = router;

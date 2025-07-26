@@ -1,14 +1,14 @@
 const appointmentModel = require("../models/appointmentModel");
 
 // Get all appointments by user ID
+// - Uses validated user ID from middleware (req.validatedUserId)
 // - Calls the model function to fetch all appointments for the user
 async function getAppointmentsByUserId(req, res) {
   try {
-    const userId = parseInt(req.params.userid);
-    if (isNaN(userId)) {
-      return res.status(400).json({ error: "Invalid user ID" });
-    }
-
+    // Get validated user ID from middleware
+    const userId = req.validatedUserId;
+    
+    // Call model to fetch appointments
     const appointments = await appointmentModel.getAppointmentsByUserId(userId);
     res.json(appointments);
   } catch (error) {
@@ -18,14 +18,14 @@ async function getAppointmentsByUserId(req, res) {
 }
 
 // Get one appointment by ID
+// - Uses validated appointment ID from middleware (req.validatedId)
 // - Calls model to return a single appointment based on AppointmentID
 async function getAppointmentById(req, res) {
   try {
-    const id = parseInt(req.params.id);
-    if (isNaN(id)) {
-      return res.status(400).json({ error: "Invalid appointment ID" });
-    }
-
+    // Get validated appointment ID from middleware
+    const id = req.validatedId;
+    
+    // Call model to fetch specific appointment
     const appointment = await appointmentModel.getAppointmentById(id);
     if (!appointment) {
       return res.status(404).json({ error: "Appointment not found" });
@@ -39,21 +39,14 @@ async function getAppointmentById(req, res) {
 }
 
 // Create a new appointment
-// - Builds an appointment object and calls the model to insert it
+// - Uses validated appointment data from middleware (req.validatedData)
+// - Calls the model to insert the validated appointment
 async function createAppointment(req, res) {
   try {
-    const appointment = {
-      AppointmentDate: req.body.AppointmentDate,
-      AppointmentTime: req.body.AppointmentTime,
-      Title: req.body.Title,
-      Location: req.body.Location,
-      DoctorName: req.body.DoctorName,
-      Notes: req.body.Notes || "No special instructions",
-      UserID: req.body.UserID 
-      // GoogleEventID will be set after syncing to Google Calendar
-      
-    };
-
+    // Get validated appointment data from middleware
+    const appointment = req.validatedData;
+    
+    // Call model to create appointment
     await appointmentModel.createAppointment(appointment);
     res.status(201).json({ message: "Appointment created successfully" });
   } catch (error) {
@@ -63,42 +56,33 @@ async function createAppointment(req, res) {
 }
 
 // Update appointment by ID
-// - Validates ID, builds new appointment object and updates via model
+// - Uses validated ID from middleware (req.validatedId)
+// - Uses validated appointment data from middleware (req.validatedData)
+// - Updates appointment via model
 async function updateAppointment(req, res) {
   try {
-    const id = parseInt(req.params.id);
-    if (isNaN(id)) {
-      return res.status(400).json({ error: "Invalid appointment ID" });
-    }
-
-    const appointment = {
-      AppointmentDate: req.body.AppointmentDate,
-      AppointmentTime: req.body.AppointmentTime,
-      Title: req.body.Title,
-      Location: req.body.Location,
-      DoctorName: req.body.DoctorName,
-      Notes: req.body.Notes || "No special instructions",
-      GoogleEventID: req.body.GoogleEventID || null // Optional, if syncing to Google Calendar  
-    };
-    console.log("Updating appointment with date:", appointment.AppointmentDate);
-
+    // Get validated data from middleware
+    const id = req.validatedId;
+    const appointment = req.validatedData;
+    
+    // Call model to update appointment
     await appointmentModel.updateAppointment(id, appointment);
-    res.json({ message: "Appointment updated successfully", appointment});
+    res.json({ message: "Appointment updated successfully", appointment });
   } catch (error) {
     console.error("Controller error (updateAppointment):", error);
-    res.status(500).json({ error: "Failed to update appointment"});
+    res.status(500).json({ error: "Failed to update appointment" });
   }
 }
 
 // Delete appointment by ID
+// - Uses validated appointment ID from middleware (req.validatedId)
 // - Calls model to delete the appointment from the database
 async function deleteAppointment(req, res) {
   try {
-    const id = parseInt(req.params.id);
-    if (isNaN(id)) { 
-      return res.status(400).json({ error: "Invalid appointment ID" });
-    }
-
+    // Get validated appointment ID from middleware
+    const id = req.validatedId;
+    
+    // Call model to delete appointment
     await appointmentModel.deleteAppointment(id);
     res.json({ message: "Appointment deleted successfully" });
   } catch (error) {
