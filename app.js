@@ -6,8 +6,6 @@ const bodyParser = require("body-parser");
 const dbConfig = require("./dbConfig"); // Database configuration
 const dotenv = require("dotenv");
 
-
-
 require("dotenv").config(); // Load environment variables from .env file
 dotenv.config();
 
@@ -20,15 +18,17 @@ app.use(cors());
 app.use(express.json()); // For parsing JSON
 app.use(express.urlencoded({ extended: true })); // Optional: for form data
 
-// Serve static files (CSS, JS, HTML)
-app.use(express.static(path.join(__dirname, 'public')));
+// Swagger UI setup
+const swaggerFile = require('./swagger-output.json');
+const swaggerUi = require('swagger-ui-express');
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerFile));
+
 
 // ==========================
 // Routes by Team Members
 // ==========================
 
 // Xuan Tong Routes
-
 const medicationRoutes = require('./routes/medicationRoutes');
 const appointmentRoutes = require('./routes/appointmentRoutes');
 app.use('/api/medications', medicationRoutes);
@@ -36,8 +36,6 @@ app.use('/api/appointments', appointmentRoutes);
 
 const calendarRoutes = require('./routes/calendarRoutes');
 app.use(calendarRoutes);
-
-
 
 // Jing Yin Routes
 const hobbyRoutes = require('./routes/communityRoutes');
@@ -55,9 +53,9 @@ app.use('/api/messages', messageRoutes);
 
 // Asyira Routes
 const placeRoutes = require('./routes/placesRoutes')
-const busArrivalRoutes = require('./routes/busArrivalRoutes')
+//const busArrivalRoutes = require('./routes/busArrivalRoutes')
 app.use('/api/places', placeRoutes)
-app.use('/api/bus-arrivals', busArrivalRoutes)
+//app.use('/api/bus-arrivals', busArrivalRoutes)
 
 // Sandi Routes
 const requestRoutes = require('./routes/requestRoutes');
