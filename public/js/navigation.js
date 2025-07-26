@@ -4,6 +4,7 @@ let directionsService;
 let directionsRenderer;
 let userLocation;  // store user's current location
 let serviceMarkers = []; // store all service markers on map
+const apiBaseUrl = "http://localhost:3000/api";
 
 // initialize the Google Map
 function initMap() {
@@ -75,11 +76,23 @@ function searchRoute() {
             if (status === 'OK') {
               // directly use the response without optimization
               directionsRenderer.setDirections(response);
+              const routeLeg = response.routes[0].legs[0];
+              routeLeg.steps.forEach(step => {
+                if (step.travel_mode === 'TRANSIT' && step.transit) {
+                  const transitDetails = step.transit;
+                  console.log(step.transit);
+                  /* const busStopName = transitDetails.departure_stop.name;
+                  // display bus stop info from the server
+                  getBusStopInfoFromServer(busStopName);
+                  // display name in UI
+                  const selectedStopDiv = document.getElementById('selectedBusStopInfo');
+                  selectedStopDiv.innerHTML = `<p><strong>${busStopName}</strong></p>`; */
+                  }
+              });
             } else {
               alert('Directions request failed due to ' + status);
             }
           });
-
         } else {
           alert('Geocode failed for "To" address: ' + status);
         }
@@ -99,7 +112,7 @@ function fetchNearbyServices(location, category) {
   // clear previous markers from map
   serviceMarkers.forEach(marker => marker.setMap(null));
   serviceMarkers = [];
-  servicesList.innerHTML = ''; // Clear previous results
+  servicesList.innerHTML = ''; // clear previous results
 
   let queries = [];
 
@@ -195,7 +208,7 @@ function displayNearbyService(place) {
   `;
   servicesList.appendChild(serviceItem);
 
-  // Create marker on map
+  // create marker on map
   const marker = new google.maps.Marker({
     position: place.geometry.location,
     map: map,
@@ -293,7 +306,7 @@ function showNearbyServices() {
 }
 
 
-// set Manual Location
+// set manual location
 function setManualLocation() {
   const manualLocation = document.getElementById('manualLocation').value;
 
@@ -332,3 +345,78 @@ function clearNearbyServices() {
   map.setCenter(userLocation); // reset map center to user location
   map.setZoom(15); // reset zoom level
 }
+///////////////////////
+
+/* async function getBusStopInfoFromServer(busStopName) {
+  try {
+    // Assume apiBaseUrl has your local API that contains the bus stop data
+    const response = await fetch(`${apiBaseUrl}/bus/bus-stop-info?description=${encodeURIComponent(busStopName)}`);
+
+    if (!response.ok) {
+      throw new Error('Network response was not ok');
+    }
+
+    const data = await response.json();
+
+    // find the bus stop based on the description matching the bus stop name
+    const busStop = data.value.find(stop => stop.Description.toLowerCase() === busStopName.toLowerCase());
+
+    if (busStop) {
+      const busStopCode = busStop.BusStopCode;
+      console.log('Bus Stop Code:', busStopCode);
+
+      // use the bus stop code for fetching arrivals
+      getBusArrivalsFromServer(busStopCode);
+
+      // display bus stop info in the UI
+      const selectedStopDiv = document.getElementById('selectedBusStopInfo');
+      selectedStopDiv.innerHTML = `
+        <p><strong>${busStopName}</strong></p>
+        <p>Bus Stop Code: ${busStopCode}</p>
+        <p>Road Name: ${busStop.RoadName}</p>
+        <p>Description: ${busStop.Description}</p>
+        <p>Latitude: ${busStop.Latitude}</p>
+        <p>Longitude: ${busStop.Longitude}</p>
+      `;
+    } else {
+      console.error('No bus stop found with the name:', busStopName);
+    }
+
+  } catch (error) {
+    console.error('Error fetching bus stop info:', error.message);
+  }
+}
+
+
+async function getBusArrivalsFromServer(busStopCode) {
+  try {
+    // send a GET request to fetch bus arrivals based on bus stop code
+    const response = await fetch(`${apiBaseUrl}/api/bus/bus-arrivals/${busStopCode}`);
+
+    // check if the response is ok (status 200-299)
+    if (!response.ok) {
+      throw new Error('Network response was not ok');
+    }
+
+    // parse the response as JSON
+    const data = await response.json();
+
+    if (data) {
+      console.log('Bus Arrivals:', data);
+
+      // display bus arrivals in the UI
+      const arrivalsDiv = document.getElementById('busArrivals');
+      arrivalsDiv.innerHTML = `<p><strong>Upcoming Bus Arrivals:</strong></p>`;
+
+      // assuming response contains an array of bus arrival times
+      data.forEach(busArrival => {
+        arrivalsDiv.innerHTML += `
+          <p>Bus Number: ${busArrival.ServiceNo} - Arrival Time: ${busArrival.ExpectedArrival}</p>
+        `;
+      });
+    }
+  } catch (error) {
+    console.error('Error fetching bus arrivals:', error.message);
+  }
+}
+ */

@@ -11,7 +11,7 @@ main {
     flex-direction: row;
     padding: 20px;
     gap: 40px;
-    height: 100vh;         
+    /*height: 100vh;   */      
     overflow-y: auto;
     position: sticky;
     top: 0;
@@ -29,6 +29,7 @@ option {
     background-color: #fff;
     border-radius: 15px;
     /* make it scrollable */
+    height: 95vh; 
     overflow-y: auto;
     position: sticky;
     top: 0;
@@ -474,3 +475,29 @@ button:hover {
 .clear-btn:hover {
   background-color: #FF4C3B; /* red */
 }
+
+.bus-service{
+    display: flex;
+    gap: 10px; 
+    background-color: #f8c7d6;
+    border-radius: 15px;
+    margin: 5px;
+    padding: 10px 10px 0 10px;
+    text-align: center;
+}
+.search-container input{
+    border: 1px solid #f1a3b5; /* pinkish border */
+    border-radius: 15px;
+    background-color: white;
+    cursor: pointer;
+}
+#bus-interval{
+    text-align: center;
+}
+
+#selectedBusStopInfo{gap: 12px;
+  max-height: 250px;
+  overflow-y: auto;
+}
+
+

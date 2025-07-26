@@ -7,6 +7,7 @@
   <title>Everyday Care - Navigation Dashboard</title>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="css/navigation.css">
 </head>
@@ -78,6 +79,19 @@
         </div>
       </div>
 
+      <!-- real time bus-arrival update -->
+      <section id="busArrivalSection" class="bus-arrival">
+        <h3>Check Bus Arrival</h3>
+        <div class="search-container">
+          <input type="text" id="searchBusStop" placeholder="Enter Bus Stop Code" />
+          <button id="submitBusStopSearch">Search</button>
+        </div>
+        <div id="selectedBusStopInfo">
+          <!-- bus arrival results will be rendered here -->
+        </div>
+      </section>
+
+
       <!-- nearby services -->
       <section class="nearby-services">
         <h3>Nearby Services</h3>
@@ -147,7 +161,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
   <script src="js/navigation.js"></script>
   <script src="js/locationManager.js"></script>
-
+  <script src="js/busArrival.js"></script>
   <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA8x9IAovxWerTpmCphVaD73fHHItmGOfg&libraries=places&callback=initMap"></script>
 </body>
 </html>

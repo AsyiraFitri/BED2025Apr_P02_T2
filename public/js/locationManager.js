@@ -13,7 +13,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // load saved places from backend
   async function loadSavedPlaces() {
     try {
-      const response = await fetch(`${apiBaseUrl}/places/${userId}`);
+      const response = await fetch(`${apiBaseUrl}/api/places/${userId}`);
       const places = await response.json();
       displaySavedPlaces(places);
     } catch (error) {
@@ -127,7 +127,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const placeData = { userId, placeName, address };
 
     try {
-      const response = await fetch(`${apiBaseUrl}/places`, {
+      const response = await fetch(`${apiBaseUrl}/api/places`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(placeData),
@@ -148,7 +148,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // populate modal for editing a selected place
   function editPlace(placeId) {
-    fetch(`${apiBaseUrl}/places/${userId}`)
+    fetch(`${apiBaseUrl}/api/places/${userId}`)
       .then(res => res.json())
       .then(places => {
         const place = places.find(p => p.PlaceID === parseInt(placeId));
@@ -179,7 +179,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const updatedData = { placeName, address };
 
     try {
-      const response = await fetch(`${apiBaseUrl}/places/${placeId}`, {
+      const response = await fetch(`${apiBaseUrl}/api/places/${placeId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(updatedData),
@@ -201,7 +201,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // delete place after confirmation
   async function deletePlace(placeId) {
     try {
-      const response = await fetch(`${apiBaseUrl}/places/${placeId}`, {
+      const response = await fetch(`${apiBaseUrl}/api/places/${placeId}`, {
         method: "DELETE",
       });
 
