@@ -18,10 +18,26 @@ app.use(cors());
 app.use(express.json()); // For parsing JSON
 app.use(express.urlencoded({ extended: true })); // Optional: for form data
 
+// Serve static files from public directory
+app.use(express.static(path.join(__dirname, 'public')));
+
 // Swagger UI setup
 const swaggerFile = require('./swagger-output.json');
 const swaggerUi = require('swagger-ui-express');
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerFile));
+
+// Content Security Policy middleware to allow images and other resources
+app.use((req, res, next) => {
+  res.setHeader('Content-Security-Policy', 
+    "default-src 'self'; " +
+    "img-src 'self' data: https: http:; " +
+    "style-src 'self' 'unsafe-inline' https:; " +
+    "script-src 'self' 'unsafe-inline' https:; " +
+    "font-src 'self' https: data:; " +
+    "connect-src 'self' https: http:;"
+  );
+  next();
+});
 
 
 // ==========================
@@ -52,10 +68,10 @@ app.use('/api/friends', friendRoutes);
 app.use('/api/messages', messageRoutes);
 
 // Asyira Routes
-const placeRoutes = require('./routes/placesRoutes');
-const busRoutes = require('./routes/busRoutes');
-app.use('/api/places', placeRoutes)
-app.use('/api/bus', busRoutes)
+// const placeRoutes = require('./routes/placesRoutes');
+// const busRoutes = require('./routes/busRoutes');
+// app.use('/api/places', placeRoutes)
+// app.use('/api/bus', busRoutes)
 
 // Sandi Routes
 const requestRoutes = require('./routes/requestRoutes');
