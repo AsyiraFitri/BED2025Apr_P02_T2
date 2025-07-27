@@ -44,15 +44,6 @@ app.use((req, res, next) => {
 // Routes by Team Members
 // ==========================
 
-// Xuan Tong Routes
-const medicationRoutes = require('./routes/medicationRoutes');
-const appointmentRoutes = require('./routes/appointmentRoutes');
-app.use('/api/medications', medicationRoutes);
-app.use('/api/appointments', appointmentRoutes);
-
-const calendarRoutes = require('./routes/calendarRoutes');
-app.use(calendarRoutes);
-
 // Jing Yin Routes
 const hobbyRoutes = require('./routes/communityRoutes');
 const authRoutes = require('./routes/authRoutes');
@@ -61,11 +52,14 @@ app.use('/api/hobby-groups', hobbyRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/groups', groupRoutes);
 
-// Yiru Routes
-const friendRoutes = require('./routes/friendRoutes');
-const messageRoutes = require('./routes/messageRoutes');
-app.use('/api/friends', friendRoutes);
-app.use('/api/messages', messageRoutes);
+// Xuan Tong Routes
+const medicationRoutes = require('./routes/medicationRoutes');
+const appointmentRoutes = require('./routes/appointmentRoutes');
+app.use('/api/medications', medicationRoutes);
+app.use('/api/appointments', appointmentRoutes);
+
+const calendarRoutes = require('./routes/calendarRoutes');
+app.use('/api/calendar', calendarRoutes);
 
 // Asyira Routes
 const placeRoutes = require('./routes/placesRoutes');
@@ -79,6 +73,12 @@ const contactRoutes = require('./routes/emergencyContactRoutes');
 app.use('/api/auth', authRoutes);
 app.use('/api/requests', requestRoutes);
 app.use('/api/contacts', contactRoutes);
+
+// Yiru Routes
+const friendRoutes = require('./routes/friendRoutes');
+const messageRoutes = require('./routes/messageRoutes');
+app.use('/api/friends', friendRoutes);
+app.use('/api/messages', messageRoutes);
 
 
 // ==========================

@@ -72,7 +72,7 @@ async function createGoogleEvent(appointment) {
     const payload = buildEventPayload(appointment, tokens);
 
     try {
-        const response = await fetch('/google/sync', {
+        const response = await fetch('/api/calendar/google/sync', {
             method: 'POST',
             headers: getAuthHeaders({ 'Content-Type': 'application/json' }),
             body: JSON.stringify(payload)
@@ -125,7 +125,7 @@ async function updateGoogleEvent(appointment) {
     const payload = buildEventPayload(appointment, tokens);
 
     try {
-        const response = await fetch(`/google/sync/${googleEventId}`, {
+        const response = await fetch(`/api/calendar/google/sync/${googleEventId}`, {
             method: 'PUT',
             headers: getAuthHeaders({ 'Content-Type': 'application/json' }),
             body: JSON.stringify(payload)
@@ -160,7 +160,7 @@ async function deleteGoogleEvent(appointment) {
     }
 
     try {
-        const response = await fetch(`/google/sync/${googleEventId}`, {
+        const response = await fetch(`/api/calendar/google/sync/${googleEventId}`, {
             method: 'DELETE',
             headers: getAuthHeaders({ 'Content-Type': 'application/json' }),
             body: JSON.stringify({ tokens: tokens })
@@ -216,7 +216,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const connectBtn = document.getElementById('connectGoogleBtn');
     if (connectBtn) {
         connectBtn.addEventListener('click', () => {
-            window.location.href = '/auth/google';
+            window.location.href = '/api/calendar/auth/google';
         });
     }
 

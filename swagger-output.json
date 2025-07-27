@@ -1,9 +1,9 @@
 {
   "swagger": "2.0",
   "info": {
-    "title": "Community Group Chat API",
+    "title": "EverydayCare API Documentation",
     "version": "1.0.0",
-    "description": "API documentation for EverydayCare"
+    "description": "Documentation follows the order of: Jing Yin, Xuan Tong, Asyira, Sandi, and Yiru. Each section contains endpoints related to the respective team member's features."
   },
   "tags": [
     { "name": "Community", "description": "Community endpoints" },
@@ -11,9 +11,24 @@
     { "name": "Members", "description": "Group members endpoints" },
     { "name": "Channels", "description": "Channel endpoints" },
     { "name": "ChatMessages", "description": "Chat messages endpoints" },
-    { "name": "Events", "description": "Event endpoints" }
+    { "name": "Events", "description": "Event endpoints" },
+
+    { "name": "Medications", "description": "Medication endpoints" },
+    { "name": "MedicationTracker", "description": "Medication tracking endpoints" },
+    { "name": "Appointments", "description": "Appointment endpoints" },
+    { "name": "Calendar", "description": "Google Calendar integration endpoints" }
+
+
   ],
   "host": "localhost:3000",
+  "securityDefinitions": {
+    "Bearer": {
+      "type": "apiKey",
+      "name": "Authorization",
+      "in": "header",
+      "description": "Paste your token as: Bearer <your JWT token>"
+    }
+  },
   "basePath": "/",
   "schemes": ["http"],
   "paths": {
@@ -540,6 +555,253 @@
           "404": { "description": "Not found" },
           "500": { "description": "Internal server error" }
         }
+      }
+    }
+    ,
+    "/api/appointments/user/{userId}": {
+      "get": {
+        "tags": ["Appointments"],
+        "summary": "Get all appointments for a user",
+        "parameters": [
+          { "name": "userId", "in": "path", "required": true, "type": "integer" }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of appointments",
+            "schema": { "type": "array", "items": { "$ref": "#/definitions/Appointment" } }
+          },
+          "500": { "description": "Failed to fetch appointments" }
+        }
+        ,
+        "security": [ { "Bearer": [] } ]
+      }
+    },
+    "/api/appointments/{id}": {
+      "get": {
+        "tags": ["Appointments"],
+        "summary": "Get appointment by ID",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "type": "integer" }
+        ],
+        "responses": {
+          "200": { "description": "Appointment details", "schema": { "$ref": "#/definitions/Appointment" } },
+          "404": { "description": "Appointment not found" }
+        }
+        ,
+        "security": [ { "Bearer": [] } ]
+      },
+      "put": {
+        "tags": ["Appointments"],
+        "summary": "Update appointment",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "type": "integer" },
+          { "in": "body", "name": "body", "required": true, "schema": { "$ref": "#/definitions/AppointmentInput" } }
+        ],
+        "responses": {
+          "200": { "description": "Appointment updated" },
+          "400": { "description": "Validation error" }
+        }
+        ,
+        "security": [ { "Bearer": [] } ]
+      },
+      "delete": {
+        "tags": ["Appointments"],
+        "summary": "Delete appointment",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "type": "integer" }
+        ],
+        "responses": {
+          "200": { "description": "Appointment deleted" },
+          "404": { "description": "Appointment not found" }
+        }
+        ,
+        "security": [ { "Bearer": [] } ]
+      }
+    },
+    "/api/appointments": {
+      "post": {
+        "tags": ["Appointments"],
+        "summary": "Create appointment",
+        "parameters": [
+          { "in": "body", "name": "body", "required": true, "schema": { "$ref": "#/definitions/AppointmentInput" } }
+        ],
+        "responses": {
+          "201": { "description": "Appointment created" },
+          "400": { "description": "Validation error" }
+        }
+        ,
+        "security": [ { "Bearer": [] } ]
+      }
+    },
+    "/api/calendar/auth/google": {
+      "get": {
+        "tags": ["Calendar"],
+        "summary": "Initiate Google OAuth login flow",
+        "responses": {
+          "302": { "description": "Redirect to Google OAuth" }
+        }
+      }
+    },
+    "/api/calendar/auth/google/callback": {
+      "get": {
+        "tags": ["Calendar"],
+        "summary": "Handle Google OAuth callback",
+        "responses": {
+          "302": { "description": "Redirect to frontend with tokens" },
+          "500": { "description": "Google authentication failed" }
+        }
+      }
+    },
+    "/api/calendar/google/sync": {
+      "post": {
+        "tags": ["Calendar"],
+        "summary": "Sync all appointments to Google Calendar",
+        "parameters": [
+          { "in": "body", "name": "body", "required": true, "schema": { "$ref": "#/definitions/GoogleCalendarSyncInput" } }
+        ],
+        "responses": {
+          "200": { "description": "Event created/updated in Google Calendar" },
+          "401": { "description": "Missing access token" },
+          "500": { "description": "Google Calendar sync failed" }
+        }
+      }
+    },
+    "/api/calendar/google/sync/{eventId}": {
+      "put": {
+        "tags": ["Calendar"],
+        "summary": "Edit Google Calendar event",
+        "parameters": [
+          { "name": "eventId", "in": "path", "required": true, "type": "string" },
+          { "in": "body", "name": "body", "required": true, "schema": { "$ref": "#/definitions/GoogleCalendarSyncInput" } }
+        ],
+        "responses": {
+          "200": { "description": "Event updated in Google Calendar" },
+          "401": { "description": "Missing access token" },
+          "500": { "description": "Google Calendar update failed" }
+        }
+      },
+      "delete": {
+        "tags": ["Calendar"],
+        "summary": "Delete Google Calendar event",
+        "parameters": [
+          { "name": "eventId", "in": "path", "required": true, "type": "string" }
+        ],
+        "responses": {
+          "200": { "description": "Event deleted from Google Calendar" },
+          "401": { "description": "Missing access token" },
+          "404": { "description": "Event not found" },
+          "500": { "description": "Google Calendar deletion failed" }
+        }
+      }
+    }
+    ,
+    "/api/medications/user/{userId}": {
+      "get": {
+        "tags": ["Medications"],
+        "summary": "Get all medications for a user",
+        "parameters": [
+          { "name": "userId", "in": "query", "required": true, "type": "integer" }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of medications",
+            "schema": { "type": "array", "items": { "$ref": "#/definitions/Medication" } }
+          },
+          "500": { "description": "Failed to fetch medications" }
+        }
+        ,
+        "security": [ { "Bearer": [] } ]
+      },
+      "post": {
+        "tags": ["Medications"],
+        "summary": "Create a medication",
+        "parameters": [
+          { "in": "body", "name": "body", "required": true, "schema": { "$ref": "#/definitions/MedicationInput" } }
+        ],
+        "responses": {
+          "201": { "description": "Medication created" },
+          "400": { "description": "Validation error" }
+        }
+        ,
+        "security": [ { "Bearer": [] } ]
+      }
+    },
+    "/api/medications/{id}": {
+      "get": {
+        "tags": ["Medications"],
+        "summary": "Get medication by ID",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "type": "integer" }
+        ],
+        "responses": {
+          "200": { "description": "Medication details", "schema": { "$ref": "#/definitions/Medication" } },
+          "404": { "description": "Medication not found" }
+        }
+        ,
+        "security": [ { "Bearer": [] } ]
+      },
+      "put": {
+        "tags": ["Medications"],
+        "summary": "Update medication",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "type": "integer" },
+          { "in": "body", "name": "body", "required": true, "schema": { "$ref": "#/definitions/MedicationInput" } }
+        ],
+        "responses": {
+          "200": { "description": "Medication updated" },
+          "400": { "description": "Validation error" }
+        }
+        ,
+        "security": [ { "Bearer": [] } ]
+      },
+      "delete": {
+        "tags": ["Medications"],
+        "summary": "Delete medication",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "type": "integer" }
+        ],
+        "responses": {
+          "200": { "description": "Medication deleted" },
+          "404": { "description": "Medication not found" }
+        }
+        ,
+        "security": [ { "Bearer": [] } ]
+      }
+    },
+    "/api/medications/tracking/reset": {
+      "post": {
+        "tags": ["MedicationTracker"],
+        "summary": "Reset all medication tracking (admin/testing)",
+        "responses": {
+          "200": { "description": "All medication tracking reset" }
+        }
+        ,
+        "security": [ { "Bearer": [] } ]
+      }
+    },
+    "/api/medications/tracking/today": {
+      "get": {
+        "tags": ["MedicationTracker"],
+        "summary": "Get today's medication tracking for the user",
+        "responses": {
+          "200": { "description": "Today's medication tracking entries" },
+          "500": { "description": "Failed to fetch tracking" }
+        },
+        "security": [ { "Bearer": [] } ]
+      }
+    },
+    "/api/medications/tracking/save": {
+      "post": {
+        "tags": ["MedicationTracker"],
+        "summary": "Save medication tracking state for the user",
+        "parameters": [
+          { "in": "body", "name": "body", "required": true, "schema": { "$ref": "#/definitions/MedicationTrackingInput" } }
+        ],
+        "responses": {
+          "200": { "description": "Tracking state saved" },
+          "400": { "description": "Validation error" }
+        },
+        "security": [ { "Bearer": [] } ]
       }
     }
   }
