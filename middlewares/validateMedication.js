@@ -25,11 +25,11 @@ function validateMedicationId() {
 // - Validates data types and formats
 // - Adds validated data to req.validatedData for controller use
 function validateMedicationData(req, res, next) {
-  const { MedicationName, Dosage, Frequency, StartDate, EndDate, UserID } = req.body;
+  const { Name, Dosage, Frequency, Notes, UserID } = req.body;
   
   // Check required fields
-  if (!MedicationName) {
-    return res.status(400).json({ error: "MedicationName is required" });
+  if (!Name) {
+    return res.status(400).json({ error: "Name is required" });
   }
   if (!Dosage) {
     return res.status(400).json({ error: "Dosage is required" });
@@ -37,22 +37,8 @@ function validateMedicationData(req, res, next) {
   if (!Frequency) {
     return res.status(400).json({ error: "Frequency is required" });
   }
-  if (!StartDate) {
-    return res.status(400).json({ error: "StartDate is required" });
-  }
   if (!UserID) {
     return res.status(400).json({ error: "UserID is required" });
-  }
-  
-  // Validate date formats (YYYY-MM-DD)
-  const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
-  if (!dateRegex.test(StartDate)) {
-    return res.status(400).json({ error: "StartDate must be in YYYY-MM-DD format" });
-  }
-  
-  // EndDate is optional, but if provided must be valid format
-  if (EndDate && !dateRegex.test(EndDate)) {
-    return res.status(400).json({ error: "EndDate must be in YYYY-MM-DD format" });
   }
   
   // Validate UserID is a number
@@ -63,11 +49,10 @@ function validateMedicationData(req, res, next) {
   
   // Build validated medication object
   const validatedMedication = {
-    MedicationName: MedicationName.trim(),
-    Dosage: Dosage.trim(),
-    Frequency: Frequency.trim(),
-    StartDate,
-    EndDate: EndDate || null,
+    Name: Name.trim(),
+    Dosage: Dosage.toString().trim(),
+    Frequency: Frequency.toString().trim(),
+    Notes: Notes ? Notes.trim() : "No special instructions",
     UserID: userIdNum
   };
   
@@ -76,7 +61,47 @@ function validateMedicationData(req, res, next) {
   next();
 }
 
+// Validate medication tracking save data
+// - Checks required fields for saving medication tracking state
+// - Validates data types and formats
+function validateTrackingData(req, res, next) {
+  const { medicationId, scheduleTime, isChecked } = req.body;
+  
+  // Check required fields
+  if (!medicationId) {
+    return res.status(400).json({ error: "medicationId is required" });
+  }
+  if (!scheduleTime) {
+    return res.status(400).json({ error: "scheduleTime is required" });
+  }
+  if (typeof isChecked !== 'boolean') {
+    return res.status(400).json({ error: "isChecked must be a boolean value" });
+  }
+  
+  // Validate medicationId is a number
+  const medicationIdNum = parseInt(medicationId);
+  if (isNaN(medicationIdNum) || medicationIdNum <= 0) {
+    return res.status(400).json({ error: "medicationId must be a positive number" });
+  }
+  
+  // Validate scheduleTime is one of the allowed values
+  const allowedTimes = ['Morning', 'Afternoon', 'Evening', 'Night'];
+  if (!allowedTimes.includes(scheduleTime)) {
+    return res.status(400).json({ error: "scheduleTime must be one of: Morning, Afternoon, Evening, Night" });
+  }
+  
+  // Add validated data to request object
+  req.validatedTrackingData = {
+    medicationId: medicationIdNum,
+    scheduleTime: scheduleTime.trim(),
+    isChecked
+  };
+  
+  next();
+}
+
 module.exports = {
   validateMedicationId,
-  validateMedicationData
+  validateMedicationData,
+  validateTrackingData
 };

@@ -2,6 +2,8 @@ import { showToast, showDeleteModal, showSaveFeedback, getAuthHeaders } from './
 
 let pendingDeleteMedicationId = null;
 let currentEditingMedicationId = null;
+let todayTrackingData = {}; // Store today's tracking data
+
 // Generate schedule times based on frequency
 function generateSchedule(frequency) {
     const schedules = {
@@ -86,11 +88,28 @@ function attachMedicationCardEventListeners(card) {
 async function updateMedicationDisplay() {
     try {
         const user = JSON.parse(sessionStorage.getItem('user'));
-        const res = await fetch(`/api/medications/user/${user.UserID}`, {
-            headers: getAuthHeaders()
-        });
+        
+        // Load both medications and today's tracking data
+        const [medicationsRes, trackingRes] = await Promise.all([
+            fetch(`/api/medications/user/${user.UserID}`, { headers: getAuthHeaders() }),
+            fetch('/api/medications/tracking/today', { headers: getAuthHeaders() })
+        ]);
 
-        const medications = await res.json();
+        const medications = await medicationsRes.json();
+        
+        // Load tracking data (if request succeeds)
+        if (trackingRes.ok) {
+            const tracking = await trackingRes.json();
+            // Convert tracking array to object for easy lookup
+            todayTrackingData = {};
+            tracking.forEach(item => {
+                const key = `${item.MedicationID}-${item.ScheduleTime}`;
+                todayTrackingData[key] = item.IsChecked;
+            });
+        } else {
+            todayTrackingData = {}; // Reset if tracking fetch fails
+        }
+
         const container = document.getElementById('medicationContainer');
         container.innerHTML = '';
 
@@ -181,7 +200,7 @@ async function handleMedicationFormSubmit(e) {
         Name: document.getElementById('editMedicineName').value,
         Dosage: parseInt(document.getElementById('editDosage').value, 10),
         Frequency: parseInt(document.getElementById('editFrequency').value, 10),
-        Notes: document.getElementById('editNotes').value || 'No special instructions',
+        Notes: document.getElementById('editNotes').value,
         UserID: user.UserID
     };
 
@@ -209,48 +228,50 @@ async function handleMedicationFormSubmit(e) {
 }
 
 // Helpers for daily checkbox state persistence
-function getTodayKey() {
-    return new Date().toISOString().split('T')[0];
+function loadCheckboxState(medicationId, timeLabel) {
+    const key = `${medicationId}-${timeLabel}`;
+    return todayTrackingData[key] || false;
 }
 
-function resetCheckboxesIfNewDay() {
-    const storedDate = sessionStorage.getItem('medicationCheckboxLastDate');
-    const today = getTodayKey();
-
-    if (storedDate !== today) {
-        Object.keys(sessionStorage).forEach(key => {
-            if (key.startsWith('medicationCheckboxes_')) {
-                sessionStorage.removeItem(key);
-            }
+// Save checkbox state to backend
+async function saveCheckboxState(medicationId, scheduleTime, isChecked) {
+    try {
+        const response = await fetch('/api/medications/tracking/save', {
+            method: 'POST',
+            headers: getAuthHeaders({ 'Content-Type': 'application/json' }),
+            body: JSON.stringify({
+                medicationId: parseInt(medicationId),
+                scheduleTime,
+                isChecked
+            })
         });
-        sessionStorage.setItem('medicationCheckboxLastDate', today);
+
+        if (response.ok) {
+            // Update local tracking data if save successful
+            const key = `${medicationId}-${scheduleTime}`;
+            todayTrackingData[key] = isChecked;
+        } else {
+            console.error('Failed to save tracking state');
+            showToast('Failed to save medication tracking', 'warning');
+        }
+    } catch (error) {
+        console.error('Error saving tracking state:', error);
+        showToast('Failed to save medication tracking', 'warning');
     }
 }
 
-function saveCheckboxState(medicationId, timeLabel, isChecked) {
-    const key = `medicationCheckboxes_${getTodayKey()}`;
-    const state = JSON.parse(sessionStorage.getItem(key)) || {};
-    if (!state[medicationId]) state[medicationId] = {};
-    state[medicationId][timeLabel] = isChecked;
-    sessionStorage.setItem(key, JSON.stringify(state));
-}
-
-function loadCheckboxState(medicationId, timeLabel) {
-    const key = `medicationCheckboxes_${getTodayKey()}`;
-    const state = JSON.parse(sessionStorage.getItem(key)) || {};
-    return state[medicationId]?.[timeLabel] || false;
-}
-
 // Toggle checkbox state and save
-function toggleCheckboxElement(checkbox) {
+async function toggleCheckboxElement(checkbox) {
     const isChecked = !checkbox.classList.contains('checked');
     checkbox.classList.toggle('checked', isChecked);
     checkbox.classList.toggle('unchecked', !isChecked);
     checkbox.setAttribute('aria-checked', isChecked);
 
     const medicationId = checkbox.getAttribute('data-medication-id');
-    const timeLabel = checkbox.getAttribute('data-time-label');
-    saveCheckboxState(medicationId, timeLabel, isChecked);
+    const scheduleTime = checkbox.getAttribute('data-time-label');
+    
+    // Save to backend
+    await saveCheckboxState(medicationId, scheduleTime, isChecked);
 }
 
 // Keyboard handler for accessibility on custom checkboxes
@@ -343,7 +364,6 @@ function initializeEventListeners() {
 
 // Setup on DOM load
 document.addEventListener('DOMContentLoaded', () => {
-  resetCheckboxesIfNewDay();
   initializeEventListeners();
   updateMedicationDisplay();
 });

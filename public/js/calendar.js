@@ -48,12 +48,27 @@ function buildEventPayload(appointment, tokens, googleEventId = null) {
         AppointmentTime: appointment.AppointmentTime,
         Location: appointment.Location,
         DoctorName: appointment.DoctorName,
-        Notes: appointment.Notes || 'No special instructions'
+        Notes: appointment.Notes || 'No special instructions',
+        UserID: appointment.UserID, // Ensure UserID is included
     };
 }
 
 // Create new Google event and update backend with event ID
-async function createGoogleEvent(appointment, tokens) {
+async function createGoogleEvent(appointment) {
+    const tokensStr = sessionStorage.getItem(TOKEN_STORAGE_KEY);
+    if (!tokensStr) {
+        console.warn('No Google tokens found. Connect your account first.');
+        return null;
+    }
+    const tokens = JSON.parse(tokensStr);
+
+    // Check if appointment already has a GoogleEventID (already synced)
+    if (appointment.GoogleEventID && appointment.GoogleEventID.trim() !== '') {
+        console.log("googleEventId:", appointment.GoogleEventID);   
+        console.log('Appointment already has GoogleEventID, updating existing event instead');
+        return await updateGoogleEvent(appointment);
+    }
+
     const payload = buildEventPayload(appointment, tokens);
 
     try {
@@ -93,7 +108,14 @@ async function createGoogleEvent(appointment, tokens) {
 }
 
 // Update existing Google event by event ID
-async function updateGoogleEvent(appointment, tokens) {
+async function updateGoogleEvent(appointment) {
+    const tokensStr = sessionStorage.getItem(TOKEN_STORAGE_KEY);
+    if (!tokensStr) {
+        console.warn('No Google tokens found. Connect your account first.');
+        return null;
+    }
+    const tokens = JSON.parse(tokensStr);
+
     const googleEventId = appointment.GoogleEventID;
     if (!googleEventId) {
         console.warn('No GoogleEventID found for update.');
@@ -109,6 +131,7 @@ async function updateGoogleEvent(appointment, tokens) {
             body: JSON.stringify(payload)
         });
 
+        console.log("google event id:", googleEventId);
         const result = await response.json();
         if (!response.ok) {
             console.warn('Update Google event failed:', result.error);
@@ -122,7 +145,14 @@ async function updateGoogleEvent(appointment, tokens) {
     }
 }
 
-async function deleteGoogleEvent(appointment, tokens) {
+async function deleteGoogleEvent(appointment) {
+    const tokensStr = sessionStorage.getItem(TOKEN_STORAGE_KEY);
+    if (!tokensStr) {
+        console.warn('No Google tokens found. Connect your account first.');
+        return false;
+    }
+    const tokens = JSON.parse(tokensStr);
+
     const googleEventId = appointment.GoogleEventID;
     if (!googleEventId) {
         console.warn('No GoogleEventID found for deletion.');
@@ -133,7 +163,7 @@ async function deleteGoogleEvent(appointment, tokens) {
         const response = await fetch(`/google/sync/${googleEventId}`, {
             method: 'DELETE',
             headers: getAuthHeaders({ 'Content-Type': 'application/json' }),
-            body: JSON.stringify({ tokens: tokens }) // Capitalized to match backend
+            body: JSON.stringify({ tokens: tokens })
         });
 
         if (!response.ok) {
@@ -159,8 +189,6 @@ async function syncAllAppointments() {
         return;
     }
 
-    const tokens = JSON.parse(tokensStr);
-
     // Fetch and update UI, returns appointment array
     const appointments = await updateAppointmentDisplay();
 
@@ -171,9 +199,9 @@ async function syncAllAppointments() {
 
     for (const appointment of appointments) {
         if (appointment.GoogleEventID) {
-            await updateGoogleEvent(appointment, tokens);
+            await updateGoogleEvent(appointment);
         } else {
-            await createGoogleEvent(appointment, tokens);
+            await createGoogleEvent(appointment);
         }
     }
 
@@ -213,6 +241,8 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 export {
+    createGoogleEvent,
+    updateGoogleEvent,
     deleteGoogleEvent,
     syncAllAppointments,
     updateGoogleCalendarButtons

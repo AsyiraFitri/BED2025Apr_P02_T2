@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const medicationController = require('../controllers/medicationController');
 const { verifyToken } = require('../middlewares/authorizeUser');
-const { validateMedicationId, validateMedicationData } = require('../middlewares/validateMedication');
+const { validateMedicationId, validateMedicationData, validateTrackingData } = require('../middlewares/validateMedication');
 
 // All medication routes require user authorization first
 router.use(verifyToken);
@@ -25,5 +25,15 @@ router.put('/:id', validateMedicationId(), validateMedicationData, medicationCon
 // DELETE /medications/:id - Delete medication
 // Uses validation middleware to check medication ID before calling controller
 router.delete('/:id', validateMedicationId(), medicationController.deleteMedication);
+
+// GET /medications/tracking/today - Get today's medication tracking
+router.get('/tracking/today', medicationController.getTodayTracking);
+
+// POST /medications/tracking/save - Save medication tracking state
+// Uses validation middleware to check tracking data before calling controller
+router.post('/tracking/save', validateTrackingData, medicationController.saveTrackingState);
+
+// POST /medications/tracking/reset - Manual reset all tracking (admin/testing)
+router.post('/tracking/reset', medicationController.resetAllTracking);
 
 module.exports = router;

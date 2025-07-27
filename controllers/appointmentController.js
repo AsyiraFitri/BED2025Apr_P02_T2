@@ -48,7 +48,22 @@ async function createAppointment(req, res) {
     
     // Call model to create appointment
     await appointmentModel.createAppointment(appointment);
-    res.status(201).json({ message: "Appointment created successfully" });
+    
+    // Fetch the latest appointment for this user to get the ID
+    const userAppointments = await appointmentModel.getAppointmentsByUserId(appointment.UserID);
+    let appointmentId = null;
+    
+    if (userAppointments && userAppointments.length > 0) {
+      // Get the most recent appointment (assuming it's the one we just created)
+      const latestAppointment = userAppointments[userAppointments.length - 1];
+      appointmentId = latestAppointment.AppointmentID;
+    }
+    
+    res.status(201).json({ 
+      message: "Appointment created successfully", 
+      AppointmentID: appointmentId,
+      appointment: { ...appointment, AppointmentID: appointmentId }
+    });
   } catch (error) {
     console.error("Controller error (createAppointment):", error);
     res.status(500).json({ error: "Failed to create appointment" });
@@ -67,7 +82,7 @@ async function updateAppointment(req, res) {
     
     // Call model to update appointment
     await appointmentModel.updateAppointment(id, appointment);
-    res.json({ message: "Appointment updated successfully", appointment });
+    res.json({ message: "Appointment updated successfully", appointment: { ...appointment, AppointmentID: id } });
   } catch (error) {
     console.error("Controller error (updateAppointment):", error);
     res.status(500).json({ error: "Failed to update appointment" });

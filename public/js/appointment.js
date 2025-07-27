@@ -6,6 +6,8 @@ import {
 } from './health-utils.js';
 
 import {
+  createGoogleEvent,
+  updateGoogleEvent,
   deleteGoogleEvent,
   syncAllAppointments,
   updateGoogleCalendarButtons
@@ -149,14 +151,19 @@ async function updateAppointmentDisplay() {
         const card = createAppointmentCard(app.AppointmentID, app);
         container.appendChild(card);
       });
+      
+      return appointments; // Return the appointments array for calendar sync
     } else if (appointments?.AppointmentID) {
       container.appendChild(createAppointmentCard(appointments.AppointmentID, appointments));
+      return [appointments]; // Return single appointment as array for calendar sync
     } else {
       container.innerHTML = '<p class="text-danger">No appointments found.</p>';
+      return []; // Return empty array when no appointments for calendar sync
     }
   } catch (error) {
     console.error('Error fetching appointments:', error);
     elements.container.innerHTML = '<p class="text-danger">Failed to load appointments.</p>';
+    return []; // Return empty array on error for calendar sync
   }
 }
 
@@ -217,6 +224,21 @@ async function handleAppointmentFormSubmit(e) {
       UserID: user.UserID
     };
 
+    // For updates, preserve the existing GoogleEventID
+    if (currentEditingAppointmentId !== 'new') {
+      try {
+        const existingResponse = await fetch(`/api/appointments/${currentEditingAppointmentId}`, {
+          headers: getAuthHeaders()
+        });
+        if (existingResponse.ok) {
+          const existingAppointment = await existingResponse.json();
+          appointmentData.GoogleEventID = existingAppointment.GoogleEventID;
+        }
+      } catch (error) {
+        console.warn('Could not fetch existing appointment GoogleEventID:', error);
+      }
+    }
+
     const res = await fetch(
       currentEditingAppointmentId === 'new' ? '/api/appointments' : `/api/appointments/${currentEditingAppointmentId}`,
       {
@@ -228,18 +250,58 @@ async function handleAppointmentFormSubmit(e) {
 
     if (!res.ok) throw new Error('Failed to save appointment');
 
+    const savedAppointment = await res.json();
     await updateAppointmentDisplay();
 
     const modal = bootstrap.Modal.getInstance(elements.modal);
     if (modal) modal.hide();
 
     showSaveFeedback('#appointmentForm .btn-confirm');
-    showToast(`Appointment ${currentEditingAppointmentId === 'new' ? 'added' : 'updated'} successfully`, 'success');
+    showToast(`Appointment ${currentEditingAppointmentId === 'new' ? 'created' : 'updated'} successfully`, 'success');
+    
+    // Get the appointment ID - for new appointments, get from response; for updates, use current ID
+    let appointmentId;
+    if (currentEditingAppointmentId === 'new') {
+      // For new appointments, the response should contain the new appointment data
+      appointmentId = savedAppointment.AppointmentID || savedAppointment.appointmentId || savedAppointment.id;
+    } else {
+      // For updates, use the current editing ID
+      appointmentId = currentEditingAppointmentId;
+    }
+    
+    console.log('Appointment ID for sync:', appointmentId);
     currentEditingAppointmentId = null;
 
-    // Optional: Sync with Google Calendar if connected
-    if (sessionStorage.getItem('google_tokens')) {
-      await syncAllAppointments();
+    // Sync with Google Calendar if tokens are available (with delay to show both toasts)
+    const tokensStr = sessionStorage.getItem('google_tokens');
+    if (tokensStr && appointmentId) {
+      setTimeout(async () => {
+        try {
+          // Fetch the updated appointment data to sync with Google Calendar
+          const appointmentResponse = await fetch(`/api/appointments/${appointmentId}`, {
+            headers: getAuthHeaders()
+          });
+          
+          if (appointmentResponse.ok) {
+            const appointmentData = await appointmentResponse.json();
+            console.log('Appointment data for sync:', appointmentData);
+            
+            // Use createGoogleEvent which automatically handles create vs update logic
+            const result = await createGoogleEvent(appointmentData);
+            
+            if (result) {
+              showToast('Google Calendar updated successfully', 'success');
+            } else {
+              showToast('Google Calendar sync failed', 'warning');
+            }
+          } else {
+            console.error('Failed to fetch appointment for sync');
+          }
+        } catch (syncError) {
+          console.error('Error syncing with Google Calendar:', syncError);
+          showToast('Google Calendar sync failed', 'warning');
+        }
+      }, 2000); // 2 second delay to show both toasts
     }
 
   } catch (error) {
@@ -256,17 +318,23 @@ async function handleAppointmentDeletion() {
   const modal = bootstrap.Modal.getInstance(modalElement);
 
   try {
-    // Handle Google Calendar sync if needed
     const tokensStr = sessionStorage.getItem('google_tokens');
     let appointment = null;
-    
+    let googleSuccess = false;
+
     if (tokensStr) {
-      // Get appointment data for Google Calendar deletion
+      // Get appointment details first
       const res = await fetch(`/api/appointments/${pendingDeleteAppointmentId}`, {
         headers: getAuthHeaders()
       });
+
       if (res.ok) {
         appointment = await res.json();
+
+        // Try to delete Google Calendar event first
+        if (appointment?.GoogleEventID) {
+          googleSuccess = await deleteGoogleEvent(appointment);
+        }
       }
     }
 
@@ -278,20 +346,19 @@ async function handleAppointmentDeletion() {
 
     if (!res.ok) throw new Error('Delete failed');
 
-    // Handle Google Calendar sync
-    if (tokensStr && appointment?.GoogleEventID) {
-      const tokens = JSON.parse(tokensStr);
-      const googleSuccess = await deleteGoogleEvent(appointment, tokens);
-      
-      if (googleSuccess) {
-        showToast('Google Calendar updated', 'success');
-      } else {
-        showToast('Google Calendar update failed', 'warning');
-      }
-    }
-
     await updateAppointmentDisplay();
     showToast('Appointment deleted successfully', 'success');
+
+    // Show Google Calendar result after a delay if there was a sync attempt
+    if (tokensStr && appointment?.GoogleEventID) {
+      setTimeout(() => {
+        if (googleSuccess) {
+          showToast('Google Calendar updated successfully', 'success');
+        } else {
+          showToast('Google Calendar sync failed', 'warning');
+        }
+      }, 2000); // 2 second delay to show both toasts
+    }
 
   } catch (error) {
     console.error('Deletion error:', error);
@@ -301,6 +368,7 @@ async function handleAppointmentDeletion() {
     if (modal) modal.hide();
   }
 }
+
 
 // ========== EVENT LISTENERS ==========
 

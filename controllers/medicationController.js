@@ -1,4 +1,5 @@
 const medicationModel = require("../models/medicationModel");
+const medicationTrackingModel = require("../models/medicationTrackingModel");
 
 // Get all medications for the authenticated user
 // - Uses authenticated user ID from token (req.user.UserID)
@@ -91,10 +92,64 @@ async function deleteMedication(req, res) {
   }
 }
 
+// Get today's medication tracking for the authenticated user
+// - Uses authenticated user ID from token (req.user.UserID)
+// - Returns checkbox states for today's medications
+async function getTodayTracking(req, res) {
+  try {
+    // Get authenticated user ID from JWT token
+    const userId = req.user.UserID;
+    
+    // Call model to fetch today's tracking data
+    const tracking = await medicationTrackingModel.getTodayTrackingByUserId(userId);
+    res.json(tracking);
+  } catch (error) {
+    console.error("Controller error (getTodayTracking):", error);
+    res.status(500).json({ error: "Failed to fetch medication tracking" });
+  }
+}
+
+// Save medication tracking state
+// - Uses authenticated user ID from token (req.user.UserID)
+// - Uses validated tracking data from middleware (req.validatedTrackingData)
+// - Saves checkbox state for a specific medication/time
+async function saveTrackingState(req, res) {
+  try {
+    // Get authenticated user ID from JWT token
+    const userId = req.user.UserID;
+    const { medicationId, scheduleTime, isChecked } = req.validatedTrackingData;
+    
+    // Call model to save tracking state
+    await medicationTrackingModel.saveTracking(userId, medicationId, scheduleTime, isChecked);
+    res.json({ message: "Tracking state saved successfully" });
+  } catch (error) {
+    console.error("Controller error (saveTrackingState):", error);
+    res.status(500).json({ error: "Failed to save tracking state" });
+  }
+}
+
+// Reset all medication tracking (admin function for daily reset)
+// - Resets all checkbox states to unchecked
+async function resetAllTracking(req, res) {
+  try {
+    const resetCount = await medicationTrackingModel.resetAllTracking();
+    res.json({ 
+      message: "All medication tracking reset successfully",
+      resetCount 
+    });
+  } catch (error) {
+    console.error("Controller error (resetAllTracking):", error);
+    res.status(500).json({ error: "Failed to reset medication tracking" });
+  }
+}
+
 module.exports = {
   getMedicationsByUserId,
   getMedicationById,
   createMedication,
   updateMedication,
-  deleteMedication
+  deleteMedication,
+  getTodayTracking,
+  saveTrackingState,
+  resetAllTracking
 };
