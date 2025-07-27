@@ -1,4 +1,4 @@
-const medicationTrackingModel = require("../models/medicationTrackingModel");
+const medicationModel = require("../models/medicationModel");
 
 // Daily medication tracking reset scheduler
 // Function to schedule daily reset at 12:00 AM
@@ -13,7 +13,7 @@ function scheduleDailyReset() {
   setTimeout(async () => {
     try {
       console.log('Running daily medication tracking reset...');
-      await medicationTrackingModel.resetAllTracking();
+      await medicationModel.resetAllTracking();
       console.log('Daily medication tracking reset completed successfully');
     } catch (error) {
       console.error('Error during daily medication tracking reset:', error);
@@ -23,7 +23,7 @@ function scheduleDailyReset() {
     setInterval(async () => {
       try {
         console.log('Running daily medication tracking reset...');
-        await medicationTrackingModel.resetAllTracking();
+        await medicationModel.resetAllTracking();
         console.log('Daily medication tracking reset completed successfully');
       } catch (error) {
         console.error('Error during daily medication tracking reset:', error);

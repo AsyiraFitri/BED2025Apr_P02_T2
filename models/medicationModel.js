@@ -1,3 +1,33 @@
+// Get all medication schedules (with checkbox state) for a user
+// Returns MedicationID, Name, ScheduleTime, IsChecked
+async function getMedicationSchedulesByUserId(userId) {
+  let connection;
+  try {
+    connection = await sql.connect(dbConfig);
+    const query = `
+      SELECT m.MedicationID, m.Name, ms.ScheduleTime, ms.IsChecked
+      FROM Medications m
+      INNER JOIN MedicationSchedule ms ON m.MedicationID = ms.MedicationID
+      WHERE m.UserID = @userId
+      ORDER BY m.MedicationID, ms.ScheduleTime
+    `;
+    const request = connection.request();
+    request.input("userId", sql.Int, userId);
+    const result = await request.query(query);
+    return result.recordset;
+  } catch (error) {
+    console.error("Database error (getMedicationSchedulesByUserId):", error);
+    throw error;
+  } finally {
+    if (connection) {
+      try {
+        await connection.close();
+      } catch (err) {
+        console.error("Error closing connection:", err);
+      }
+    }
+  }
+}
 const sql = require("mssql");
 const dbConfig = require("../dbConfig");
 
@@ -264,10 +294,73 @@ async function deleteMedication(id) {
   }
 }
 
+
+// Save or update medication checkbox state
+// - Updates IsChecked status for a specific medication/time
+async function saveTracking(medicationId, scheduleTime, isChecked) {
+  let connection;
+  try {
+    connection = await sql.connect(dbConfig);
+    const updateQuery = `
+      UPDATE MedicationSchedule
+      SET IsChecked = @isChecked
+      WHERE MedicationID = @medicationId
+      AND ScheduleTime = @scheduleTime
+    `;
+    const request = connection.request();
+    request.input("medicationId", sql.Int, medicationId);
+    request.input("scheduleTime", sql.NVarChar, scheduleTime);
+    request.input("isChecked", sql.Bit, isChecked);
+    await request.query(updateQuery);
+  } catch (error) {
+    console.error("Database error (saveTracking):", error);
+    throw error;
+  } finally {
+    if (connection) {
+      try {
+        await connection.close();
+      } catch (err) {
+        console.error("Error closing connection:", err);
+      }
+    }
+  }
+}
+
+// Reset all medication tracking for all users (called daily at 12am)
+// - Sets all IsChecked values to false for a fresh start each day
+async function resetAllTracking() {
+  let connection;
+  try {
+    connection = await sql.connect(dbConfig);
+    const resetQuery = `
+      UPDATE MedicationSchedule
+      SET IsChecked = 0
+    `;
+    const request = connection.request();
+    const result = await request.query(resetQuery);
+    console.log(`Daily reset completed: ${result.rowsAffected[0]} medication schedules reset`);
+    return result.rowsAffected[0];
+  } catch (error) {
+    console.error("Database error (resetAllTracking):", error);
+    throw error;
+  } finally {
+    if (connection) {
+      try {
+        await connection.close();
+      } catch (err) {
+        console.error("Error closing connection:", err);
+      }
+    }
+  }
+}
+
 module.exports = {
   getMedicationsByUserId,
   getMedicationById,
   createMedication,
   updateMedication,
-  deleteMedication
+  deleteMedication,
+  saveTracking,
+  resetAllTracking,
+  getMedicationSchedulesByUserId
 };
