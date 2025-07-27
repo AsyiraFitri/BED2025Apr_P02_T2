@@ -6,7 +6,7 @@ function getUserFromToken() {
   // If the token doesn't exist, alert the user and redirect to login page
   if (!token) {
     alert('Please log in first');
-    window.location.href = 'login.html';
+    window.location.href = 'auth.html';
     return;
   }
 
@@ -45,7 +45,7 @@ function checkUserAuthentication() {
   
   if (!token) {
     alert('Please log in first');
-    window.location.href = 'login.html';
+    window.location.href = 'auth.html';
     return null;
   }
   
@@ -54,7 +54,7 @@ function checkUserAuthentication() {
     if (!user) {
       alert('Please log in again');
       sessionStorage.removeItem('token');
-      window.location.href = 'login.html';
+      window.location.href = 'auth.html';
       return null;
     }
     return user;
@@ -63,7 +63,7 @@ function checkUserAuthentication() {
     console.error('Error parsing user data:', error);
     alert('Please log in again');
     sessionStorage.removeItem('token');
-    window.location.href = 'login.html';
+    window.location.href = 'auth.html';
     return null;
   }
 }
@@ -156,7 +156,7 @@ async function loadGroups() {
                     const token = sessionStorage.getItem('token');
                     if (!token) {
                         alert('Please log in first');
-                        window.location.href = 'login.html';
+                        window.location.href = 'auth.html';
                         return;
                     }
 
@@ -274,7 +274,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const token = sessionStorage.getItem('token');
             if (!token) {
                 alert('Please log in first');
-                window.location.href = 'login.html';
+                window.location.href = 'auth.html';
                 return;
             }
 

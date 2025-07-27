@@ -9,65 +9,88 @@
   <style>
     .section { display: none; }
     .section.active { display: block; }
+    .toggle-password { cursor: pointer; }
+    .form-container { max-width: 500px; margin: 0 auto; padding: 20px; }
+    .input-group { position: relative; margin-bottom: 15px; }
+    .input-group i { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); }
+    .input-row { display: flex; gap: 10px; margin-bottom: 15px; }
+    .input-row input { flex: 1; }
+    .btn-primary { width: 100%; padding: 10px; }
+    .bottom-link { text-align: center; margin-top: 15px; }
+    header {
+      text-align: center;
+      padding: 30px 0;
+    }
+    .logo {
+      display: inline-block;
+    }
+    .logo-image {
+      width: 350px;
+      height: auto;
+      object-fit: contain;
+      display: block;
+      margin: 0 auto;
+    }
+    @media (max-width: 768px) {
+      .logo-image {
+        width: 280px;
+      }
+    }
+    @media (max-width: 480px) {
+      .logo-image {
+        width: 220px;
+      }
+    }
   </style>
 </head>
 <body>
   <header>
     <div class="logo">
-      <img src="heart-icon.png" alt="Logo">
-      <div>
-        <h1>EVERYDAY</h1>
-        <span>CARE</span>
-      </div>
+      <img src="images/logo.jpg" alt="logo" class="logo-image">
     </div>
   </header>
 
   <main>
-    <!-- Sign Up Section (now shown first) -->
-    <div id="signupSection" class="form-container section active">
+    <!-- Sign Up Section -->
+    <div id="signupSection" class="form-container section">
       <h2>Sign Up</h2>
       <form id="signupForm">
         <div class="input-row">
-          <input type="text" id="first_name" name="first_name" placeholder="First Name" required/>
-          <input type="text" id="last_name" name="last_name" placeholder="Last Name" required/>
+          <input type="text" id="first_name" name="first_name" placeholder="First Name" required>
+          <input type="text" id="last_name" name="last_name" placeholder="Last Name" required>
         </div>
-
         <div class="input-group">
-          <input type="email" id="email" name="email" placeholder="Email" required/>
+          <input type="email" id="email" name="email" placeholder="Email" required>
+          <i class="fas fa-envelope"></i>
         </div>
-
         <div class="input-group">
-          <input type="tel" id="phone_number" name="phone_number" placeholder="Phone (optional)"/>
+          <input type="tel" id="phone_number" name="phone_number" placeholder="Phone (optional)">
+          <i class="fas fa-phone"></i>
         </div>
-
         <div class="input-group">
-          <input type="password" id="password" name="password" placeholder="Password" required/>
-          <i class="fa fa-eye toggle-password"></i>
+          <input type="password" id="password" name="password" placeholder="Password" required>
+          <i class="fas fa-eye toggle-password"></i>
         </div>
-
         <button type="submit" class="btn-primary">Sign Up</button>
         <p class="bottom-link">Already have an account? <a href="#" onclick="switchSection('loginSection')">Login</a></p>
       </form>
     </div>
 
     <!-- Login Section -->
-    <div id="loginSection" class="form-container section">
+    <div id="loginSection" class="form-container section active">
       <h2>Login</h2>
       <form id="loginForm">
         <div class="input-group">
-          <input type="text" id="login_email" placeholder="Email or Phone" required/>
-          <i class="fas fa-envelope icon"></i>
+          <input type="text" id="login_email" placeholder="Email" required>
+          <i class="fas fa-envelope"></i>
         </div>
-
         <div class="input-group">
-          <input type="password" id="login_password" placeholder="Password" required/>
+          <input type="password" id="login_password" placeholder="Password" required>
           <i class="fas fa-eye toggle-password"></i>
         </div>
-
         <div class="forgot-password">
-          <a href="#" onclick="switchSection('forgotSection')" class="forgot-password">Forgot Password?</a>
+          <a href="#" onclick="switchSection('forgotSection')">Forgot Password?</a>
         </div>
-
         <button type="submit" class="btn-primary">Login</button>
         <p class="bottom-link">Don't have an account? <a href="#" onclick="switchSection('signupSection')">Sign up</a></p>
       </form>
@@ -77,20 +100,26 @@
     <div id="forgotSection" class="form-container section">
       <h2>Forgot Password</h2>
       <form id="forgotPasswordForm">
-        <input type="email" id="forgot_email" placeholder="Enter your email" required />
-        <button type="submit">Send Reset Link</button>
+        <div class="input-group">
+          <input type="email" id="forgot_email" placeholder="Enter your email" required>
+          <i class="fas fa-envelope"></i>
+        </div>
+        <button type="submit" class="btn-primary">Send Reset Link</button>
+        <p class="bottom-link"><a href="#" onclick="switchSection('loginSection')">Back to Login</a></p>
       </form>
-      <p><a href="#" onclick="switchSection('loginSection')">Back to Login</a></p>
     </div>
 
     <!-- Reset Password Section -->
     <div id="resetSection" class="form-container section">
       <h2>Reset Password</h2>
       <form id="resetPasswordForm">
-        <input type="password" id="reset_password" placeholder="New Password" required />
-        <button type="submit">Reset Password</button>
+        <div class="input-group">
+          <input type="password" id="reset_password" placeholder="New Password" required>
+          <i class="fas fa-eye toggle-password"></i>
+        </div>
+        <button type="submit" class="btn-primary">Reset Password</button>
+        <p class="bottom-link"><a href="#" onclick="switchSection('loginSection')">Back to Login</a></p>
       </form>
-      <p><a href="#" onclick="switchSection('loginSection')">Back to Login</a></p>
     </div>
   </main>
 

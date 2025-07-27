@@ -41,7 +41,7 @@ async function loadGroupDetails() {
     const user = getUserFromToken();
     if (!user) {
       alert('Please log in first');
-      window.location.href = 'login.html';
+      window.location.href = 'auth.html';
       return;
     }
     
@@ -258,7 +258,7 @@ async function addChannel() {
     
     if (!token) {
       alert('Please log in first');
-      window.location.href = 'login.html';
+      window.location.href = 'auth.html';
       return;
     }
     
@@ -305,7 +305,7 @@ async function deleteChannel(channelName) {
     
     if (!token) {
       alert('Please log in first');
-      window.location.href = 'login.html';
+      window.location.href = 'auth.html';
       return;
     }
     
@@ -395,7 +395,7 @@ function createChatInterface(channelName) {
   const user = getUserFromToken();
   if (!user) {
     alert('Please log in first');
-    window.location.href = 'login.html';
+    window.location.href = 'auth.html';
     return;
   }
 
@@ -555,7 +555,7 @@ async function submitEventForm(groupId) {
 
   if (!token) {
     alert('Please log in first');
-    window.location.href = 'login.html';
+    window.location.href = 'auth.html';
     return;
   }
 
@@ -667,7 +667,7 @@ function saveDescription() {
   // Validate authentication
   if (!token) {
     alert('Please log in first');
-    window.location.href = 'login.html';
+    window.location.href = 'auth.html';
     return;
   }
 
@@ -720,7 +720,7 @@ function deleteCommunity() {
   // Validate authentication
   if (!token) {
     alert('Please log in first');
-    window.location.href = 'login.html';
+    window.location.href = 'auth.html';
     return;
   }
 
@@ -768,7 +768,7 @@ function leaveCommunity() {
   // Validate authentication
   if (!token) {
     alert('Please log in first');
-    window.location.href = 'login.html';
+    window.location.href = 'auth.html';
     return;
   }
 
