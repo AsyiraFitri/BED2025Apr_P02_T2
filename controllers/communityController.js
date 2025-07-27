@@ -1,11 +1,7 @@
-// Import the community model functions that handle database logic
-const {
-  getAllGroups: getAllGroupsModel,
-  createGroup: createGroupModel,
-  getGroupById: getGroupByIdModel,
-  authenticateUser: authenticateUserModel,
-  joinGroup: joinGroupModel
-} = require('../models/communityModel');
+// Import the community model to access database methods
+const CommunityModel = require('../models/communityModel');
+const sql = require('mssql');
+const config = require('../dbConfig');
 
 // Fetch all hobby groups
 const getAllGroups = async (req, res) => {

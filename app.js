@@ -46,10 +46,8 @@ app.use((req, res, next) => {
 
 // Jing Yin Routes
 const hobbyRoutes = require('./routes/communityRoutes');
-const authRoutes = require('./routes/authRoutes');
 const groupRoutes = require('./routes/groupRoutes');
 app.use('/api/hobby-groups', hobbyRoutes);
-app.use('/api/auth', authRoutes);
 app.use('/api/groups', groupRoutes);
 
 // Xuan Tong Routes
@@ -68,6 +66,7 @@ app.use('/api/places', placeRoutes)
 app.use('/api/bus', busRoutes)
 
 // Sandi Routes
+const authRoutes = require('./routes/authRoutes');
 const requestRoutes = require('./routes/requestRoutes');
 const contactRoutes = require('./routes/emergencyContactRoutes');
 app.use('/api/auth', authRoutes);

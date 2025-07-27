@@ -1,4 +1,3 @@
-// swagger.js or swagger-config.js
 const swaggerAutogen = require('swagger-autogen')();
 
 const doc = {
@@ -22,11 +21,13 @@ const doc = {
     { name: 'MedicationTracker', description: 'Medication tracking endpoints' },
     { name: 'Appointments', description: 'Appointment endpoints' },
     { name: 'Calendar', description: 'Google Calendar integration endpoints' }
+    
     // Asyira
     
     // Sandi
 
     // Yiru
+
   ],
 };
 

@@ -65,7 +65,8 @@
           "201": { "description": "Community group created" },
           "400": { "description": "Validation error" },
           "500": { "description": "Internal server error" }
-        }
+        },
+        "security": [ { "Bearer": [] } ]
       }
     },
     "/api/hobby-groups/{id}": {
@@ -79,7 +80,8 @@
           "200": { "description": "Community group details" },
           "404": { "description": "Not found" },
           "500": { "description": "Internal server error" }
-        }
+        },
+        "security": [ { "Bearer": [] } ]
       },
       "put": {
         "tags": ["Community"],
@@ -104,7 +106,8 @@
           "400": { "description": "Validation error" },
           "404": { "description": "Not found" },
           "500": { "description": "Internal server error" }
-        }
+        },
+        "security": [ { "Bearer": [] } ]
       },
       "delete": {
         "tags": ["Community"],
@@ -116,7 +119,8 @@
           "200": { "description": "Community group deleted" },
           "404": { "description": "Not found" },
           "500": { "description": "Internal server error" }
-        }
+        },
+        "security": [ { "Bearer": [] } ]
       }
     },
     "/api/groups": {
@@ -151,7 +155,8 @@
           "201": { "description": "Group created" },
           "400": { "description": "Validation error" },
           "500": { "description": "Internal server error" }
-        }
+        },
+        "security": [ { "Bearer": [] } ]
       }
     },
     "/api/groups/{groupId}": {
@@ -165,7 +170,8 @@
           "200": { "description": "Group details" },
           "404": { "description": "Not found" },
           "500": { "description": "Internal server error" }
-        }
+        },
+        "security": [ { "Bearer": [] } ]
       },
       "put": {
         "tags": ["Group"],
@@ -190,7 +196,8 @@
           "400": { "description": "Validation error" },
           "404": { "description": "Not found" },
           "500": { "description": "Internal server error" }
-        }
+        },
+        "security": [ { "Bearer": [] } ]
       },
       "delete": {
         "tags": ["Group"],
@@ -202,7 +209,8 @@
           "200": { "description": "Group deleted" },
           "404": { "description": "Not found" },
           "500": { "description": "Internal server error" }
-        }
+        },
+        "security": [ { "Bearer": [] } ]
       }
     },
     "/api/groups/memberList/{groupId}": {
@@ -216,7 +224,8 @@
           "200": { "description": "List of group members" },
           "404": { "description": "Not found" },
           "500": { "description": "Internal server error" }
-        }
+        },
+        "security": [ { "Bearer": [] } ]
       }
     },
     "/api/groups/memberList/{groupId}/{memberId}": {
@@ -231,7 +240,8 @@
           "200": { "description": "Member details" },
           "404": { "description": "Not found" },
           "500": { "description": "Internal server error" }
-        }
+        },
+        "security": [ { "Bearer": [] } ]
       },
       "put": {
         "tags": ["Members"],
@@ -256,7 +266,8 @@
           "400": { "description": "Validation error" },
           "404": { "description": "Not found" },
           "500": { "description": "Internal server error" }
-        }
+        },
+        "security": [ { "Bearer": [] } ]
       },
       "delete": {
         "tags": ["Members"],
@@ -269,7 +280,8 @@
           "200": { "description": "Member removed" },
           "404": { "description": "Not found" },
           "500": { "description": "Internal server error" }
-        }
+        },
+        "security": [ { "Bearer": [] } ]
       }
     },
     "/api/groups/channels/{groupId}": {
@@ -283,7 +295,8 @@
           "200": { "description": "List of channels" },
           "404": { "description": "Not found" },
           "500": { "description": "Internal server error" }
-        }
+        },
+        "security": [ { "Bearer": [] } ]
       },
       "post": {
         "tags": ["Channels"],
@@ -306,7 +319,8 @@
           "200": { "description": "Channel created" },
           "400": { "description": "Validation error" },
           "500": { "description": "Internal server error" }
-        }
+        },
+        "security": [ { "Bearer": [] } ]
       }
     },
     "/api/groups/channels/{groupId}/{channelName}": {
@@ -321,7 +335,8 @@
           "200": { "description": "Channel details" },
           "404": { "description": "Not found" },
           "500": { "description": "Internal server error" }
-        }
+        },
+        "security": [ { "Bearer": [] } ]
       },
       "put": {
         "tags": ["Channels"],
@@ -346,7 +361,8 @@
           "400": { "description": "Validation error" },
           "404": { "description": "Not found" },
           "500": { "description": "Internal server error" }
-        }
+        },
+        "security": [ { "Bearer": [] } ]
       },
       "delete": {
         "tags": ["Channels"],
@@ -359,7 +375,8 @@
           "200": { "description": "Channel deleted" },
           "404": { "description": "Not found" },
           "500": { "description": "Internal server error" }
-        }
+        },
+        "security": [ { "Bearer": [] } ]
       }
     },
     "/api/groups/channels/{groupId}/{channelName}/messages": {
@@ -374,7 +391,8 @@
           "200": { "description": "List of chat messages" },
           "404": { "description": "Not found" },
           "500": { "description": "Internal server error" }
-        }
+        },
+        "security": [ { "Bearer": [] } ]
       },
       "post": {
         "tags": ["ChatMessages"],
@@ -398,7 +416,8 @@
           "200": { "description": "Message sent" },
           "400": { "description": "Validation error" },
           "500": { "description": "Internal server error" }
-        }
+        },
+        "security": [ { "Bearer": [] } ]
       }
     },
     "/api/groups/channels/{groupId}/{channelName}/messages/{messageId}": {
@@ -414,7 +433,8 @@
           "200": { "description": "Chat message details" },
           "404": { "description": "Not found" },
           "500": { "description": "Internal server error" }
-        }
+        },
+        "security": [ { "Bearer": [] } ]
       },
       "put": {
         "tags": ["ChatMessages"],
@@ -440,7 +460,8 @@
           "400": { "description": "Validation error" },
           "404": { "description": "Not found" },
           "500": { "description": "Internal server error" }
-        }
+        },
+        "security": [ { "Bearer": [] } ]
       },
       "delete": {
         "tags": ["ChatMessages"],
@@ -454,7 +475,8 @@
           "200": { "description": "Chat message deleted" },
           "404": { "description": "Not found" },
           "500": { "description": "Internal server error" }
-        }
+        },
+        "security": [ { "Bearer": [] } ]
       }
     },
     "/api/groups/events/{groupId}": {
@@ -468,7 +490,8 @@
           "200": { "description": "List of events" },
           "404": { "description": "Not found" },
           "500": { "description": "Internal server error" }
-        }
+        },
+        "security": [ { "Bearer": [] } ]
       },
       "post": {
         "tags": ["Events"],
@@ -496,7 +519,8 @@
           "200": { "description": "Event created" },
           "400": { "description": "Validation error" },
           "500": { "description": "Internal server error" }
-        }
+        },
+        "security": [ { "Bearer": [] } ]
       }
     },
     "/api/groups/events/{groupId}/{eventId}": {
@@ -511,7 +535,8 @@
           "200": { "description": "Event details" },
           "404": { "description": "Not found" },
           "500": { "description": "Internal server error" }
-        }
+        },
+        "security": [ { "Bearer": [] } ]
       },
       "put": {
         "tags": ["Events"],
@@ -541,7 +566,8 @@
           "400": { "description": "Validation error" },
           "404": { "description": "Not found" },
           "500": { "description": "Internal server error" }
-        }
+        },
+        "security": [ { "Bearer": [] } ]
       },
       "delete": {
         "tags": ["Events"],
@@ -554,7 +580,8 @@
           "200": { "description": "Event deleted" },
           "404": { "description": "Not found" },
           "500": { "description": "Internal server error" }
-        }
+        },
+        "security": [ { "Bearer": [] } ]
       }
     }
     ,
