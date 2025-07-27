@@ -68,10 +68,10 @@ app.use('/api/friends', friendRoutes);
 app.use('/api/messages', messageRoutes);
 
 // Asyira Routes
-// const placeRoutes = require('./routes/placesRoutes');
-// const busRoutes = require('./routes/busRoutes');
-// app.use('/api/places', placeRoutes)
-// app.use('/api/bus', busRoutes)
+const placeRoutes = require('./routes/placesRoutes');
+const busRoutes = require('./routes/busRoutes');
+app.use('/api/places', placeRoutes)
+app.use('/api/bus', busRoutes)
 
 // Sandi Routes
 const requestRoutes = require('./routes/requestRoutes');

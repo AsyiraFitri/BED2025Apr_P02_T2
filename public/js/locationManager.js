@@ -20,8 +20,8 @@ async function loadSavedPlaces() {
     return;
   }
 
-  if (!user) {
-    console.error("No User is found, please log in.");
+  if (!user.UserID) {
+    console.error("No UserID is found, please log in.");
     return;
   }
 
