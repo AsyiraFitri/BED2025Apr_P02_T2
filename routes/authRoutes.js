@@ -1,12 +1,12 @@
 const express = require('express');
 const router = express.Router();
-const authController = require('../controllers/tempAuthController');
+const authController = require('../controllers/authController');
 
 // Registration route
-router.post('/register', authController.register);
+router.post('/register', authController.registerUser);
 
 // Login route
-router.post('/login', authController.login);
+router.post('/login', authController.loginUser);
 
 // Forgot password route
 router.post('/forgot-password', authController.forgotPassword);
@@ -14,21 +14,7 @@ router.post('/forgot-password', authController.forgotPassword);
 // Reset password route
 router.post('/reset-password/:token', authController.resetPassword);
 
+// Logout route
+router.post('/logout', authController.logoutUser); 
+
 module.exports = router;
-
-// const express = require('express');
-// const router = express.Router();
-// const {
-//   registerUser,
-//   loginUser,
-//   forgotPassword,
-//   resetPassword,
-// } = require("../controllers/authController");
-
-
-// router.post("/register", registerUser);
-// router.post("/login", loginUser);
-// router.post("/forgot-password", forgotPassword);
-// router.post("/reset-password/:token", resetPassword);
-
-// module.exports = router;

@@ -164,9 +164,14 @@ async function resetPassword(req, res) {
   }
 }
 
+async function logoutUser(req, res) {
+  res.status(200).json({ message: "Logged out successfully" });
+}
+
 module.exports = {
   registerUser,
   loginUser,
   forgotPassword,
   resetPassword,
+  logoutUser
 };

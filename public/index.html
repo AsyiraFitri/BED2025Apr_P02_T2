@@ -37,6 +37,9 @@
                     <li class="nav-item">
                         <a class="nav-link" href="#friends"><i class="fa-solid fa-user-group"></i> Friends</a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" id="logoutBtn"><i class="fa fa-sign-out"></i> Logout</a>
+                    </li>
                 </ul>
             </div>
         </div>
@@ -389,8 +392,16 @@
         // Smooth scrolling for navigation links
         document.querySelectorAll('a[href^="#"]').forEach(anchor => {
             anchor.addEventListener('click', function (e) {
+                const href = this.getAttribute('href');
+                if (href === "#") {
+                    // Ignore links with just "#" as href to avoid invalid selector error
+                    e.preventDefault();
+                    return;
+                }
+
                 e.preventDefault();
-                const target = document.querySelector(this.getAttribute('href'));
+
+                const target = document.querySelector(href);
                 if (target) {
                     target.scrollIntoView({
                         behavior: 'smooth',
@@ -399,28 +410,7 @@
                 }
             });
         });
-
-        // Add scroll effect to navbar
-        window.addEventListener('scroll', function () {
-            const navbar = document.querySelector('.navbar');
-            if (window.scrollY > 50) {
-                navbar.classList.add('shadow');
-            } else {
-                navbar.classList.remove('shadow');
-            }
-        });
-
-        // Feature card hover animations
-        document.querySelectorAll('.feature-card').forEach(card => {
-            card.addEventListener('mouseenter', function () {
-                this.style.transform = 'translateY(-5px)';
-            });
-
-            card.addEventListener('mouseleave', function () {
-                this.style.transform = 'translateY(0)';
-            });
-        });
     </script>
+    <script src="js/auth.js"></script>
 </body>
-
 </html>

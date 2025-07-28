@@ -108,9 +108,30 @@ document.addEventListener("DOMContentLoaded", () => {
       });
       
       alert("Password has been reset successfully");
-      window.location.href = "temp-login.html";
+      window.location.href = "auth.html";
     } catch (error) {
       alert(error.message);
     }
   });
+
+  // Logout button (works on any page with #logoutBtn)
+  const logoutBtn = document.getElementById('logoutBtn');
+  if (logoutBtn) {
+    logoutBtn.addEventListener('click', async function (e) {
+      e.preventDefault();
+
+      try {
+        // Clear client-side stored data (sessionStorage)
+        sessionStorage.removeItem('token');
+        sessionStorage.removeItem('user');
+
+        // Redirect to login/signup page
+        window.location.href = 'auth.html';
+      } 
+      catch (error) {
+        console.error('Logout error:', error);
+        alert('An error occurred while logging out.');
+      }
+    });
+  }
 });
