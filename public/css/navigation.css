@@ -33,6 +33,7 @@ option {
     overflow-y: auto;
     position: sticky;
     top: 0;
+    
 }
 
 .left-panel section {
@@ -40,6 +41,7 @@ option {
     border: 1px solid #f1c6d8;
     border-radius: 10px;
     margin-bottom: 10px;
+    overflow-wrap: break-word;
 }
 
 .left-panel h3 {
@@ -192,9 +194,8 @@ button:hover {
 
 /* ===== modal styles ===== */
 .modal {
-    display: none;
     position: fixed;
-    z-index: 1;
+    z-index: 1000;
     left: 0;
     top: 0;
     width: 100%;
@@ -370,9 +371,9 @@ button:hover {
     cursor: pointer;
 }
 
-.modal .modal-content {
+/* .modal .modal-content {
     pointer-events: auto;
-}
+} */
 
 #addPlaceModal {
     display: none;  /* ensure modal is hidden on load */
@@ -500,4 +501,78 @@ button:hover {
   overflow-y: auto;
 }
 
+.material-symbols-rounded {
+  font-size: 30px;
+  cursor: pointer;
+  align-self: right;
+}
 
+.add-note {
+  color: #e91e63; /* pinkish color */
+  margin-right: 10px;
+}
+
+.edit-note {
+  color: #9c27b0; /* purple color */
+}
+
+.add-note:hover, .edit-note:hover {
+  opacity: 0.8;
+}
+
+
+#noteModal {
+  display: none;
+  background-color: rgba(0, 0, 0, 0.4);
+}
+
+/* flex for the title and icons */
+.notes h4 {
+  margin: 0;
+  margin-bottom: 12px;
+  display: flex;
+  justify-content: space-between; /* space out left and right elements */
+  align-items: center;
+}
+
+/* wrapper for the icons to ensure correct alignment */
+.notes .icon-wrapper {
+  display: flex;
+  gap: 10px; /* adds spacing between the icons */
+  justify-content: flex-end; /* align icons to the right */
+}
+
+
+.address-section{
+    padding: 10px 14px;
+    border: 1px solid #f1c6d8;
+    border-radius: 10px;
+    margin-bottom: 10px;    
+    max-height: 200px;
+    overflow-y: auto;
+    position: sticky;
+    top: 0;
+    overflow-wrap: break-word;
+}
+.notes{
+    max-height: 500px;
+    overflow-y: auto;
+    position: sticky;
+    top: 0;
+}
+
+#notesList h4{
+    font-weight: bold;
+}
+
+.note{
+    padding: 10px 14px;
+    border: 1px solid #f1c6d8;
+    border-radius: 10px;
+    margin: 10px;
+}
+
+
+
+
+/*----------------------------------------*/

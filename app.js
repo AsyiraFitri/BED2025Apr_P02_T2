@@ -62,8 +62,11 @@ app.use('/api/calendar', calendarRoutes);
 // Asyira Routes
 const placeRoutes = require('./routes/placesRoutes');
 const busRoutes = require('./routes/busRoutes');
-app.use('/api/places', placeRoutes)
-app.use('/api/bus', busRoutes)
+const placeNotesRoutes = require('./routes/placeNotesRoutes');
+app.use('/api/places', placeRoutes);
+app.use('/api/bus', busRoutes);
+app.use('/api/place-notes', placeNotesRoutes);
+ 
 
 // Sandi Routes
 const authRoutes = require('./routes/authRoutes');

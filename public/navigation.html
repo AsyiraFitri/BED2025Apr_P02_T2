@@ -5,9 +5,11 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Everyday Care - Navigation Dashboard</title>
+    <!-- google material icons link -->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" />
   <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="css/navigation.css">
 </head>
@@ -50,6 +52,7 @@
       <!-- saved routes -->
       <section class="saved-routes">
         <h3>My Saved Routes <button class="edit-btn">Edit</button></h3>
+        <p>NEW FEATURE COMING SOON🫣</p>
         <ul id="savedRoutesList">
           <!-- saved routes dynamically inserted here -->
         </ul>
@@ -152,16 +155,48 @@
         </div>
 
         <div class="notes">
-          <h4>Notes <span class="add-note">➕</span></h4>
+          <h4>Notes 
+              <div class="icon-wrapper">
+                <span class="material-symbols-rounded add-note" id="addnotebtn">add_notes</span>
+                <span class="material-symbols-rounded edit-note" id="editnotebtn">edit_note</span>
+              </div>
+          </h4>
+          <div id="notesList">
+            <!-- dynamically populate notes here -->
+          </div>
+        </div>
+
+        <!-- modal to Add a new note -->
+        <div id="noteModal" class="modal">
+          <div class="modal-content">
+            <span class="close">&times;</span>
+            <h4 id="modalHeader">Add a Note</h4>
+
+            <!-- address selection -->
+            <div id="addressSelection">
+              <label for="addressRadioFrom">
+                <input type="radio" id="addressRadioFrom" name="addressRadio" value="from" checked> 
+                From: <span id="fromAddressDisplay"></span>
+              </label><br>
+              <label for="addressRadioTo">
+                <input type="radio" id="addressRadioTo" name="addressRadio" value="to">
+                To: <span id="toAddressDisplay"></span>
+              </label>
+            </div>
+
+            <textarea id="noteText" rows="4" cols="50" placeholder="Enter your note here..."></textarea><br>
+            <button id="saveNoteBtn">Save Note</button>
+          </div>
         </div>
       </div>
     </section>
   </main>
-
   <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script src="js/notes.js"></script>
   <script src="js/navigation.js"></script>
   <script src="js/locationManager.js"></script>
   <script src="js/busArrival.js"></script>
+
   <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA8x9IAovxWerTpmCphVaD73fHHItmGOfg&libraries=places&callback=initMap"></script>
 </body>
 </html>
