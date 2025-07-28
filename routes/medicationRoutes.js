@@ -1,3 +1,4 @@
+
 const express = require('express');
 const router = express.Router();
 const medicationController = require('../controllers/medicationController');
@@ -26,10 +27,10 @@ router.put('/:id', validateMedicationId(), validateMedicationData, medicationCon
 // Uses validation middleware to check medication ID before calling controller
 router.delete('/:id', validateMedicationId(), medicationController.deleteMedication);
 
-// GET /medications/tracking/today - Get today's medication tracking
-router.get('/tracking/today', medicationController.getTodayTracking);
+// GET /medications/schedules/user - Get all medication schedules (with checkbox state) for the authenticated user
+router.get('/schedules/user', medicationController.getMedicationSchedulesByUserId);
 
-// POST /medications/tracking/save - Save medication tracking state
+// POST /medications/tracking/save - Save medication checkbox state
 // Uses validation middleware to check tracking data before calling controller
 router.post('/tracking/save', validateTrackingData, medicationController.saveTrackingState);
 

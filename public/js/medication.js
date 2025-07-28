@@ -84,30 +84,29 @@ function attachMedicationCardEventListeners(card) {
     }
 }
 
-// Load medications and render
+// Load medications and render, including checkbox state from DB
 async function updateMedicationDisplay() {
     try {
         const user = JSON.parse(sessionStorage.getItem('user'));
-        
-        // Load both medications and today's tracking data
-        const [medicationsRes, trackingRes] = await Promise.all([
+
+        // Fetch medications and all schedules (with checkbox state) for this user
+        const [medicationsRes, schedulesRes] = await Promise.all([
             fetch(`/api/medications/user/${user.UserID}`, { headers: getAuthHeaders() }),
-            fetch('/api/medications/tracking/today', { headers: getAuthHeaders() })
+            fetch('/api/medications/schedules/user', { headers: getAuthHeaders() })
         ]);
 
         const medications = await medicationsRes.json();
-        
-        // Load tracking data (if request succeeds)
-        if (trackingRes.ok) {
-            const tracking = await trackingRes.json();
-            // Convert tracking array to object for easy lookup
+
+        // Load schedule data (if request succeeds)
+        if (schedulesRes.ok) {
+            const schedules = await schedulesRes.json();
             todayTrackingData = {};
-            tracking.forEach(item => {
+            schedules.forEach(item => {
                 const key = `${item.MedicationID}-${item.ScheduleTime}`;
                 todayTrackingData[key] = item.IsChecked;
             });
         } else {
-            todayTrackingData = {}; // Reset if tracking fetch fails
+            todayTrackingData = {}; // Reset if fetch fails
         }
 
         const container = document.getElementById('medicationContainer');
