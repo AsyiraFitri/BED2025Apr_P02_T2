@@ -1,3 +1,6 @@
+
+// Start the scheduler when this model is loaded
+scheduleDailyReset();
 // Get all medication schedules (with checkbox state) for a user
 // Returns MedicationID, Name, ScheduleTime, IsChecked
 async function getMedicationSchedulesByUserId(userId) {
@@ -353,6 +356,36 @@ async function resetAllTracking() {
     }
   }
 }
+// ========== Medication Daily Reset Scheduler (runs at 12AM) ==========
+function scheduleDailyReset() {
+  const now = new Date();
+  const midnight = new Date();
+  midnight.setHours(24, 0, 0, 0); // Next midnight
+  const timeUntilMidnight = midnight.getTime() - now.getTime();
+
+  setTimeout(async () => {
+    try {
+      console.log('Running daily medication tracking reset...');
+      await resetAllTracking();
+      console.log('Daily medication tracking reset completed successfully');
+    } catch (error) {
+      console.error('Error during daily medication tracking reset:', error);
+    }
+
+    // Schedule recurring daily resets (every 24 hours)
+    setInterval(async () => {
+      try {
+        console.log('Running daily medication tracking reset...');
+        await resetAllTracking();
+        console.log('Daily medication tracking reset completed successfully');
+      } catch (error) {
+        console.error('Error during daily medication tracking reset:', error);
+      }
+    }, 24 * 60 * 60 * 1000); // 24 hours in milliseconds
+  }, timeUntilMidnight);
+  console.log(`Daily medication reset scheduled. Next reset in ${Math.round(timeUntilMidnight / 1000 / 60)} minutes`);
+}
+
 
 module.exports = {
   getMedicationsByUserId,

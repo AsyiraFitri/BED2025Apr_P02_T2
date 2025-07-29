@@ -126,12 +126,6 @@ function formatTime(timeStr) {
   }
 }
 
-function getCurrentUser() {
-  const user = JSON.parse(sessionStorage.getItem('user'));
-  if (!user) throw new Error('User not logged in');
-  return user;
-}
-
 // Load appointments and render
 async function updateAppointmentDisplay() {
   try {

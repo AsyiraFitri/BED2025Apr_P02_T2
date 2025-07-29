@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const controller = require('../controllers/calendarController');
+const controller = require('../public/js/googleCalendarService.js');
 // const { validateGoogleTokens, validateGoogleEventId, validateGoogleCalendarData } = require('../middlewares/validateCalendar');
 
 // GOOGLE CALENDAR ROUTES - Entry point for all Google Calendar API endpoints

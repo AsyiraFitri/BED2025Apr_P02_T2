@@ -89,13 +89,12 @@ async function updateMedicationDisplay() {
     try {
         const user = JSON.parse(sessionStorage.getItem('user'));
 
-        // Fetch medications and all schedules (with checkbox state) for this user
-        const [medicationsRes, schedulesRes] = await Promise.all([
-            fetch(`/api/medications/user/${user.UserID}`, { headers: getAuthHeaders() }),
-            fetch('/api/medications/schedules/user', { headers: getAuthHeaders() })
-        ]);
-
+        const medicationsRes = await fetch(`/api/medications/user/${user.UserID}`, { headers: getAuthHeaders() });
+        if (!medicationsRes.ok) throw new Error('Failed to fetch medications');
         const medications = await medicationsRes.json();
+
+        const schedulesRes = await fetch('/api/medications/schedules/user', { headers: getAuthHeaders() });
+
 
         // Load schedule data (if request succeeds)
         if (schedulesRes.ok) {
@@ -268,7 +267,7 @@ async function toggleCheckboxElement(checkbox) {
 
     const medicationId = checkbox.getAttribute('data-medication-id');
     const scheduleTime = checkbox.getAttribute('data-time-label');
-    
+
     // Save to backend
     await saveCheckboxState(medicationId, scheduleTime, isChecked);
 }
@@ -284,86 +283,86 @@ function handleCheckboxKeyDown(event) {
 // ========== EVENT LISTENERS ==========
 
 function initializeEventListeners() {
-  // Form submission
-  const form = document.getElementById('editMedication');
-  if (form) {
-    form.addEventListener('submit', handleMedicationFormSubmit);
-  }
-
-  // Add medication button
-  const addBtn = document.getElementById('addMedicationBtn');
-  if (addBtn) {
-    addBtn.addEventListener('click', addNewMedication);
-  }
-
-  // Confirm delete button
-  const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
-  if (confirmDeleteBtn) {
-    confirmDeleteBtn.addEventListener('click', handleDeleteConfirmation);
-    confirmDeleteBtn.addEventListener('click', () => {
-      confirmDeleteBtn.blur(); // Remove focus after click
-    });
-  }
-
-  // Modal event handlers
-  const medicationModal = document.getElementById('medicationModal');
-  if (medicationModal) {
-    // Reset form and selection on modal hide
-    medicationModal.addEventListener('hidden.bs.modal', () => {
-      currentEditingMedicationId = null;
-      if (form) form.reset();
-      document.querySelectorAll('.medication-card').forEach(c => c.classList.remove('selected'));
-    });
-
-    // Fix for aria-hidden focus warning
-    medicationModal.addEventListener('hidden.bs.modal', () => {
-      if (document.activeElement && medicationModal.contains(document.activeElement)) {
-        document.activeElement.blur();
-      }
-    });
-  }
-
-  // Delegated event listeners for medication container
-  const container = document.getElementById('medicationContainer');
-  if (container) {
-    // Checkbox click handler
-    container.addEventListener('click', (event) => {
-      const checkbox = event.target.closest('.custom-checkbox');
-      if (checkbox) {
-        toggleCheckboxElement(checkbox);
-      }
-    });
-
-    // Checkbox keyboard handler
-    container.addEventListener('keydown', (event) => {
-      if (event.target.classList.contains('custom-checkbox')) {
-        handleCheckboxKeyDown(event);
-      }
-    });
-  }
-
-  // Fix for Bootstrap modals focus issues
-  const modalIds = ['medicationModal', 'medicationModalLabel', 'confirmDeleteModal'];
-  modalIds.forEach(id => {
-    const modal = document.getElementById(id);
-    if (modal) {
-      modal.addEventListener('hide.bs.modal', () => {
-        setTimeout(() => {
-          const active = document.activeElement;
-          if (active && modal.contains(active)) {
-            active.blur();
-            const safeFocusTarget = addBtn || document.body;
-            safeFocusTarget.focus();
-          }
-        }, 0);
-      });
+    // Form submission
+    const form = document.getElementById('editMedication');
+    if (form) {
+        form.addEventListener('submit', handleMedicationFormSubmit);
     }
-  });
+
+    // Add medication button
+    const addBtn = document.getElementById('addMedicationBtn');
+    if (addBtn) {
+        addBtn.addEventListener('click', addNewMedication);
+    }
+
+    // Confirm delete button
+    const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+    if (confirmDeleteBtn) {
+        confirmDeleteBtn.addEventListener('click', handleDeleteConfirmation);
+        confirmDeleteBtn.addEventListener('click', () => {
+            confirmDeleteBtn.blur(); // Remove focus after click
+        });
+    }
+
+    // Modal event handlers
+    const medicationModal = document.getElementById('medicationModal');
+    if (medicationModal) {
+        // Reset form and selection on modal hide
+        medicationModal.addEventListener('hidden.bs.modal', () => {
+            currentEditingMedicationId = null;
+            if (form) form.reset();
+            document.querySelectorAll('.medication-card').forEach(c => c.classList.remove('selected'));
+        });
+
+        // Fix for aria-hidden focus warning
+        medicationModal.addEventListener('hidden.bs.modal', () => {
+            if (document.activeElement && medicationModal.contains(document.activeElement)) {
+                document.activeElement.blur();
+            }
+        });
+    }
+
+    // Delegated event listeners for medication container
+    const container = document.getElementById('medicationContainer');
+    if (container) {
+        // Checkbox click handler
+        container.addEventListener('click', (event) => {
+            const checkbox = event.target.closest('.custom-checkbox');
+            if (checkbox) {
+                toggleCheckboxElement(checkbox);
+            }
+        });
+
+        // Checkbox keyboard handler
+        container.addEventListener('keydown', (event) => {
+            if (event.target.classList.contains('custom-checkbox')) {
+                handleCheckboxKeyDown(event);
+            }
+        });
+    }
+
+    // Fix for Bootstrap modals focus issues
+    const modalIds = ['medicationModal', 'medicationModalLabel', 'confirmDeleteModal'];
+    modalIds.forEach(id => {
+        const modal = document.getElementById(id);
+        if (modal) {
+            modal.addEventListener('hide.bs.modal', () => {
+                setTimeout(() => {
+                    const active = document.activeElement;
+                    if (active && modal.contains(active)) {
+                        active.blur();
+                        const safeFocusTarget = addBtn || document.body;
+                        safeFocusTarget.focus();
+                    }
+                }, 0);
+            });
+        }
+    });
 }
 
 // Setup on DOM load
 document.addEventListener('DOMContentLoaded', () => {
-  initializeEventListeners();
-  updateMedicationDisplay();
+    initializeEventListeners();
+    updateMedicationDisplay();
 });
 
