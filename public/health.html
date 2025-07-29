@@ -48,18 +48,28 @@
     <div class="container main-content">
         <!-- Page Header -->
         <div class="row">
-            <div class="col-12">
-                <div class="d-flex justify-content-between align-items-center">
-                    <h1 class="page-title">Health</h1>
-                    <div id="googleCalendarButtons">
-                        <button id="connectGoogleBtn" type="button">Connect Google Calendar</button>
-                        <button id="syncGoogleBtn" type="button" disabled>Sync Appointments to Calendar</button>
-                        <p id="googleButtonHint"></p>
 
+            <div class="row align-items-start mb-3">
+                <!-- Header -->
+                <div class="col-12 col-md-6">
+                    <h1 class="page-title mb-2 mb-md-0">Health</h1>
+                </div>
 
+                <!-- Google Calendar Buttons -->
+                <div class="col-12 col-md-6">
+                    <div id="googleCalendarButtons"
+                        class="d-flex flex-wrap align-items-center justify-content-start justify-content-md-end gap-2 text-start text-md-end">
+                        <button id="connectGoogleBtn" type="button" class="btn btn-sm btn-outline-primary">
+                            Connect Google Calendar
+                        </button>
+                        <button id="syncGoogleBtn" type="button" class="btn btn-sm btn-outline-success" disabled>
+                            Sync Appointments to Calendar
+                        </button>
+                        <p id="googleButtonHint" class="mb-0 text-muted">You need to connect first.</p>
                     </div>
                 </div>
             </div>
+
 
             <!-- Content Row -->
             <div class="row">
@@ -259,4 +269,5 @@
         <script type="module" src="js/appointment.js"></script>
         <script type="module" src="js/medication.js"></script>
 </body>
+
 </html>
