@@ -66,7 +66,7 @@ async function createGoogleEvent(appointment) {
     if (appointment.GoogleEventID && appointment.GoogleEventID.trim() !== '') {
         console.log("googleEventId:", appointment.GoogleEventID);   
         console.log('Appointment already has GoogleEventID, updating existing event instead');
-        return await updateGoogleEvent(appointment);
+        return await updateGoogleEvent(appointment); // If it exists, update instead
     }
 
     const payload = buildEventPayload(appointment, tokens);

@@ -11,30 +11,30 @@ router.use(verifyToken);
 // GET /medications/user/:userid - Get all medications for a user
 router.get('/user/:userid', medicationController.getMedicationsByUserId);
 
-// GET /medications/:id - Get medication by ID
+// Get medication by ID
 // Uses validation middleware to check medication ID before calling controller
 router.get('/:id', validateMedicationId(), medicationController.getMedicationById);
 
-// POST /medications - Create medication
+// Create medication
 // Uses validation middleware to check medication data before calling controller
 router.post('/', validateMedicationData, medicationController.createMedication);
 
-// PUT /medications/:id - Update medication
+// Update medication
 // Uses validation middleware to check both ID and data before calling controller
 router.put('/:id', validateMedicationId(), validateMedicationData, medicationController.updateMedication);
 
-// DELETE /medications/:id - Delete medication
+// Delete medication
 // Uses validation middleware to check medication ID before calling controller
 router.delete('/:id', validateMedicationId(), medicationController.deleteMedication);
 
-// GET /medications/schedules/user - Get all medication schedules (with checkbox state) for the authenticated user
+// Get all medication schedules (with checkbox state) for the authenticated user
 router.get('/schedules/user', medicationController.getMedicationSchedulesByUserId);
 
-// POST /medications/tracking/save - Save medication checkbox state
+// Save medication checkbox state
 // Uses validation middleware to check tracking data before calling controller
 router.post('/tracking/save', validateTrackingData, medicationController.saveTrackingState);
 
-// POST /medications/tracking/reset - Manual reset all tracking (admin/testing)
+// Manual reset all tracking (admin/testing)
 router.post('/tracking/reset', medicationController.resetAllTracking);
 
 module.exports = router;
