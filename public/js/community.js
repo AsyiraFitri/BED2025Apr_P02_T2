@@ -68,6 +68,8 @@ function checkUserAuthentication() {
   }
 }
 
+apiBaseUrl = "http://localhost:3000/api"; // Set the base URL for API requests
+
 // Get references to DOM elements with null checks
 const modal = document.getElementById('addModal');
 const addBtns = document.querySelectorAll('.add-btn');
@@ -100,7 +102,7 @@ else {
 // Load and display all existing groups
 async function loadGroups() {
     try {
-        const res = await fetch('/api/hobby-groups'); // Fetch all groups from API
+        const res = await fetch(`${apiBaseUrl}/hobby-groups`); // Fetch all groups from API
         const groups = await res.json(); // Parse response JSON
 
         let container = document.getElementById('communityCards');
@@ -126,7 +128,7 @@ async function loadGroups() {
             let isMember = false;
             if (token) {
                 try {
-                    const membershipRes = await fetch(`/api/groups/checkMembership/${group.GroupID}`, {
+                    const membershipRes = await fetch(`${apiBaseUrl}/groups/checkMembership/${group.GroupID}`, {
                         method: 'GET',
                         headers: {
                             'Authorization': `Bearer ${token}` // Pass auth token
@@ -164,7 +166,7 @@ async function loadGroups() {
 
                     try {
                         // Attempt to join group via POST request
-                        const response = await fetch('/api/hobby-groups/join', {
+                        const response = await fetch(`${apiBaseUrl}/hobby-groups/join`, {
                             method: 'POST',
                             headers: { 
                                 'Content-Type': 'application/json',
@@ -193,7 +195,7 @@ async function loadGroups() {
                             // Double-check membership if response is 200 OK
                             let isActuallyMember = false;
                             try {
-                                const membershipRes = await fetch(`/api/groups/checkMembership/${groupId}`, {
+                                const membershipRes = await fetch(`${apiBaseUrl}/groups/checkMembership/${groupId}`, {
                                     method: 'GET',
                                     headers: {
                                         'Authorization': `Bearer ${token}`
@@ -282,7 +284,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const groupDescription = document.getElementById('groupDescription').value.trim();
 
             try {
-                const response = await fetch('/api/hobby-groups', {
+                const response = await fetch(`${apiBaseUrl}/hobby-groups`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',

@@ -1,3 +1,5 @@
+const apiBaseUrl = "http://localhost:3000/api";
+
 // Utility function to get user details from JWT token
 function getUserFromToken() {
   const token = sessionStorage.getItem('token');
@@ -32,7 +34,7 @@ async function loadGroupDetails() {
 
   try {
     // Fetch group details from the API
-    const res = await fetch(`/api/hobby-groups/${groupId}`);
+    const res = await fetch(`${apiBaseUrl}/hobby-groups/${groupId}`);
     if (!res.ok) throw new Error('Group not found');
 
     const group = await res.json();
@@ -107,7 +109,7 @@ async function loadGroupDetails() {
 // Fetch and display the total number of group members
 async function loadMemberCount(groupId) {
   try {
-    const res = await fetch(`/api/groups/memberCount/${groupId}`);
+    const res = await fetch(`${apiBaseUrl}/groups/memberCount/${groupId}`);
     if (!res.ok) throw new Error('Failed to fetch member count');
     const data = await res.json();
     
@@ -124,7 +126,7 @@ async function loadMemberCount(groupId) {
 // Fetch and display a list of group members with their roles
 async function loadMemberList(groupId) {
   try {
-    const res = await fetch(`/api/groups/memberList/${groupId}`);
+    const res = await fetch(`${apiBaseUrl}/groups/memberList/${groupId}`);
     if (!res.ok) throw new Error('Failed to fetch member list');
     const data = await res.json();
     const membersList = document.querySelector('.members-list');
@@ -173,7 +175,7 @@ async function loadMemberList(groupId) {
 // Loads channels for the group and populates sidebar and settings
 async function loadChannels(groupId) {
   try {
-    const res = await fetch(`/api/groups/channels/${groupId}`);
+    const res = await fetch(`${apiBaseUrl}/groups/channels/${groupId}`);
     const channels = await res.json();
     
     // Define the order for channels (announcements, events, general in order)
@@ -263,7 +265,7 @@ async function addChannel() {
     }
     
     // Send API request to create the channel
-    const response = await fetch('/api/groups/createChannel', {
+    const response = await fetch(`${apiBaseUrl}/groups/createChannel`, {
       method: 'POST',
       headers: { 
         'Content-Type': 'application/json',
@@ -310,7 +312,7 @@ async function deleteChannel(channelName) {
     }
     
     // Send API request to delete the channel
-    const response = await fetch('/api/groups/deleteChannel', {
+    const response = await fetch(`${apiBaseUrl}/groups/deleteChannel`, {
       method: 'DELETE',
       headers: { 
         'Content-Type': 'application/json',
@@ -560,7 +562,7 @@ async function submitEventForm(groupId) {
   }
 
   try {
-    const response = await fetch(`/api/groups/events/${groupId}`, {
+    const response = await fetch(`${apiBaseUrl}/groups/events/${groupId}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -672,7 +674,7 @@ function saveDescription() {
   }
 
   // Send PATCH request to update group description
-  fetch('/api/groups/saveDesc', {
+  fetch(`${apiBaseUrl}/groups/saveDesc`, {
     method: 'PATCH',
     headers: { 
       'Content-Type': 'application/json',
@@ -726,7 +728,7 @@ function deleteCommunity() {
 
   // Confirm deletion of the community
   if (confirm('Are you sure you want to delete this community? This action cannot be undone.')) {
-    fetch(`/api/groups/deleteCommunity`, {
+    fetch(`${apiBaseUrl}/groups/deleteCommunity`, {
       method: 'DELETE',
       headers: { 
         'Content-Type': 'application/json',
@@ -774,7 +776,7 @@ function leaveCommunity() {
 
   // Confirm the user wants to leave
   if (confirm('Are you sure you want to leave this group?')) {
-    fetch('/api/groups/leaveGroup', {
+    fetch(`${apiBaseUrl}/groups/leaveGroup`, {
       method: 'POST',
       headers: { 
         'Content-Type': 'application/json',
@@ -822,7 +824,7 @@ let messagePollingInterval = null; // Interval ID for message polling
 async function initializeFirebase() {
   try {
     // Fetch Firebase configuration from backend API
-    const response = await fetch('/api/groups/firebase-config');
+    const response = await fetch(`${apiBaseUrl}/groups/firebase-config`);
     const firebaseConfig = await response.json();
     
     // Initialize Firebase app and Firestore database
@@ -842,7 +844,7 @@ async function loadChannelMessages() {
   
   try {
     // Fetch messages from our Firebase backend API
-    const response = await fetch(`/api/groups/firebase/channels/${currentGroupId}/${currentChannel}`);
+    const response = await fetch(`${apiBaseUrl}/groups/firebase/channels/${currentGroupId}/${currentChannel}`);
     
     if (response.ok) {
       const messages = await response.json();
@@ -1073,7 +1075,7 @@ async function sendMessage() {
   
   try {
     // Send message to Firebase backend API
-    const response = await fetch(`/api/groups/firebase/channels/${currentGroupId}/${currentChannel}`, {
+    const response = await fetch(`${apiBaseUrl}/groups/firebase/channels/${currentGroupId}/${currentChannel}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -1210,7 +1212,7 @@ async function editMessage(messageId, messageElement) {
     
     try {
       const token = sessionStorage.getItem('token');
-      const response = await fetch(`/api/groups/firebase/messages/${messageId}`, {
+      const response = await fetch(`${apiBaseUrl}/groups/firebase/messages/${messageId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -1277,7 +1279,7 @@ async function deleteMessage(messageId, messageElement) {
   
   try {
     const token = sessionStorage.getItem('token');
-    const response = await fetch(`/api/groups/firebase/messages/${messageId}`, {
+    const response = await fetch(`${apiBaseUrl}/groups/firebase/messages/${messageId}`, {
       method: 'DELETE',
       headers: {
         'Content-Type': 'application/json',
@@ -1314,7 +1316,7 @@ async function loadGroupEvents(groupId) {
   console.log('Loading events for group ID:', groupId);
   if (!groupId) return;
   try {
-    const response = await fetch(`/api/groups/events/${groupId}`);
+    const response = await fetch(`${apiBaseUrl}/groups/events/${groupId}`);
     if (!response.ok) throw new Error('Failed to fetch events');
     const events = await response.json();
     renderEventList(events);
@@ -1373,7 +1375,7 @@ function renderEventList(events) {
     author.textContent = 'Loading...';
     // Fetch full name using CreatedBy (userID)
     if (event.CreatedBy) {
-      fetch(`/api/groups/user/${event.CreatedBy}`)
+      fetch(`${apiBaseUrl}/groups/user/${event.CreatedBy}`)
         .then(res => res.ok ? res.json() : null)
         .then(data => {
           // Try to use the correct property for full name
@@ -1520,7 +1522,7 @@ function renderEventList(events) {
               const groupId = params.get('id');
 
               try {
-                const response = await fetch(`/api/groups/events/${event.EventID}`, {
+                const response = await fetch(`${apiBaseUrl}/groups/events/${event.EventID}`, {
                   method: 'PATCH',
                   headers: {
                     'Content-Type': 'application/json',
@@ -1568,7 +1570,7 @@ function renderEventList(events) {
         if (!confirm('Are you sure you want to delete this event?')) return;
         const token = sessionStorage.getItem('token');
         try {
-          const response = await fetch(`/api/groups/events/${event.EventID}`, {
+          const response = await fetch(`${apiBaseUrl}/groups/events/${event.EventID}`, {
             method: 'DELETE',
             headers: {
               'Content-Type': 'application/json',
@@ -1711,7 +1713,7 @@ function showEventCreationForm() {
           const token = sessionStorage.getItem('token');
 
           try {
-            const response = await fetch('/api/groups/createEvent', {
+            const response = await fetch(`${apiBaseUrl}/groups/createEvent`, {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
