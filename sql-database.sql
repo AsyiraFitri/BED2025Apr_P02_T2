@@ -52,6 +52,29 @@ CREATE TABLE Events (
 
 SET IDENTITY_INSERT Users ON;
 
+/*Create SavedPlaces Table*/
+CREATE TABLE SavedPlaces ( 
+PlaceID INT PRIMARY KEY IDENTITY,
+UserID INT, --User who created the note
+PlaceName NVARCHAR(100),
+Address NVARCHAR(255),
+Latitude FLOAT,
+Longitude FLOAT,
+ FOREIGN KEY (UserID) REFERENCES Users(UserID)
+);
+
+
+/*Create PlaceNotes Table*/
+CREATE TABLE PlaceNotes (
+  NoteID INT PRIMARY KEY IDENTITY(1,1),
+  PlaceID INT,  -- Foreign Key linked to SavedPlaces
+  UserID INT,   -- User who created the note
+  NoteText NVARCHAR(MAX),
+  Address NVARCHAR(255),
+  FOREIGN KEY (PlaceID) REFERENCES SavedPlaces(PlaceID),
+  FOREIGN KEY (UserID) REFERENCES Users(UserID)
+);
+
 INSERT INTO Users (UserID, first_name, last_name, phone_number, email, password, role)
 VALUES  
 (1, 'Sarah', 'Tan', '98097102', 'sarah20@gmail.com', 'password123', 'admin'), 
@@ -242,3 +265,109 @@ VALUES
  '2025-09-10', '17:30', '19:30', N'Online (Zoom link to be shared)', 2);
 
 SET IDENTITY_INSERT Users OFF;
+
+
+/*Sample Data for SavedPlaces*/
+INSERT INTO SavedPlaces (UserID, PlaceName, Address, Latitude, Longitude)
+VALUES
+(6, 'Home', '376 Clementi Ave 4, Singapore 120376', 1.3180670246609878, 103.76661999646038), 
+(6, 'Hospital', '11 Jln Tan Tock Seng, Singapore 308433', 1.3215712403603288, 103.84582256762411),  
+(6, 'Lion Befrienders Clementi Centre', '344 Clementi Ave 5, Singapore 120344', 1.318212757564295, 103.76907339178568), 
+(6, 'David’s Home', '322 Clementi Ave 5, Singapore 120322', 1.3161899744681027, 103.76643760624384),
+
+(7, 'Home', '374 Clementi Ave 4, Singapore 120374', 1.318944204271345, 103.76723789429518), 
+(7, 'Hospital', '5 Lower Kent Ridge Rd, Singapore 119074', 1.2940113151138533, 103.78311168255927),  
+(7, 'Lion Befrienders Clementi Centre', '344 Clementi Ave 5, Singapore 120344', 1.318212757564295, 103.76907339178568), 
+(7, 'Anna’s Home', '339 Clementi Ave 5, Singapore 120339', 1.3194322369178264, 103.7693139241126), 
+
+(8, 'Home', '322 Clementi Ave 5, Singapore 120322', 1.3161899744681027, 103.76643760624384), 
+(8, 'Hospital', '11 Jln Tan Tock Seng, Singapore 308433', 1.3215712403603288, 103.84582256762411),  
+(8, 'Lion Befrienders Clementi Centre', '344 Clementi Ave 5, Singapore 120344', 1.318212757564295, 103.76907339178568), 
+(8, 'Marcus’s Home', '376 Clementi Ave 4, Singapore 120376', 1.3180670246609878, 103.76661999646038),
+
+(9, 'Home', '339 Clementi Ave 5, Singapore 120339', 1.3194322369178264, 103.7693139241126), 
+(9, 'Hospital', '5 Lower Kent Ridge Rd, Singapore 119074', 1.2940113151138533, 103.78311168255927),  
+(9, 'Lion Befrienders Clementi Centre', '344 Clementi Ave 5, Singapore 120344', 1.318212757564295, 103.76907339178568), 
+(9, 'Chloe’s Home', '374 Clementi Ave 4, Singapore 120374', 1.318944204271345, 103.76723789429518);
+
+/*Sample Data for PlaceNotes*/
+---UserID=6
+INSERT INTO PlaceNotes (PlaceID, UserID, NoteText, Address)
+SELECT PlaceID, 6, 'lift B level 5. Call 98765432 if assistance is needed.', '376 Clementi Ave 4, Singapore 120376'
+FROM SavedPlaces
+WHERE Address = '376 Clementi Ave 4, Singapore 120376'
+  AND UserID = 6;
+INSERT INTO PlaceNotes (PlaceID, UserID, NoteText, Address)
+SELECT PlaceID, 6, 'nearest bus stop code(blk 376): 17219', '376 Clementi Ave 4, Singapore 120376'
+FROM SavedPlaces
+WHERE Address = '376 Clementi Ave 4, Singapore 120376'
+  AND UserID = 6;
+INSERT INTO PlaceNotes (PlaceID, UserID, NoteText, Address)
+SELECT PlaceID, 6, 'For heart check up go to tower B - room 03-01', '11 Jln Tan Tock Seng, Singapore 308433'
+FROM SavedPlaces
+WHERE Address = '11 Jln Tan Tock Seng, Singapore 308433'
+  AND UserID = 6;
+INSERT INTO PlaceNotes (PlaceID, UserID, NoteText, Address)
+SELECT PlaceID, 6, 'From the busstop walk straight then turn left', '344 Clementi Ave 5, Singapore 120344'
+FROM SavedPlaces
+WHERE Address = '344 Clementi Ave 5, Singapore 120344'
+  AND UserID = 6;
+INSERT INTO PlaceNotes (PlaceID, UserID, NoteText, Address)
+SELECT PlaceID, 6, 'lift C - #07-432 | hp: 87654378.', '322 Clementi Ave 5, Singapore 120322 '
+FROM SavedPlaces
+WHERE Address = '322 Clementi Ave 5, Singapore 120322 '
+  AND UserID = 6;
+
+---UserID=7
+INSERT INTO PlaceNotes (PlaceID, UserID, NoteText, Address)
+SELECT PlaceID, 7, 'lift A level 3. Call 85647452 if assistance is needed.', '374 Clementi Ave 4, Singapore 120374'
+FROM SavedPlaces
+WHERE Address = '374 Clementi Ave 4, Singapore 120374'
+  AND UserID = 7;
+INSERT INTO PlaceNotes (PlaceID, UserID, NoteText, Address)
+SELECT PlaceID, 7, 'nearest bus stop code(blk 376): 17219.', '374 Clementi Ave 4, Singapore 120374'
+FROM SavedPlaces
+WHERE Address = '374 Clementi Ave 4, Singapore 120374'
+  AND UserID = 7;
+INSERT INTO PlaceNotes (PlaceID, UserID, NoteText, Address)
+SELECT PlaceID, 7, 'For heart check up go to tower A - room 03-03', '5 Lower Kent Ridge Rd, Singapore 119074'
+FROM SavedPlaces
+WHERE Address = '5 Lower Kent Ridge Rd, Singapore 119074'
+  AND UserID = 7;
+INSERT INTO PlaceNotes (PlaceID, UserID, NoteText, Address)
+SELECT PlaceID, 7, 'From the busstop walk straight then turn left', '344 Clementi Ave 5, Singapore 120344'
+FROM SavedPlaces
+WHERE Address = '344 Clementi Ave 5, Singapore 120344'
+  AND UserID = 7;
+INSERT INTO PlaceNotes (PlaceID, UserID, NoteText, Address)
+SELECT PlaceID, 7, 'lift A - #07-442 | hp: 87165778.', '339 Clementi Ave 5, Singapore 120339'
+FROM SavedPlaces
+WHERE Address = '339 Clementi Ave 5, Singapore 120339'
+  AND UserID = 7;
+
+---UserID=8
+INSERT INTO PlaceNotes (PlaceID, UserID, NoteText, Address)
+SELECT PlaceID, 8, 'lift B level 5. Call 98765432 if assistance is needed.', '322 Clementi Ave 5, Singapore 120322'
+FROM SavedPlaces
+WHERE Address = '322 Clementi Ave 5, Singapore 120322'
+  AND UserID = 8;
+INSERT INTO PlaceNotes (PlaceID, UserID, NoteText, Address)
+SELECT PlaceID, 8, 'nearest bus stop code(Clementi Stn Exit B): 17179.', '322 Clementi Ave 5, Singapore 120322'
+FROM SavedPlaces
+WHERE Address = '322 Clementi Ave 5, Singapore 120322'
+  AND UserID = 8;
+INSERT INTO PlaceNotes (PlaceID, UserID, NoteText, Address)
+SELECT PlaceID, 8, 'For check up go to tower A - room 05-07', '11 Jln Tan Tock Seng, Singapore 308433'
+FROM SavedPlaces
+WHERE Address = '11 Jln Tan Tock Seng, Singapore 308433'
+  AND UserID = 8;
+INSERT INTO PlaceNotes (PlaceID, UserID, NoteText, Address)
+SELECT PlaceID, 8, 'From the busstop walk straight then turn left', '344 Clementi Ave 5, Singapore 120344'
+FROM SavedPlaces
+WHERE Address = '344 Clementi Ave 5, Singapore 120344'
+  AND UserID = 8;
+INSERT INTO PlaceNotes (PlaceID, UserID, NoteText, Address)
+SELECT PlaceID, 8, 'lift E - #05-662 | hp: 87165778.', '376 Clementi Ave 4, Singapore 120376'
+FROM SavedPlaces
+WHERE Address = '376 Clementi Ave 4, Singapore 120376'
+  AND UserID = 8;
