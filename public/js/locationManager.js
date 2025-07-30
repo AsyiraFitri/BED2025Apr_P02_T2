@@ -1,8 +1,42 @@
+// helper function to retrieve user from sessionStorage
+function getUserFromToken() {
+  const user = sessionStorage.getItem('user');
+  return user ? JSON.parse(user) : null;
+}
+
+// function to check authentication status
+function checkUserAuthentication() {
+  const token = sessionStorage.getItem('token');
+  
+  if (!token) {
+    alert('Please log in first');
+    window.location.href = 'auth.html';
+    return null;
+  }
+
+  try {
+    const user = getUserFromToken();
+    if (!user) {
+      alert('Please log in again');
+      sessionStorage.removeItem('token');
+      window.location.href = 'auth.html';
+      return null;
+    }
+    return user;
+  } catch (error) {
+    console.error('Error parsing user data:', error);
+    alert('Please log in again');
+    sessionStorage.removeItem('token');
+    window.location.href = 'auth.html';
+    return null;
+  }
+}
 document.addEventListener("DOMContentLoaded", () => {
+  const user = checkUserAuthentication();
+  if (!user) return; // stop execution if not authenticated
   // api base url and token setup
   const apiBaseUrl = "http://localhost:3000";
   const token = sessionStorage.getItem('token');  // jwt stored in sessionStorage
-  const user = JSON.parse(sessionStorage.getItem('user'));  // retrieve user object from sessionStorage
   const userId = user.UserID;
   const savedPlacesList = document.getElementById("savedPlacesList");
   const addPlaceModal = document.getElementById("addPlaceModal");
