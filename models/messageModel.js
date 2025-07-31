@@ -5,8 +5,8 @@ const dbConfig = require('../dbConfig');
 async function sendMessage(senderId, receiverId, messageText) {
   const pool = await sql.connect(dbConfig);
   return pool.request()
-    .input('SenderID', sql.NVarChar, senderId)
-    .input('ReceiverID', sql.NVarChar, receiverId)
+    .input("SenderID", sql.Int, senderId)  // now using integer
+    .input("ReceiverID", sql.Int, receiverId)
     .input('MessageText', sql.NVarChar, messageText)
     .query(`
       INSERT INTO Messages (SenderID, ReceiverID, MessageText)
@@ -18,8 +18,8 @@ async function sendMessage(senderId, receiverId, messageText) {
 async function getConversation(user1, user2) {
   const pool = await sql.connect(dbConfig);
   return pool.request()
-    .input('User1', sql.NVarChar, user1)
-    .input('User2', sql.NVarChar, user2)
+    .input('User1', sql.Int, user1)
+    .input('User2', sql.Int, user2)
     .query(`
       SELECT * FROM Messages
       WHERE (SenderID = @User1 AND ReceiverID = @User2)

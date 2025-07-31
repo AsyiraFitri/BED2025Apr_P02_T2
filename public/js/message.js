@@ -1,4 +1,4 @@
-// friends.js
+// message.js
 
 let currentUserId = "";
 let currentFriendId = "";
@@ -9,11 +9,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
   if (!user || !token) {
     alert("Please log in to access this page.");
-    window.location.href = "login.html";
+    window.location.href = "auth.html";
     return;
   }
 
-  currentUserId = user.UserID;
+  currentUserId = parseInt(user.UserID);
   document.getElementById("displayUserId").textContent = `Logged in as: ${currentUserId}`;
   loadFriends();
 });
@@ -25,19 +25,23 @@ async function loadFriends() {
   list.innerHTML = "<h5 class='text-center mt-2'>Friends</h5>";
 
   friends.forEach(friend => {
-    const friendId = friend.FriendUserID === currentUserId ? friend.UserID : friend.FriendUserID;
+    // Determine the "other" user in the friendship
+    const friendId = friend.UserID === currentUserId ? friend.FriendUserID : friend.UserID;
+
     const div = document.createElement('div');
     div.className = 'friend-item';
-    div.innerText = friendId;
+    div.innerText = `User ${friendId}`;
     div.onclick = () => selectFriend(friendId);
     list.appendChild(div);
   });
 }
 
 async function selectFriend(friendId) {
-  currentFriendId = friendId;
+  console.log("Selected friendId:", friendId);
+  currentFriendId = parseInt(friendId);
   const res = await fetch(`/api/messages/${currentUserId}/${friendId}`);
   const messages = await res.json();
+  console.log("Messages received:", messages);
   const box = document.getElementById('messageBox');
   box.innerHTML = '';
 
