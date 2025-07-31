@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>EverydayCare - Add a Friend</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/navigation.css">
+</head>
+<body>
+  <!-- Top Navigation Bar -->
+  <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
+    <div class="container d-flex justify-content-between align-items-center">
+      <a class="navbar-brand logo-container d-flex align-items-center" href="index.html">
+        <img src="images/logo.jpg" alt="logo" class="logo-image" />
+      </a>
+      <button class="navbar-toggler ms-auto" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav ms-auto">
+          <li class="nav-item">
+            <a class="nav-link" href="navigation.html"><i class="fas fa-map-marker-alt"></i> Navigation</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="community.html"><i class="fas fa-users"></i> Community</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="health.html"><i class="fas fa-heartbeat"></i> Health</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="#emergency"><i class="fas fa-exclamation-triangle"></i> Emergency</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="#friends"><i class="fa-solid fa-user-group"></i> Friends</a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <main class="container mt-4">
+    <h2 class="mb-4">Manage Friends</h2>
+
+    
+
+    <!-- Send Friend Request -->
+    <div class="card mb-4">
+      <div class="card-header">Send a Friend Request</div>
+      <div class="card-body">
+        <input type="text" id="friendUserIdInput" class="form-control mb-2" placeholder="Enter Friend's User ID" />
+        <button class="btn btn-success" onclick="sendFriendRequest()">Send Request</button>
+      </div>
+    </div>
+
+    <!-- Incoming Friend Requests -->
+    <div class="card mb-4">
+      <div class="card-header">Incoming Friend Requests</div>
+      <div class="card-body" id="incomingRequests">
+        <!-- Filled by JS -->
+      </div>
+    </div>
+
+    <!-- Sent Friend Requests -->
+    <div class="card mb-4">
+      <div class="card-header">Sent Friend Requests (Pending)</div>
+      <div class="card-body" id="sentRequests">
+        <!-- Filled by JS -->
+      </div>
+    </div>
+  </main>
+
+  <script>
+    /*
+  const apiUrl = 'http://localhost:3000/api/friends'; // Adjust if needed
+
+  let currentUser = null;
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const userData = sessionStorage.getItem('user');
+    if (!userData) {
+      alert('You must be logged in to access this page.');
+      window.location.href = 'auth.html'; // Redirect to login if not logged in
+      return;
+    }
+
+    currentUser = JSON.parse(userData);
+    loadFriendData(); // auto-load friend requests
+  });
+
+  async function loadFriendData() {
+    const userId = currentUser.UserID;
+
+    const incoming = await fetch(`${apiUrl}/incoming/${userId}`).then(res => res.json());
+    const sent = await fetch(`${apiUrl}/sent/${userId}`).then(res => res.json());
+
+    displayRequests('incomingRequests', incoming, true);
+    displayRequests('sentRequests', sent, false);
+  }
+
+  function displayRequests(containerId, data, isIncoming) {
+    const container = document.getElementById(containerId);
+    container.innerHTML = '';
+
+    if (data.length === 0) {
+      container.innerHTML = '<p class="text-muted">No friend requests found.</p>';
+      return;
+    }
+
+    data.forEach(req => {
+      const wrapper = document.createElement('div');
+      wrapper.className = 'd-flex justify-content-between align-items-center border p-2 mb-2';
+      wrapper.innerHTML = `
+        <span><strong>${isIncoming ? req.UserID : req.FriendUserID}</strong> - ${req.Status}</span>
+        <div>
+          ${isIncoming && req.Status === 'pending' ? `
+            <button class="btn btn-sm btn-success me-2" onclick="respondToRequest(${req.FriendID}, 'accepted')">Accept</button>
+            <button class="btn btn-sm btn-danger me-2" onclick="respondToRequest(${req.FriendID}, 'rejected')">Reject</button>
+          ` : ''}
+          <button class="btn btn-sm btn-outline-secondary" onclick="deleteFriendRequest(${req.FriendID})">Delete</button>
+        </div>
+      `;
+      container.appendChild(wrapper);
+    });
+  }
+
+  async function sendFriendRequest() {
+  const friendId = document.getElementById('friendUserIdInput').value;
+  const user = JSON.parse(sessionStorage.getItem('user'));
+  const token = sessionStorage.getItem('token');
+
+  if (!user || !token) {
+    return alert('You must be logged in.');
+  }
+
+  if (!friendId) {
+    return alert("Enter your friend's User ID.");
+  }
+
+  console.log('Sending Friend Request:', {
+  userID: String(user.UserID),
+  friendUserID: String(friendId),
+  userIDType: typeof String(user.UserID),
+  friendIDType: typeof String(friendId)
+  });
+
+  try {
+    const res = await fetch('http://localhost:3000/api/friends', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}` // 🔒 Send token here
+      },
+      body: JSON.stringify({
+        userID: String(user.UserID),          // 🔁 force it to string
+        friendUserID: String(friendId)        // in case user types a number
+      })
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      throw new Error(data.message || 'Failed to send request');
+    }
+
+    alert(data.message || 'Friend request sent.');
+    loadFriendData(); // Refresh list
+    } catch (err) {
+    console.error("Friend request error:", err);
+    alert('Error: ' + err.message);
+    }
+  }
+
+  async function respondToRequest(friendId, status) {
+    await fetch(`${apiUrl}/${friendId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status })
+    });
+    loadFriendData();
+  }
+
+  async function deleteFriendRequest(friendId) {
+    await fetch(`${apiUrl}/${friendId}`, { method: 'DELETE' });
+    loadFriendData();
+  }
+  */
+</script>
+<script src="js/friends-request.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

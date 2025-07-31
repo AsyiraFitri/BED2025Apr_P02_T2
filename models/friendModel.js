@@ -26,16 +26,15 @@ async function getFriends(userId) {
 }
 
 // Respond to friend request
-async function respondToFriendRequest(userId, friendUserId, status) {
+async function respondToFriendRequestById(friendId, status) {
   const pool = await sql.connect(dbConfig);
   return pool.request()
-    .input('UserID', sql.NVarChar, userId)
-    .input('FriendUserID', sql.NVarChar, friendUserId)
+    .input('FriendID', sql.Int, friendId)
     .input('Status', sql.NVarChar, status)
     .query(`
       UPDATE Friends
       SET Status = @Status
-      WHERE UserID = @UserID AND FriendUserID = @FriendUserID
+      WHERE FriendID = @FriendID
     `);
 }
 
@@ -52,9 +51,31 @@ async function deleteFriend(userId, friendId) {
     `);
 }
 
+async function getIncomingRequests(userId) {
+  const pool = await sql.connect(dbConfig);
+  return pool.request()
+    .input('UserID', sql.NVarChar, userId)
+    .query(
+      `SELECT * FROM Friends WHERE FriendUserID = @UserID AND Status = 'pending'`
+    );
+}
+
+async function getSentRequests(userId) {
+  const pool = await sql.connect(dbConfig);
+  return pool.request()
+    .input('UserID', sql.NVarChar, userId)
+    .query(
+      `SELECT * FROM Friends WHERE UserID = @UserID AND Status = 'pending'`
+    );
+}
+
+
+
 module.exports = {
   sendFriendRequest,
   getFriends,
-  respondToFriendRequest,
-  deleteFriend
+  respondToFriendRequestById,
+  deleteFriend,
+  getIncomingRequests,
+  getSentRequests
 };
