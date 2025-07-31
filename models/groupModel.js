@@ -198,7 +198,13 @@ async function getEvents(groupId) {
         const pool = await sql.connect(config);
         const result = await pool.request()
             .input('GroupID', sql.Int, groupId)
-            .query('SELECT * FROM Events WHERE GroupID = @GroupID ORDER BY EventDate DESC, StartTime ASC');
+            .query(`
+                SELECT e.EventID, e.Title, e.Description, e.EventDate, e.StartTime, e.EndTime, e.Location, e.CreatedBy, (u.first_name + ' ' + u.last_name) AS CreatorName
+                FROM Events e
+                LEFT JOIN Users u ON e.CreatedBy = u.UserID
+                WHERE e.GroupID = @GroupID
+                ORDER BY e.EventDate DESC, e.StartTime ASC
+            `);
         return result.recordset;
     } 
     catch (error) {
@@ -229,11 +235,22 @@ async function getUserDetailsById(userId) {
         const pool = await sql.connect(config);
         const result = await pool.request()
             .input('UserID', sql.Int, userIdInt)
-            .query(`SELECT TOP 1 first_name, last_name FROM Users WHERE UserID = @UserID`);
-        if (result.recordset.length === 0) return null;
-        const { first_name, last_name } = result.recordset[0];
-        const fullName = [first_name, last_name].filter(Boolean).join(' ');
-        return { name: fullName };
+            .query(`SELECT TOP 1 first_name, last_name, username, email FROM Users WHERE UserID = @UserID`);
+        if (result.recordset.length === 0) return { name: `User ${userId}` };
+        const { first_name, last_name, username, email } = result.recordset[0];
+        let name = [first_name, last_name].filter(Boolean).join(' ').trim();
+        if (!name) {
+            if (username && username.trim()) {
+                name = username.trim();
+            } 
+            else if (email && email.trim()) {
+                name = email.trim();
+            } 
+            else {
+                name = `User ${userId}`;
+            }
+        }
+        return { name };
     } 
     catch (error) {
         throw new Error(`Database error in getUserDetailsById: ${error.message}`);
@@ -241,9 +258,20 @@ async function getUserDetailsById(userId) {
 }
 
 // Update an event by eventId and groupId
-async function updateEvent(eventId, groupId, title, description, eventDate, startTime, endTime, location) {
+// Update an event by eventId and groupId, only if userId matches creator
+async function updateEvent(eventId, groupId, title, description, eventDate, startTime, endTime, location, userId) {
     try {
         const pool = await sql.connect(config);
+        // Check if the user is the creator of the event
+        const check = await pool.request()
+            .input('EventID', sql.Int, eventId)
+            .query('SELECT CreatedBy FROM Events WHERE EventID = @EventID');
+        if (!check.recordset.length) {
+            throw new Error('Event not found.');
+        }
+        if (String(check.recordset[0].CreatedBy) !== String(userId)) {
+            throw new Error('Unauthorized: Only the event creator can update this event.');
+        }
         await pool.request()
             .input('EventID', sql.Int, eventId)
             .input('GroupID', sql.Int, groupId)

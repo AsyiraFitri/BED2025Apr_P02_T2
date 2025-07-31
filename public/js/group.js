@@ -1393,6 +1393,40 @@ async function deleteMessage(messageId, messageElement) {
   }
 }
 
+// Format event date (YYYY-MM-DD to readable)
+// Converts a date string to a human-readable format
+function formatEventDate(dateStr) {
+  if (!dateStr) return '';
+  const d = new Date(dateStr);
+  return d.toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' });
+}
+
+// Format event time (HH:mm:ss or HH:mm to readable)
+// Converts a time string to a human-readable 12-hour format
+function formatEventTime(timeStr) {
+  console.log('Formatting time:', timeStr);
+  if (!timeStr) return '';
+
+  try {
+    // Parse the ISO time string to a Date object
+    const date = new Date(timeStr);
+
+    // Use toLocaleTimeString to format to 12-hour clock with AM/PM
+    const options = {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true,
+      timeZone: 'UTC' // Ensure UTC to match the 'Z' in ISO string
+    };
+
+    return date.toLocaleTimeString('en-US', options);
+  } 
+  catch (e) {
+    console.error('Invalid time string:', timeStr);
+    return timeStr;
+  }
+}
+
 // Fetch and display all events for the current group
 // Loads all events for the group and displays them in the events channel
 async function loadGroupEvents(groupId) {
@@ -1427,10 +1461,12 @@ function renderEventList(events) {
   // Get current user ID for own-message logic
   const currentUser = getUserFromToken();
   const currentUserId = currentUser && currentUser.id;
+  let creatorId;
   events.forEach(event => {
     // Create a chat-like message container for each event
     const card = document.createElement('div');
     let cardClass = 'message-container event-card';
+    creatorId = event.CreatedBy || event.Creator || event.creator || event.createdBy;
     if (currentUserId && event.CreatedBy && String(event.CreatedBy) === String(currentUserId)) {
       cardClass += ' own-message';
     }
@@ -1439,6 +1475,7 @@ function renderEventList(events) {
     // Message header with creator info and avatar
     const header = document.createElement('div');
     header.className = 'message-header';
+
 
     // Avatar (first letter of creator name)
     const avatar = document.createElement('div');
@@ -1455,34 +1492,7 @@ function renderEventList(events) {
     authorInfo.className = 'author-info';
     const author = document.createElement('div');
     author.className = 'author-name';
-    // Set a placeholder while fetching full name
-    author.textContent = 'Loading...';
-    // Fetch full name using CreatedBy (userID)
-    if (event.CreatedBy) {
-      fetch(`${apiBaseUrl}/groups/user/${event.CreatedBy}`)
-        .then(res => res.ok ? res.json() : null)
-        .then(data => {
-          // Try to use the correct property for full name
-          let fullName = data && (data.name || data.fullName || data.username);
-          if (fullName) {
-            author.textContent = fullName;
-            // Update avatar letter to first letter of full name
-            avatar.textContent = fullName.charAt(0).toUpperCase();
-          } 
-          else {
-            author.textContent = `User ${event.CreatedBy}`;
-            avatar.textContent = 'U';
-          }
-        })
-        .catch(() => {
-          author.textContent = `User ${event.CreatedBy}`;
-          avatar.textContent = 'U';
-        });
-    } 
-    else {
-      author.textContent = 'Unknown';
-      avatar.textContent = 'U';
-    }
+    author.textContent = creator;
     const time = document.createElement('div');
     time.className = 'message-time';
     time.textContent = formatEventDate(event.CreatedAt);
@@ -1506,8 +1516,8 @@ function renderEventList(events) {
     const footer = document.createElement('div');
     footer.className = 'event-footer';
 
-    // Add three-dot menu to header for own events
-    if (currentUserId && event.CreatedBy && String(event.CreatedBy) === String(currentUserId)) {
+    // Add three-dot menu to header for own events (robust creator check)
+    if (currentUserId && creatorId && String(creatorId) === String(currentUserId)) {
       // Three-dot vertical menu button
       const menuButton = document.createElement('button');
       menuButton.className = 'event-menu-button';
@@ -1534,114 +1544,116 @@ function renderEventList(events) {
         showEventEditForm(event);
       };
 
-    // Show event edit modal with pre-filled values
-    function showEventEditForm(event) {
-      // Remove any existing modal
-      const existingModal = document.getElementById('eventModalOverlay');
-      if (existingModal) existingModal.remove();
+      // Show event edit modal with pre-filled values
+      function showEventEditForm(event) {
+        // Remove any existing modal
+        const existingModal = document.getElementById('eventModalOverlay');
+        if (existingModal) existingModal.remove();
 
-      // Create overlay
-      const overlay = document.createElement('div');
-      overlay.id = 'eventModalOverlay';
-      overlay.className = 'event-modal-overlay';
+        // Create overlay
+        const overlay = document.createElement('div');
+        overlay.id = 'eventModalOverlay';
+        overlay.className = 'event-modal-overlay';
 
-      // Create modal form container
-      const modal = document.createElement('div');
-      modal.className = 'event-modal-container';
+        // Create modal form container
+        const modal = document.createElement('div');
+        modal.className = 'event-modal-container';
 
-      // Load modal HTML from group.html
-      fetch('group.html')
-        .then(res => res.text())
-        .then(html => {
-          // Extract modal HTML by id
-          const tempDiv = document.createElement('div');
-          tempDiv.innerHTML = html;
-          const modalContent = tempDiv.querySelector('#eventModalTemplate');
-          if (!modalContent) {
-            alert('Event modal template not found in group.html');
-            return;
-          }
-          modal.innerHTML = modalContent.innerHTML;
-          overlay.appendChild(modal);
-          document.body.appendChild(overlay);
+        // Load modal HTML from group.html
+        fetch('group.html')
+          .then(res => res.text())
+          .then(html => {
+            // Extract modal HTML by id
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = html;
+            const modalContent = tempDiv.querySelector('#eventModalTemplate');
+            if (!modalContent) {
+              alert('Event modal template not found in group.html');
+              return;
+            }
+            modal.innerHTML = modalContent.innerHTML;
+            overlay.appendChild(modal);
+            document.body.appendChild(overlay);
 
-          // Attach close (X) button handler
-          const closeBtn = modal.querySelector('.event-modal-close');
-          const form = modal.querySelector('#eventCreateForm');
-          if (closeBtn && form) {
-            closeBtn.onclick = function() {
-              overlay.remove();
-              form.reset();
-            };
-          }
+            // Attach close (X) button handler
+            const closeBtn = modal.querySelector('.event-modal-close');
+            const form = modal.querySelector('#eventCreateForm');
+            if (closeBtn && form) {
+              closeBtn.onclick = function() {
+                overlay.remove();
+                form.reset();
+              };
+            }
 
-          // Pre-fill form fields with event data
-          if (form) {
-            form.querySelector('#eventTitleInput').value = event.Title || '';
-            form.querySelector('#eventDescriptionInput').value = event.Description || '';
-            form.querySelector('#eventDateInput').value = event.EventDate ? event.EventDate.slice(0,10) : '';
-            form.querySelector('#eventStartTimeInput').value = event.StartTime || '';
-            form.querySelector('#eventEndTimeInput').value = event.EndTime || '';
-            form.querySelector('#eventLocationInput').value = event.Location || '';
+            // Pre-fill form fields with event data
+            if (form) {
+              form.querySelector('#eventTitleInput').value = event.Title || '';
+              form.querySelector('#eventDescriptionInput').value = event.Description || '';
+              form.querySelector('#eventDateInput').value = event.EventDate ? event.EventDate.slice(0,10) : '';
+              form.querySelector('#eventStartTimeInput').value = event.StartTime || '';
+              form.querySelector('#eventEndTimeInput').value = event.EndTime || '';
+              form.querySelector('#eventLocationInput').value = event.Location || '';
 
-            // Change modal title to 'Update Event'
-            const modalTitle = modal.querySelector('h2');
-            if (modalTitle) modalTitle.textContent = 'Update Event';
+              // Change modal title to 'Update Event'
+              const modalTitle = modal.querySelector('h2');
+              if (modalTitle) modalTitle.textContent = 'Update Event';
 
-            // Change submit button text to 'Update Event'
-            const submitBtn = form.querySelector('button[type="submit"]');
-            if (submitBtn) submitBtn.textContent = 'Update Event';
+              // Change submit button text to 'Update Event'
+              const submitBtn = form.querySelector('button[type="submit"]');
+              if (submitBtn) submitBtn.textContent = 'Update Event';
 
-            // Attach submit handler for updating event
-            form.onsubmit = async function(e) {
-              e.preventDefault();
-              const title = form.querySelector('#eventTitleInput').value.trim();
-              const description = form.querySelector('#eventDescriptionInput').value.trim();
-              const eventDate = form.querySelector('#eventDateInput').value;
-              const startTime = form.querySelector('#eventStartTimeInput').value;
-              const endTime = form.querySelector('#eventEndTimeInput').value;
-              const location = form.querySelector('#eventLocationInput').value.trim();
-              const token = sessionStorage.getItem('token');
-              const params = new URLSearchParams(window.location.search);
-              const groupId = params.get('id');
+              // Attach submit handler for updating event
+              form.onsubmit = async function(e) {
+                e.preventDefault();
+                const title = form.querySelector('#eventTitleInput').value.trim();
+                const description = form.querySelector('#eventDescriptionInput').value.trim();
+                const eventDate = form.querySelector('#eventDateInput').value;
+                const startTime = form.querySelector('#eventStartTimeInput').value;
+                const endTime = form.querySelector('#eventEndTimeInput').value;
+                const location = form.querySelector('#eventLocationInput').value.trim();
+                const token = sessionStorage.getItem('token');
+                const params = new URLSearchParams(window.location.search);
+                const groupId = params.get('id');
+                const user = getUserFromToken();
+                const userId = user && user.id;
 
-              try {
-                const response = await fetch(`${apiBaseUrl}/groups/events/${event.EventID}`, {
-                  method: 'PATCH',
-                  headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                  },
-                  body: JSON.stringify({
-                    groupId, title, description, eventDate, startTime, endTime, location
-                  })
-                });
-                if (response.ok) {
-                  alert('Event updated successfully!');
-                  overlay.remove();
-                  // Reload events list
-                  await loadGroupEvents(groupId);
+                try {
+                  const response = await fetch(`${apiBaseUrl}/groups/events/${event.EventID}`, {
+                    method: 'PATCH',
+                    headers: {
+                      'Content-Type': 'application/json',
+                      'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                      groupId, title, description, eventDate, startTime, endTime, location, userId
+                    })
+                  });
+                  if (response.ok) {
+                    alert('Event updated successfully!');
+                    overlay.remove();
+                    // Reload events list
+                    await loadGroupEvents(groupId);
+                  } 
+                  else {
+                    const data = await response.json();
+                    alert(data.error || 'Failed to update event');
+                  }
                 } 
-                else {
-                  const data = await response.json();
-                  alert(data.error || 'Failed to update event');
+                catch (err) {
+                  alert('Error updating event');
                 }
-              } 
-              catch (err) {
-                alert('Error updating event');
-              }
-            };
-          }
+              };
+            }
 
-          // Clicking outside closes modal
-          overlay.onclick = function(e) {
-            if (e.target === overlay) overlay.remove();
-          };
-        })
-        .catch(() => {
-          alert('Failed to load event modal template from group.html');
-        });
-    }
+            // Clicking outside closes modal
+            overlay.onclick = function(e) {
+              if (e.target === overlay) overlay.remove();
+            };
+          })
+          .catch(() => {
+            alert('Failed to load event modal template from group.html');
+          });
+      }
 
       // Delete option (uses existing delete logic)
       const deleteOption = document.createElement('button');
@@ -1680,19 +1692,28 @@ function renderEventList(events) {
       dropdownMenu.appendChild(editOption);
       dropdownMenu.appendChild(deleteOption);
 
-      // Toggle dropdown on button click
-      menuButton.onclick = (e) => {
+
+      // Toggle dropdown on button click (fix: prevent immediate close)
+      menuButton.addEventListener('click', (e) => {
         e.stopPropagation();
         // Hide all other dropdowns
         document.querySelectorAll('.event-dropdown').forEach(dropdown => {
-          dropdown.style.display = 'none';
+          if (dropdown !== dropdownMenu) dropdown.style.display = 'none';
         });
         dropdownMenu.style.display = dropdownMenu.style.display === 'block' ? 'none' : 'block';
-      };
+      });
 
-      // Close dropdown when clicking outside
-      document.addEventListener('click', () => {
-        dropdownMenu.style.display = 'none';
+      // Prevent closing when clicking inside the dropdown
+      dropdownMenu.addEventListener('click', (e) => {
+        e.stopPropagation();
+      });
+
+      // Close dropdown when clicking outside both menu button and dropdown
+      document.addEventListener('click', function closeDropdownOnClickOutside(e) {
+        // Only close if the dropdown is open and click is outside
+        if (dropdownMenu.style.display === 'block') {
+          dropdownMenu.style.display = 'none';
+        }
       });
 
       // Positioning: relative parent for dropdown
@@ -1707,40 +1728,6 @@ function renderEventList(events) {
     card.appendChild(footer);
     container.appendChild(card);
   });
-}
-
-// Format event date (YYYY-MM-DD to readable)
-// Converts a date string to a human-readable format
-function formatEventDate(dateStr) {
-  if (!dateStr) return '';
-  const d = new Date(dateStr);
-  return d.toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' });
-}
-
-// Format event time (HH:mm:ss or HH:mm to readable)
-// Converts a time string to a human-readable 12-hour format
-function formatEventTime(timeStr) {
-  console.log('Formatting time:', timeStr);
-  if (!timeStr) return '';
-
-  try {
-    // Parse the ISO time string to a Date object
-    const date = new Date(timeStr);
-
-    // Use toLocaleTimeString to format to 12-hour clock with AM/PM
-    const options = {
-      hour: 'numeric',
-      minute: '2-digit',
-      hour12: true,
-      timeZone: 'UTC' // Ensure UTC to match the 'Z' in ISO string
-    };
-
-    return date.toLocaleTimeString('en-US', options);
-  } 
-  catch (e) {
-    console.error('Invalid time string:', timeStr);
-    return timeStr;
-  }
 }
 
 // Shows the event creation form modal

@@ -90,6 +90,9 @@ const checkMembership = async (req, res) => {
     // Get user ID from JWT token (added by verifyToken middleware)
     const userId = req.user.id || req.user.UserID;
 
+    // Debug log to verify userId and groupId
+    console.log(`[checkMembership] groupId: ${groupId}, userId: ${userId}, req.user:`, req.user);
+
     // Validate parameters
     if (!groupId) {
         return res.status(400).json({ error: 'Group ID is required' });
@@ -97,8 +100,9 @@ const checkMembership = async (req, res) => {
 
     try {
         // Check membership in the DB
-        const isMember = await GroupModel.checkUserMembership(groupId, userId);
-        res.status(200).json({ isMember });
+        const result = await GroupModel.checkUserMembership(groupId, userId);
+        // result is { isMember: true/false }
+        res.status(200).json({ isMember: !!(result && result.isMember) });
     } 
     catch (error) {
         console.error('Error checking membership:', error);
@@ -235,7 +239,7 @@ const deleteChannel = async (req, res) => {
 
 // Get user details by userId (for event author display)
 const getUserDetailsById = async (req, res) => {
-    const userId = req.params.userId;
+    const userId = req.params.id;
     try {
         const user = await GroupModel.getUserDetailsById(userId);
         if (!user) {
