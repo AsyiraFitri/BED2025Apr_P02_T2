@@ -1,27 +1,32 @@
+// Dynamically set the API base URL for local development
 const apiBaseUrl = "http://localhost:3000/api";
 
 // Utility function to get user details from JWT token
+// Decodes the JWT payload to extract user info (e.g. userID, role, username, email)
 function getUserFromToken() {
   const token = sessionStorage.getItem('token');
   if (!token) return null;
-  
   try {
     // Decode JWT payload (base64 decode the middle part)
+    // JWT format: header.payload.signature
     const payload = JSON.parse(atob(token.split('.')[1]));
+    // Return a user object with relevant fields
     return {
-      UserID: payload.userId || payload.UserID,
+      id: payload.id || payload.userId,
       role: payload.role,
       username: payload.username || payload.name,
       email: payload.email
     };
   } 
   catch (error) {
+    // If decoding fails, log error and return null
     console.error('Invalid token:', error);
     return null;
   }
 }
 
 // Loads and displays group details when the page loads
+// Fetches group info, checks user permissions, updates UI and loads members/channels
 async function loadGroupDetails() {
   const params = new URLSearchParams(window.location.search);
   const groupId = params.get('id');
@@ -46,17 +51,38 @@ async function loadGroupDetails() {
       window.location.href = 'auth.html';
       return;
     }
-    
-    const userId = user.UserID;
+
+    const userId = user.id;
     const userRole = user.role;
-    
+    // Log both userId and group.OwnerID for debugging
+    console.log('[loadGroupDetails] userId:', userId, 'group.OwnerID:', group.OwnerID, 'typeof userId:', typeof userId, 'typeof group.OwnerID:', typeof group.OwnerID);
+
     // Determine user permissions (owner or admin have special privileges)
-    const isOwner = group.OwnerID === userId;
+    const isOwner = String(group.OwnerID) === String(userId);
     const isAdmin = userRole === 'admin';
     const hasAdminPrivileges = isOwner || isAdmin;
-    
+
+    // Always show group details for admins (no Join button logic here)
     // Configure UI based on user permissions
-    if (!hasAdminPrivileges) {
+    if (isAdmin) {
+      // Admins: show admin controls, hide leave option
+      document.getElementById('editDescBtn').classList.remove('hidden');
+      document.getElementById('saveDescBtn').classList.add('hidden');
+      document.getElementById('cancelDescBtn').classList.add('hidden');
+      document.getElementById('deleteCommunityBtn').classList.remove('hidden');
+      document.getElementById('channelsSection').style.display = 'block';
+      document.getElementById('leaveCommunityBtn').classList.add('hidden');
+    } 
+    else if (hasAdminPrivileges) {
+      // Owners: show admin controls, hide leave option
+      document.getElementById('editDescBtn').classList.remove('hidden');
+      document.getElementById('saveDescBtn').classList.add('hidden');
+      document.getElementById('cancelDescBtn').classList.add('hidden');
+      document.getElementById('deleteCommunityBtn').classList.remove('hidden');
+      document.getElementById('channelsSection').style.display = 'block';
+      document.getElementById('leaveCommunityBtn').classList.add('hidden');
+    } 
+    else {
       // Members: hide admin controls, show leave option
       document.getElementById('editDescBtn').classList.add('hidden');
       document.getElementById('saveDescBtn').classList.add('hidden');
@@ -64,15 +90,6 @@ async function loadGroupDetails() {
       document.getElementById('deleteCommunityBtn').classList.add('hidden');
       document.getElementById('channelsSection').style.display = 'none';
       document.getElementById('leaveCommunityBtn').classList.remove('hidden');
-    } 
-    else {
-      // Owners/Admins: show admin controls, hide leave option
-      document.getElementById('editDescBtn').classList.remove('hidden');
-      document.getElementById('saveDescBtn').classList.add('hidden');
-      document.getElementById('cancelDescBtn').classList.add('hidden');
-      document.getElementById('deleteCommunityBtn').classList.remove('hidden');
-      document.getElementById('channelsSection').style.display = 'block';
-      document.getElementById('leaveCommunityBtn').classList.add('hidden');
     }
 
     // Display group information in the UI
@@ -107,6 +124,7 @@ async function loadGroupDetails() {
 }
 
 // Fetch and display the total number of group members
+// Calls backend to get member count and updates UI
 async function loadMemberCount(groupId) {
   try {
     const res = await fetch(`${apiBaseUrl}/groups/memberCount/${groupId}`);
@@ -124,6 +142,7 @@ async function loadMemberCount(groupId) {
 }
 
 // Fetch and display a list of group members with their roles
+// Populates the members list in the UI
 async function loadMemberList(groupId) {
   try {
     const res = await fetch(`${apiBaseUrl}/groups/memberList/${groupId}`);
@@ -172,7 +191,7 @@ async function loadMemberList(groupId) {
   }
 }
 
-// Loads channels for the group and populates sidebar and settings
+// Fetch and sort channel list then update sidebar and settings UI
 async function loadChannels(groupId) {
   try {
     const res = await fetch(`${apiBaseUrl}/groups/channels/${groupId}`);
@@ -248,6 +267,7 @@ async function loadChannels(groupId) {
 }
 
 // Add a new channel (admin only)
+// Sends POST request to backend to create a new channel for the group
 async function addChannel() {
   const params = new URLSearchParams(window.location.search);
   const groupId = params.get('id');
@@ -292,6 +312,7 @@ async function addChannel() {
 }
 
 // Delete an existing channel (admin only)
+// Sends DELETE request to backend to remove a channel from the group
 async function deleteChannel(channelName) {
   const params = new URLSearchParams(window.location.search);
   const groupId = params.get('id');
@@ -339,6 +360,7 @@ async function deleteChannel(channelName) {
 
 // Handles channel selection from sidebar
 // Updates UI state, creates chat interface, loads messages and starts polling
+// Called when a user clicks a channel button in the sidebar
 async function selectChannel(channelName, event) {
   // Update sidebar visual state - remove active from all, add to selected
   console.log("Selecting channel:", channelName);
@@ -388,6 +410,7 @@ async function selectChannel(channelName, event) {
 }
 
 // Create complete chat interface in main-content area
+// Builds the chat UI, handles permissions and sets up chat input or event form
 function createChatInterface(channelName) {
   const mainContent = document.getElementById('mainContent');
   console.log(mainContent);
@@ -549,11 +572,50 @@ function createChatInterface(channelName) {
 }
 
 // Add this function to handle event form submission for SQL DB
+// Handles the submission of the event creation form for a group
 async function submitEventForm(groupId) {
-  const title = document.getElementById('eventTitle').value.trim();
-  const description = document.getElementById('eventDescription').value.trim();
-  const date = document.getElementById('eventDate').value;
+  // Use modal input IDs for event creation
+  const title = document.getElementById('eventTitleInput')?.value.trim();
+  const description = document.getElementById('eventDescriptionInput')?.value.trim();
+  const eventDate = document.getElementById('eventDateInput')?.value;
+  const startTime = document.getElementById('eventStartTimeInput')?.value;
+  const endTime = document.getElementById('eventEndTimeInput')?.value;
+  const location = document.getElementById('eventLocationInput')?.value.trim();
   const token = sessionStorage.getItem('token');
+
+  // Improved validation with specific error messages
+  let errorMsg = '';
+  if (!title) {
+    errorMsg += 'Title is required.\n';
+  } 
+  else if (title.length < 3) {
+    errorMsg += 'Title must be at least 3 characters.\n';
+  }
+  if (!description) {
+    errorMsg += 'Description is required.\n';
+  } 
+  else if (description.length < 5) {
+    errorMsg += 'Description must be at least 5 characters.\n';
+  }
+  if (!eventDate) {
+    errorMsg += 'Event date is required.\n';
+  }
+  if (!startTime) {
+    errorMsg += 'Start time is required.\n';
+  }
+  if (!endTime) {
+    errorMsg += 'End time is required.\n';
+  }
+  if (!location) {
+    errorMsg += 'Location is required.\n';
+  } 
+  else if (location.length < 3) {
+    errorMsg += 'Location must be at least 3 characters.\n';
+  }
+  if (errorMsg) {
+    alert(errorMsg.trim());
+    return;
+  }
 
   if (!token) {
     alert('Please log in first');
@@ -562,40 +624,40 @@ async function submitEventForm(groupId) {
   }
 
   try {
-    const response = await fetch(`${apiBaseUrl}/groups/events/${groupId}`, {
+    const response = await fetch(`${apiBaseUrl}/groups/createEvent`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${token}`
       },
       body: JSON.stringify({
-        title,
-        description,
-        date
+        groupId, channelName: 'events', title, description, eventDate, startTime, endTime, location
       })
     });
     if (response.ok) {
       alert('Event created successfully!');
       // Optionally clear form fields
-      document.getElementById('eventTitle').value = '';
-      document.getElementById('eventDescription').value = '';
-      document.getElementById('eventDate').value = '';
+      document.getElementById('eventTitleInput').value = '';
+      document.getElementById('eventDescriptionInput').value = '';
+      document.getElementById('eventDateInput').value = '';
+      document.getElementById('eventStartTimeInput').value = '';
+      document.getElementById('eventEndTimeInput').value = '';
+      document.getElementById('eventLocationInput').value = '';
       // Optionally reload events/messages here
       if (typeof loadGroupEvents === 'function') {
         loadGroupEvents(groupId);
       }
-    } 
-    else {
+    } else {
       const data = await response.json();
       alert(data.error || 'Failed to create event');
     }
-  } 
-  catch (error) {
+  } catch (error) {
     alert('Error creating event');
   }
 };
 
 // Wait for DOM to be fully loaded
+// Sets up event modal logic and loads group data after DOM is ready
 document.addEventListener('DOMContentLoaded', function() {
   // Get references to event modal elements
   const eventOverlay = document.getElementById('eventModalOverlay');
@@ -621,7 +683,6 @@ document.addEventListener('DOMContentLoaded', function() {
     // Handle form submission for creating a new event
     eventForm.addEventListener('submit', async (e) => {
       e.preventDefault();
-      // ...existing event creation logic...
     });
   } 
   else {
@@ -630,6 +691,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // Initializes Firebase and loads all group data
+// On window load, initializes Firebase and loads group details
 window.onload = async function() {
   // Initialize Firebase connection first
   await initializeFirebase();
@@ -638,11 +700,13 @@ window.onload = async function() {
 };
 
 // Opens the settings modal for group management
+// Shows the settings modal dialog
 function openSettingsModal() {
   document.getElementById('settingsModal').style.display = 'block';
 }
 
 // Close the settings modal
+// Hides the settings modal dialog
 function closeSettingsModal() {
   document.getElementById('settingsModal').style.display = 'none';
 }
@@ -662,6 +726,7 @@ function editDescription() {
 
 // Saves the new group description to the server
 // Validates authentication and sends PATCH request
+// Updates the group description in the backend and UI
 function saveDescription() {
   const newText = document.getElementById('descriptionTextarea').value;
   const token = sessionStorage.getItem('token');
@@ -715,10 +780,12 @@ function cancelDescription() {
 
 // Deletes the entire community (admin/owner only)
 // Confirms action and redirects to community list on success
+// Sends DELETE request to backend to remove the group
 function deleteCommunity() {
   const groupId = new URLSearchParams(window.location.search).get('id');
   const token = sessionStorage.getItem('token');
-  
+  const user = getUserFromToken();
+
   // Validate authentication
   if (!token) {
     alert('Please log in first');
@@ -748,6 +815,8 @@ function deleteCommunity() {
           if (errorData && errorData.error) {
             errorMsg = errorData.error;
           }
+          // Log backend error for debugging
+          console.error('[deleteCommunity] Backend error:', errorData);
         } 
         catch (err) {
           console.error('Error parsing response:', err);
@@ -757,12 +826,14 @@ function deleteCommunity() {
     })
     .catch(err => {
       alert('An error occurred while deleting the community.');
+      console.error('[deleteCommunity] Network error:', err);
     });
   }
 }
 
 // Allows a user to leave the group (non-admin users)
 // Confirms action and redirects to community list on success
+// Sends POST request to backend to leave the group
 function leaveCommunity() {
   const groupId = new URLSearchParams(window.location.search).get('id');
   const token = sessionStorage.getItem('token');
@@ -801,6 +872,7 @@ function leaveCommunity() {
 }
 
 // FIREBASE CONFIGURATION AND SETUP
+// Firebase initialization helpers for chat features
 const { initializeApp } = {
   initializeApp: (config) => firebase.initializeApp(config)
 };
@@ -809,7 +881,7 @@ const { getFirestore } = {
   getFirestore: (app) => firebase.firestore()
 };
 
-// Chat API Configuration Constants
+// Chat API Configuration Constants (legacy, not used for fetches)
 const API_BASE_URL = "http://localhost:3000";
 const CHAT_MESSAGES_URL = `${API_BASE_URL}/api/messages`;
 
@@ -826,7 +898,6 @@ async function initializeFirebase() {
     // Fetch Firebase configuration from backend API
     const response = await fetch(`${apiBaseUrl}/groups/firebase-config`);
     const firebaseConfig = await response.json();
-    
     // Initialize Firebase app and Firestore database
     const app = initializeApp(firebaseConfig);
     db = getFirestore(app);
@@ -837,7 +908,7 @@ async function initializeFirebase() {
 }
 
 // Load messages for the current channel from Firebase backend
-// Formats the messages and displays them in the chat area
+// Fetches messages from backend and displays them in the chat area
 async function loadChannelMessages() {
   // Ensure we have the required channel and group information
   if (!currentGroupId || !currentChannel) return;
@@ -876,6 +947,7 @@ async function loadChannelMessages() {
 }
 
 // Display messages in the chat area
+// Renders all chat messages in the UI, with styling for own messages
 function displayMessages(messages) {
   const chatMessages = document.getElementById('chatMessages');
   if (!chatMessages) return;
@@ -915,11 +987,12 @@ function displayMessages(messages) {
 }
 
 // Creates a styled message element matching the admin post design
+// Builds a DOM element for a single chat message, with edit/delete for own messages
 function createMessageElement(message, currentUser) {
   const messageDiv = document.createElement('div');
   
   // Determine if this is the current user's message for special styling
-  const isOwnMessage = message.SenderID === currentUser.UserID;
+  const isOwnMessage = message.SenderID === currentUser.id;
   
   // Style the message container with card-like appearance
   messageDiv.className = `message-container ${isOwnMessage ? 'own-message' : ''}`;
@@ -1048,6 +1121,7 @@ function createMessageElement(message, currentUser) {
 }
 
 // Sends a new message to the current channel via Firebase backend
+// Handles sending a chat message, disables UI while sending, and reloads messages
 async function sendMessage() {
   // Get references to input elements
   const messageInput = document.getElementById('messageInput');
@@ -1062,9 +1136,13 @@ async function sendMessage() {
   // Get user authentication info
   const currentUser = getUserFromToken();
   const token = sessionStorage.getItem("token");
-  
+
   if (!currentUser || !token) {
     alert('Please log in to send messages.');
+    return;
+  }
+  if (!currentUser.id) {
+    alert('User ID is missing. Cannot send message. Please log out and log in again.');
     return;
   }
   
@@ -1118,6 +1196,7 @@ async function sendMessage() {
 }
 
 // Formats message timestamp into user-friendly relative time
+// Converts a timestamp to a human-readable string (e.g. '2h ago', 'just now')
 function formatMessageTime(timestamp) {
   const date = new Date(timestamp);
   const now = new Date();
@@ -1139,6 +1218,7 @@ function formatMessageTime(timestamp) {
 }
 
 // Starts polling for new messages every 30 seconds
+// Sets up interval to reload chat messages for real-time updates
 function startMessagePolling() {
   // Clear any existing polling interval to prevent multiple timers
   if (messagePollingInterval) {
@@ -1163,6 +1243,7 @@ window.addEventListener('beforeunload', function() {
 });
 
 // Edit a message (user's own messages only)
+// Allows user to edit their own chat message, updates backend and UI
 async function editMessage(messageId, messageElement) {
   const messageTextDiv = messageElement.querySelector('.message-text');
   
@@ -1271,6 +1352,7 @@ async function editMessage(messageId, messageElement) {
 }
 
 // Delete a message (user's own messages only)
+// Allows user to delete their own chat message, updates backend and UI
 async function deleteMessage(messageId, messageElement) {
   // Confirm deletion
   if (!confirm('Are you sure you want to delete this message? This action cannot be undone.')) {
@@ -1312,6 +1394,7 @@ async function deleteMessage(messageId, messageElement) {
 }
 
 // Fetch and display all events for the current group
+// Loads all events for the group and displays them in the events channel
 async function loadGroupEvents(groupId) {
   console.log('Loading events for group ID:', groupId);
   if (!groupId) return;
@@ -1328,6 +1411,7 @@ async function loadGroupEvents(groupId) {
 }
 
 // Render a list of event cards in the events channel
+// Builds and displays event cards for each event in the group
 function renderEventList(events) {
   let container = document.getElementById('eventsChannel');
   if (!container) {
@@ -1342,7 +1426,7 @@ function renderEventList(events) {
   }
   // Get current user ID for own-message logic
   const currentUser = getUserFromToken();
-  const currentUserId = currentUser && currentUser.UserID;
+  const currentUserId = currentUser && currentUser.id;
   events.forEach(event => {
     // Create a chat-like message container for each event
     const card = document.createElement('div');
@@ -1626,6 +1710,7 @@ function renderEventList(events) {
 }
 
 // Format event date (YYYY-MM-DD to readable)
+// Converts a date string to a human-readable format
 function formatEventDate(dateStr) {
   if (!dateStr) return '';
   const d = new Date(dateStr);
@@ -1633,6 +1718,7 @@ function formatEventDate(dateStr) {
 }
 
 // Format event time (HH:mm:ss or HH:mm to readable)
+// Converts a time string to a human-readable 12-hour format
 function formatEventTime(timeStr) {
   console.log('Formatting time:', timeStr);
   if (!timeStr) return '';
@@ -1658,6 +1744,7 @@ function formatEventTime(timeStr) {
 }
 
 // Shows the event creation form modal
+// Opens the modal dialog for creating a new event in the group
 function showEventCreationForm() {
   // Remove any existing modal
   const existingModal = document.getElementById('eventModalOverlay');
@@ -1702,15 +1789,47 @@ function showEventCreationForm() {
       if (form) {
         form.onsubmit = async function(e) {
           e.preventDefault();
-          const title = document.getElementById('eventTitleInput').value.trim();
-          const description = document.getElementById('eventDescriptionInput').value.trim();
-          const eventDate = document.getElementById('eventDateInput').value;
-          const startTime = document.getElementById('eventStartTimeInput').value;
-          const endTime = document.getElementById('eventEndTimeInput').value;
-          const location = document.getElementById('eventLocationInput').value.trim();
+          // Always get values from THIS form instance
+          const title = form.elements['eventTitleInput'].value.trim();
+          const description = form.elements['eventDescriptionInput'].value.trim();
+          const eventDate = form.elements['eventDateInput'].value;
+          const startTime = form.elements['eventStartTimeInput'].value;
+          const endTime = form.elements['eventEndTimeInput'].value;
+          const location = form.elements['eventLocationInput'].value.trim();
           const groupId = currentGroupId;
           const channelName = "events";
           const token = sessionStorage.getItem('token');
+
+          // Improved validation with specific error messages
+          let errorMsg = '';
+          if (!title) {
+            errorMsg += 'Title is required.\n';
+          } else if (title.length < 3) {
+            errorMsg += 'Title must be at least 3 characters.\n';
+          }
+          if (!description) {
+            errorMsg += 'Description is required.\n';
+          } else if (description.length < 5) {
+            errorMsg += 'Description must be at least 5 characters.\n';
+          }
+          if (!eventDate) {
+            errorMsg += 'Event date is required.\n';
+          }
+          if (!startTime) {
+            errorMsg += 'Start time is required.\n';
+          }
+          if (!endTime) {
+            errorMsg += 'End time is required.\n';
+          }
+          if (!location) {
+            errorMsg += 'Location is required.\n';
+          } else if (location.length < 3) {
+            errorMsg += 'Location must be at least 3 characters.\n';
+          }
+          if (errorMsg) {
+            alert(errorMsg.trim());
+            return;
+          }
 
           try {
             const response = await fetch(`${apiBaseUrl}/groups/createEvent`, {

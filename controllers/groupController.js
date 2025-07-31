@@ -26,13 +26,29 @@ const saveDesc = async (req, res) => {
 // Delete a group and its members
 const deleteCommunity = async (req, res) => {
     const { groupId } = req.body;
-
     // Validate input
     if (!groupId) {
         return res.status(400).json({ error: 'Group ID is required' });
     }
 
+    // Get user ID from JWT (set by verifyToken middleware)
+    const userId = req.user.id || req.user.UserID;
+
     try {
+        // Check if user is the actual owner (not admin)
+        const pool = await sql.connect(config);
+        const result = await pool.request()
+            .input('GroupID', sql.Int, groupId)
+            .query('SELECT OwnerID FROM HobbyGroups WHERE GroupID = @GroupID');
+        const row = result.recordset[0];
+        if (!row) {
+            return res.status(404).json({ error: 'Group not found' });
+        }
+        // Compare ownerID with userId
+        if (row.OwnerID != userId) {
+            console.warn(`Delete group denied: OwnerID in DB = ${row.OwnerID}, userId from token = ${userId}`);
+            return res.status(403).json({ error: 'Only the group owner can delete this group' });
+        }
         // Delete the group and all associated members from the DB
         await GroupModel.deleteGroupWithMembers(groupId);
         res.status(200).json({ message: 'Community and all members deleted successfully' });
@@ -46,7 +62,7 @@ const deleteCommunity = async (req, res) => {
 // User leaves a group
 const leaveGroup = async (req, res) => {
     const { groupId } = req.body;
-    const userId = req.user.UserID;
+    const userId = req.user.id || req.user.UserID;
 
     if (!groupId) {
         return res.status(400).json({ error: 'Group ID is required' });
@@ -72,7 +88,7 @@ const leaveGroup = async (req, res) => {
 const checkMembership = async (req, res) => {
     const { groupId } = req.params;
     // Get user ID from JWT token (added by verifyToken middleware)
-    const userId = req.user.UserID;
+    const userId = req.user.id || req.user.UserID;
 
     // Validate parameters
     if (!groupId) {

@@ -18,7 +18,7 @@ const getAllGroups = async (req, res) => {
 
 // Create a new hobby group
 const createGroup = async (req, res) => {
-  const ownerId = req.user.UserID;
+  const ownerId = req.user.id || req.user.UserID;
   const { groupName, groupDescription } = req.body;
   if (!groupName) return res.status(400).json({ error: 'Group name is required' });
   try {
@@ -61,8 +61,8 @@ const loginUser = async (req, res) => {
 
 // Join a user to a group
 const joinGroup = async (req, res) => {
-  const userId = req.user.UserID;
-  const fullName = `${req.user.first_name} ${req.user.last_name}`.trim();
+  const userId = req.user.id || req.user.UserID;
+  const fullName = `${req.user.first_name || req.user.username || ''} ${req.user.last_name || ''}`.trim();
   const { groupId } = req.body;
   try {
     const result = await CommunityModel.joinGroup(userId, groupId, fullName);

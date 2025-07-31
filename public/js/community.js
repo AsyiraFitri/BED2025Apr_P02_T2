@@ -30,7 +30,9 @@ function getUserFromToken() {
     );
 
     // Parse the JSON string and return the resulting user object
-    return JSON.parse(jsonPayload);
+    const payload = JSON.parse(jsonPayload);
+    payload.id = payload.id || payload.userId;
+    return payload;
   } 
   catch (error) {
     // If any error occurs during decoding/parsing, log it and return null

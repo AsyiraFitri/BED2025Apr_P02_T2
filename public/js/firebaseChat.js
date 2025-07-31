@@ -26,11 +26,11 @@ function getUserFromToken(token) {
     const decoded = jwt.verify(cleanToken, process.env.JWT_SECRET_KEY);
     
     return {
-      userId: decoded.UserID,
-      userName: `${decoded.first_name} ${decoded.last_name}`.trim(),
+      userId: decoded.UserID || decoded.id,
+      userName: `${decoded.first_name || decoded.username || ''} ${decoded.last_name || ''}`.trim(),
       email: decoded.email,
-      firstName: decoded.first_name,
-      lastName: decoded.last_name
+      firstName: decoded.first_name || decoded.username || '',
+      lastName: decoded.last_name || ''
     };
   } catch (error) {
     console.error('Error extracting user from token:', error);

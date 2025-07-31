@@ -33,21 +33,21 @@ function verifyToken(req, res, next) {
 
     console.log('Decoded token payload:', decoded); // Debug log
     
-    // Check if the decoded token has user ID
-    if (!decoded.id) {
+    // Support both 'id' and 'UserID' in the token payload
+    const userId = decoded.id || decoded.UserID;
+    if (!userId) {
       console.error('No user ID found in token payload'); // Debug log
       return res.status(403).json({ error: 'Invalid token payload' });
     }
 
-    // Set req.user - now simply using decoded.id
     req.user = {
-      id: decoded.id,
+      id: userId, // Always set .id for consistency
       email: decoded.email,
       role: decoded.role,
       first_name: decoded.first_name,
       last_name: decoded.last_name,
+      UserID: userId // Also set UserID for legacy code if needed
     };
-
     console.log('Set req.user to:', req.user); // Debug log
     next();
   });

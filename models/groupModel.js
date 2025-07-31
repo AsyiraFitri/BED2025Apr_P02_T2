@@ -83,7 +83,12 @@ async function checkUserMembership(groupId, userId) {
                 LEFT JOIN Members m ON m.UserID = u.UserID AND m.GroupID = @GroupID
                 WHERE u.UserID = @UserID
             `);
-        return result.recordset[0].isMember === 1;
+        // Check for empty result or missing property
+        if (!result || !result.recordset || result.recordset.length === 0) {
+            return { isMember: false };
+        }
+        const row = result.recordset[0];
+        return { isMember: !!(row && (row.isMember === 1 || row.isMember === true)) };
     } 
     catch (error) {
         throw new Error(`Database error in checkUserMembership: ${error.message}`);

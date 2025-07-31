@@ -59,8 +59,12 @@ router.post('/createEvent', verifyToken, validateGroupOwnership, validateEvent, 
     if (!groupId || !title || !eventDate || !startTime || !endTime || !location) {
       return res.status(400).json({ error: 'Missing required event fields.' });
     }
-    const creatorId = user.UserID || user.userId;
-
+    
+    const creatorId = user.id || user.UserID || user.userId;
+    if (!creatorId) {
+      return res.status(400).json({ error: 'User ID not found in token.' });
+    }
+    
     // Call the model function with all fields
     await groupModel.createEvent(groupId, channelName, title, description, eventDate, startTime, endTime, location, creatorId);
     res.json({ success: true, message: 'Event created successfully.' });
