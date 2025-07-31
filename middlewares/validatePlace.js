@@ -14,7 +14,7 @@ function validatePlaceData(req, res, next) {
 // check if place already exists (for Create operation)
 async function checkSavedPlace(req, res, next) {
   const { placeName } = req.body;
-  const userId = req.user.UserID; // `req.user` is populated by an external JWT middleware
+  const userId = req.user.id || req.user.UserID; // `req.user` is populated by an external JWT middleware
     console.log("Checking if place exists for userId:", userId, "with placeName:", placeName);
   try {
     const existingPlace = await placeModel.checkSavedPlace(userId, placeName);

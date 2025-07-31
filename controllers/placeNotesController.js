@@ -3,7 +3,7 @@ const placeNotesModel = require("../models/placeNotesModel");
 // get all notes associated with a specific user's address
 async function getNotesForUserAddress(req, res) {
   try {
-    const userId = parseInt(req.params.userId);
+    const userId = req.user.id || req.user.UserID;
     const address = req.params.address; // address to check for notes
 
     const notes = await placeNotesModel.getNotesByAddressForUser(userId, address);
@@ -21,8 +21,8 @@ async function getNotesForUserAddress(req, res) {
 // create a new note for a specific address
 async function createNoteForAddress(req, res) {
   try {
-    const { userId, address, noteText } = req.body;
-
+    const { address, noteText } = req.body;
+    const userId = req.user.id || req.user.UserID;
     await placeNotesModel.createPlaceNoteForAddress(userId, address, noteText);
 
     res.status(201).json({ message: "Note created successfully" });

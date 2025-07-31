@@ -3,7 +3,7 @@ const placeModel = require("../models/placeModel");
 // function to get all the places saved by a specific user
 async function getUserPlaces(req, res) {
   try {
-    const userId = parseInt(req.params.userId);
+    const userId = req.user.id || req.user.UserID; // get user ID from the authenticated token (not from URL)
     const places = await placeModel.getUserPlaces(userId);
     res.json(places);
   } catch (error) {
@@ -14,7 +14,8 @@ async function getUserPlaces(req, res) {
 // function to create and save a new place for a user
 async function createPlace(req, res) {
   try {
-    const { userId, placeName, address, latitude, longitude } = req.body;
+    const { placeName, address, latitude, longitude } = req.body;
+    const userId = req.user.id || req.user.UserID;
     await placeModel.createPlace(userId, placeName, address, latitude, longitude);
     res.status(201).json({ message: "Place created" });
   } catch (error) {

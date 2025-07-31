@@ -1,10 +1,65 @@
+// helper function to retrieve user from sessionStorage
+function getUserFromToken() {
+  const token = sessionStorage.getItem('token');
+  
+  if (!token) {
+    return null;
+  }
+
+  // Split token into three parts: [header].[payload].[signature]
+  const base64Payload = token.split('.')[1];
+
+  // Decode the base64-encoded payload
+  const decodedPayload = atob(base64Payload);
+
+  // Parse the payload as JSON and return the user info
+  try {
+    const user = JSON.parse(decodedPayload);
+    return user;  // This will be the decoded user data
+  } catch (error) {
+    console.error('Error decoding token:', error);
+    return null;
+  }
+}
+
+
+// function to check authentication status
+function checkUserAuthentication() {
+  const token = sessionStorage.getItem('token');
+  
+  if (!token) {
+    alert('Please log in first');
+    window.location.href = 'auth.html';
+    return null;
+  }
+
+  try {
+    const user = getUserFromToken();
+    if (!user) {
+      alert('Please log in again');
+      sessionStorage.removeItem('token');
+      window.location.href = 'auth.html';
+      return null;
+    }
+    return user;
+  } catch (error) {
+    console.error('Error parsing user data:', error);
+    alert('Please log in again');
+    sessionStorage.removeItem('token');
+    window.location.href = 'auth.html';
+    return null;
+  }
+}
+
 const token = sessionStorage.getItem('token');  // jwt stored in sessionStorage
-const user = JSON.parse(sessionStorage.getItem('user'));  // user info from sessionStorage
 const noteTextInput = document.getElementById("noteText");  // text input for note content
 let editingNoteId = null;  // initially, no note is being edited
 
 // wait for the dom to fully load before executing the code
 document.addEventListener("DOMContentLoaded", () => {
+  const user = checkUserAuthentication();
+  if (!user) return; // stop execution if not authenticated
+  // api base url and token setup
   const apiBaseUrl = "http://localhost:3000/api";  // api base url
 
   const fromSelect = document.getElementById("fromSelect");  // dropdown for "from address"
@@ -12,7 +67,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const noteModal = document.getElementById("noteModal");  // modal for adding/editing notes
   const saveNoteBtn = document.getElementById("saveNoteBtn");  // button to save the note
   const notesList = document.getElementById("notesList");  // list where notes will be displayed
-  const userId = user.UserID;  // get the user id from the session storage
+  const userId = user.UserID || user.id;  // get the user id from the session storage
 
   // check if the user is authenticated
   if (!token) {
@@ -20,7 +75,7 @@ document.addEventListener("DOMContentLoaded", () => {
     return;
   }
 
-  if (!user.UserID) {
+  if (!userId) {
     console.error("no userID is found, please log in.");
     return;
   }
@@ -54,7 +109,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       // fetch notes for the "from" address if set
       if (fromAddress !== "") {
-        const responseFrom = await fetch(`${apiBaseUrl}/place-notes/${user.UserID}/${fromAddress}`, {
+        const responseFrom = await fetch(`${apiBaseUrl}/place-notes/${fromAddress}`, {
           method: 'GET',
           headers: {
             'Authorization': `Bearer ${token}`  // attach token in the authorization header
@@ -71,7 +126,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       // fetch notes for the "to" address if set
       if (toAddress !== "") {
-        const responseTo = await fetch(`${apiBaseUrl}/place-notes/${user.UserID}/${toAddress}`, {
+        const responseTo = await fetch(`${apiBaseUrl}/place-notes/${toAddress}`, {
           method: 'GET',
           headers: {
             'Authorization': `Bearer ${token}`  // attach token in the authorization header
@@ -82,7 +137,11 @@ document.addEventListener("DOMContentLoaded", () => {
           console.error("error fetching 'to' address notes");
         } else {
           const notesTo = await responseTo.json();
+          if (notesTo.length === 0) {
+          allNotes.push({ address: toAddress, message: "No notes available for this address" });
+        } else {
           allNotes.push(...notesTo);  // add 'to' notes to allNotes
+        }
         }
       }
 
@@ -222,6 +281,7 @@ document.addEventListener("DOMContentLoaded", () => {
     editingNoteId = null;  // reset editing state
     saveNoteBtn.textContent = "save note";  // reset button text to "save note"
     document.getElementById("modalHeader").textContent = "add a note";  // reset header text
+    document.getElementById("addressSelection").style.display = 'block'
     noteTextInput.value = '';  // clear the input field
     noteModal.style.display = "block";  // show the modal
   });
@@ -282,6 +342,11 @@ async function deleteNote(noteId) {
   const confirmation = confirm("are you sure you want to delete this note?");
   if (!confirmation) {
     return;
+  }
+    // check if the token exists
+  if (!token) {
+    console.error("No token found, cannot delete note.");
+    return;  // stop execution if no token is available
   }
 
   try {

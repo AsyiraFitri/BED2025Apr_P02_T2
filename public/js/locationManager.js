@@ -1,8 +1,27 @@
 // helper function to retrieve user from sessionStorage
 function getUserFromToken() {
-  const user = sessionStorage.getItem('user');
-  return user ? JSON.parse(user) : null;
+  const token = sessionStorage.getItem('token');
+  
+  if (!token) {
+    return null;
+  }
+
+  // Split token into three parts: [header].[payload].[signature]
+  const base64Payload = token.split('.')[1];
+
+  // Decode the base64-encoded payload
+  const decodedPayload = atob(base64Payload);
+
+  // Parse the payload as JSON and return the user info
+  try {
+    const user = JSON.parse(decodedPayload);
+    return user;  // This will be the decoded user data
+  } catch (error) {
+    console.error('Error decoding token:', error);
+    return null;
+  }
 }
+
 
 // function to check authentication status
 function checkUserAuthentication() {
@@ -37,7 +56,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // api base url and token setup
   const apiBaseUrl = "http://localhost:3000";
   const token = sessionStorage.getItem('token');  // jwt stored in sessionStorage
-  const userId = user.UserID;
+  const userId = user.UserID || user.id;
   const savedPlacesList = document.getElementById("savedPlacesList");
   const addPlaceModal = document.getElementById("addPlaceModal");
   const closeModalBtn = document.querySelector(".close-btn");
@@ -53,14 +72,14 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    if (!user.UserID) {
+    if (!userId) {
       console.error("no userid is found, please log in.");
       return;
     }
 
     try {
       // fetch request to get places data
-      const response = await fetch(`${apiBaseUrl}/api/places/${userId}`, {
+      const response = await fetch(`${apiBaseUrl}/api/places/`, {
         headers: {
           'Authorization': `Bearer ${token}` // send token in headers
         }
@@ -218,7 +237,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // function to populate modal for editing a selected place
   function editPlace(placeId) {
-    fetch(`${apiBaseUrl}/api/places/${userId}`, {
+    fetch(`${apiBaseUrl}/api/places`, {
       headers: {
         'Authorization': `Bearer ${token}`, // send token in headers
       }
@@ -256,15 +275,15 @@ document.addEventListener("DOMContentLoaded", () => {
     try {
       // fetch request to update place
       const response = await fetch(`${apiBaseUrl}/api/places/${placeId}`, {
-        method: "PUT",
-        headers: { 
-          'Authorization': `Bearer ${token}`,  
-          "Content-Type": "application/json" 
+        method: "PUT",  
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify(updatedData),
-      });
+      })
 
-      const result = await response.json();
+      const result = await response.json(); 
       if (response.ok) {
         alert(result.message);
         loadSavedPlaces(); // reload saved places
@@ -283,7 +302,7 @@ document.addEventListener("DOMContentLoaded", () => {
       // fetch request to delete place
       const response = await fetch(`${apiBaseUrl}/api/places/${placeId}`, {
         headers: { 
-          'Authorization': `Bearer ${token}`  // corrected to use backticks
+          'Authorization': `Bearer ${token}`  
         },
         method: "DELETE",
       });
