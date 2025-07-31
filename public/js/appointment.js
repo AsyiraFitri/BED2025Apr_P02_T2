@@ -125,8 +125,9 @@ async function updateAppointmentDisplay() {
   try {
     // 1. Get current user from sessionStorage
     const user = JSON.parse(sessionStorage.getItem('user'));
+    
     // 2. Fetch all appointments for this user from backend
-    const res = await fetch(`/api/appointments/user/${user.UserID}`, {
+    const res = await fetch(`/api/appointments/user`, {
       headers: getAuthHeaders()
     });
 

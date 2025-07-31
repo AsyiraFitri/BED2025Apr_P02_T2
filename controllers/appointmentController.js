@@ -1,12 +1,17 @@
 const appointmentModel = require("../models/appointmentModel");
 
 // Get all appointments by user ID
-// - Uses validated user ID from middleware (req.validatedUserId)
+// - Uses authenticated user ID from token (req.user.id)
 // - Calls the model function to fetch all appointments for the user
 async function getAppointmentsByUserId(req, res) {
   try {
-    // Get validated user ID from middleware
-    const userId = req.validatedUserId;
+    // Check if user exists in request
+    if (!req.user) {
+      return res.status(401).json({ error: "User not authenticated" });
+    }
+    
+    // Get authenticated user ID from JWT token (set by verifyToken middleware)
+    const userId = req.user.id; // Changed from req.user.UserID to req.user.id
     
     // Call model to fetch appointments
     const appointments = await appointmentModel.getAppointmentsByUserId(userId);

@@ -1,8 +1,8 @@
 // Get all medication schedules (with checkbox state) for the authenticated user
-// - Uses authenticated user ID from token (req.user.UserID)
+// - Uses authenticated user ID from token (req.user.id)
 async function getMedicationSchedulesByUserId(req, res) {
   try {
-    const userId = req.user.UserID;
+    const userId = req.user.id; // Changed from req.user.UserID to req.user.id
     const schedules = await medicationModel.getMedicationSchedulesByUserId(userId);
     res.json(schedules);
   } catch (error) {
@@ -13,12 +13,12 @@ async function getMedicationSchedulesByUserId(req, res) {
 const medicationModel = require("../models/medicationModel");
 
 // Get all medications for the authenticated user
-// - Uses authenticated user ID from token (req.user.UserID)
+// - Uses authenticated user ID from token (req.user.id)
 // - Calls model to fetch all medications for the user
 async function getMedicationsByUserId(req, res) {
   try {
     // Get authenticated user ID from JWT token (set by verifyToken middleware)
-    const userId = req.user.UserID;
+    const userId = req.user.id; // Changed from req.user.UserID to req.user.id
     
     // Call model to fetch medications
     const medications = await medicationModel.getMedicationsByUserId(userId);
