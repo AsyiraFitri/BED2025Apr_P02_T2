@@ -10,11 +10,15 @@ router.patch('/events/:eventId', verifyToken, validateGroupOwnership, validateEv
   try {
     const eventId = req.params.eventId;
     const { groupId, title, description, eventDate, startTime, endTime, location } = req.body;
+    const userId = req.user && (req.user.id || req.user.userId);
     if (!groupId || !title || !description || !eventDate || !startTime || !endTime || !location) {
       return res.status(400).json({ error: 'Missing required event fields.' });
     }
+    if (!userId) {
+      return res.status(401).json({ error: 'User ID not found in token.' });
+    }
     // Call the model function to update the event
-    await groupModel.updateEvent(eventId, groupId, title, description, eventDate, startTime, endTime, location);
+    await groupModel.updateEvent(eventId, groupId, title, description, eventDate, startTime, endTime, location, userId);
     res.json({ success: true, message: 'Event updated successfully.' });
   } 
   catch (error) {
@@ -64,7 +68,7 @@ router.post('/createEvent', verifyToken, validateGroupOwnership, validateEvent, 
     if (!creatorId) {
       return res.status(400).json({ error: 'User ID not found in token.' });
     }
-    
+
     // Call the model function with all fields
     await groupModel.createEvent(groupId, channelName, title, description, eventDate, startTime, endTime, location, creatorId);
     res.json({ success: true, message: 'Event created successfully.' });

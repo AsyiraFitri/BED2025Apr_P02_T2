@@ -1,18 +1,10 @@
-// =============================
-// Medication management logic (frontend)
-// Handles CRUD, UI, and daily tracking for medications
-// =============================
-
-// Import utility functions for UI feedback and API headers
 import { showToast, showDeleteModal, showSaveFeedback, getAuthHeaders } from './health-utils.js';
 
-// State variables to track which medication is pending deletion or being edited
-// Used to coordinate modal actions and form state
 let pendingDeleteMedicationId = null;
 let currentEditingMedicationId = null;
-let todayTrackingData = {}; // Store today's tracking data for checkboxes
+let todayTrackingData = {}; // Store today's tracking data
 
-// Generate schedule times based on frequency (1-4 times per day)
+// Generate schedule times based on frequency
 function generateSchedule(frequency) {
     const schedules = {
         1: ["Morning"],
@@ -23,13 +15,10 @@ function generateSchedule(frequency) {
     return schedules[frequency] || [];
 }
 
-// Create a DOM element for a medication card, including edit/delete icons and details
-// id: MedicationID, medication: medication object
-// Returns a DOM element representing the medication card
+// Create medication card element
 function createMedicationCard(id, medication) {
     const scheduleList = generateSchedule(medication.Frequency);
 
-    // Build HTML for each schedule time with checkbox
     const scheduleHTML = scheduleList.map(time => {
         const isChecked = loadCheckboxState(id, time);
         return `
@@ -47,7 +36,6 @@ function createMedicationCard(id, medication) {
     card.className = 'medication-card position-relative';
     card.dataset.medicationId = id;
 
-    // Build card HTML with medication details (name, dosage, schedule, notes)
     card.innerHTML = `
         <div class="d-flex justify-content-between align-items-start mb-2">
             <div class="edit-icon-container" style="cursor:pointer;">
@@ -64,66 +52,51 @@ function createMedicationCard(id, medication) {
         <div class="medication-note">Note: ${medication.Notes || 'No special instructions'}</div>
     `;
 
-    // Highlight card when selected (for UI feedback)
+    // Card selection highlight on click
     card.addEventListener('click', () => {
         document.querySelectorAll('.medication-card').forEach(c => c.classList.remove('selected'));
         card.classList.add('selected');
     });
 
-    // Attach edit/delete event listeners to icons
     attachMedicationCardEventListeners(card);
     return card;
 }
 
-// Attach edit/delete event listeners to the card's icons
-// card: DOM element for the medication card
+// Attach edit/delete event listeners to medication card buttons
 function attachMedicationCardEventListeners(card) {
     const editBtn = card.querySelector('.edit-icon-container');
     const deleteBtn = card.querySelector('.delete-icon');
     const id = card.dataset.medicationId;
 
-    // Edit button opens the edit modal for this medication
     if (editBtn) {
         editBtn.addEventListener('click', e => {
-            e.stopPropagation(); // Prevent card click event
+            e.stopPropagation();
             editMedication(id);
         });
     }
 
-    // Delete button triggers the delete confirmation modal for this medication
     if (deleteBtn) {
         deleteBtn.addEventListener('click', e => {
-            e.stopPropagation(); // Prevent card click event
+            e.stopPropagation();
             pendingDeleteMedicationId = id;
             showDeleteModal(id, 'medication');
         });
     }
 }
 
-// Fetch all medications for the current user and render them as cards in the UI
-// Also loads today's checkbox tracking state from backend
-// Returns nothing (renders UI directly)
+// Load medications and render, including checkbox state from DB
 async function updateMedicationDisplay() {
     try {
-        // 1. Get current user from sessionStorage
         const user = JSON.parse(sessionStorage.getItem('user'));
 
-        // 2. Fetch all medications for this user from backend
         const medicationsRes = await fetch(`/api/medications/user`, { headers: getAuthHeaders() });
         if (!medicationsRes.ok) throw new Error('Failed to fetch medications');
         const medications = await medicationsRes.json();
 
-        // 3. Validate response is an array
-        if (!Array.isArray(medications)) {
-            console.error('API did not return an array:', medications);
-            document.getElementById('medicationContainer').innerHTML = '<p class="text-danger">Unexpected response from server. Please contact support.</p>';
-            return;
-        }
-
-        // 4. Fetch today's checkbox tracking state for all medications
         const schedulesRes = await fetch('/api/medications/schedules/user', { headers: getAuthHeaders() });
 
-        // 5. Load schedule data (if request succeeds)
+
+        // Load schedule data (if request succeeds)
         if (schedulesRes.ok) {
             const schedules = await schedulesRes.json();
             todayTrackingData = {};
@@ -135,26 +108,20 @@ async function updateMedicationDisplay() {
             todayTrackingData = {}; // Reset if fetch fails
         }
 
-        // 6. Render each medication as a card in the UI
         const container = document.getElementById('medicationContainer');
         container.innerHTML = '';
 
-        if (medications.length > 0) {
+        if (Array.isArray(medications)) {
             medications.forEach(med => {
-                // Validate required fields
-                if (!med.MedicationID || !med.Name) {
-                    console.warn('Skipping invalid medication object:', med);
-                    return;
-                }
                 const card = createMedicationCard(med.MedicationID, med);
                 container.appendChild(card);
             });
+        } else if (medications?.MedicationID) {
+            container.appendChild(createMedicationCard(medications.MedicationID, medications));
         } else {
-            // No medications found
-            container.innerHTML = '<p class="text-warning">No medications found. Add a medication to get started!</p>';
+            container.innerHTML = '<p class="text-danger">Login/Sign Up to add a medication!</p>';
         }
     } catch (error) {
-        // 7. Handle fetch or parse errors
         console.error('Error fetching medications:', error);
         document.getElementById('medicationContainer').innerHTML = '<p class="text-danger">Failed to load medications.</p>';
     }
@@ -192,7 +159,7 @@ async function editMedication(id) {
         document.querySelector(`[data-medication-id="${id}"]`).classList.add('selected');
     } catch (error) {
         console.error('Error fetching medication:', error);
-        showToast('Failed to load medication data', 'error');
+        showToast('Failed to load medication data', 'success');
     }
 }
 
@@ -216,7 +183,7 @@ async function handleDeleteConfirmation() {
         showToast('Medication deleted successfully');
     } catch (error) {
         console.error('Error deleting medication:', error);
-        showToast('Error deleting medication', 'error');
+        showToast('Error deleting medication', 'success');
     } finally {
         pendingDeleteMedicationId = null;
         if (modal) modal.hide();
@@ -254,7 +221,7 @@ async function handleMedicationFormSubmit(e) {
         currentEditingMedicationId = null;
     } catch (error) {
         console.error('Error saving medication:', error);
-        showToast('Error saving medication', 'error');
+        showToast('Error saving medication', 'success');
     }
 }
 

@@ -1,10 +1,21 @@
 const express = require('express');
 const router = express.Router();
-const controller = require('../controllers/friendController');
+const friendController = require('../controllers/friendController');
 
-router.post('/request', controller.sendFriendRequest);
-router.get('/:userId', controller.getFriends);
-router.put('/respond', controller.respondToFriendRequest);
-router.delete('/:userId/:friendId', controller.deleteFriend);
+// Send a friend request
+router.post('/', friendController.sendFriendRequest);
+
+// Get all friends (including accepted and pending)
+router.get('/:userId', friendController.getFriends);
+
+// Respond to friend request (accept/reject)
+router.put('/:friendId', friendController.respondToFriendRequest);
+
+// Delete a friend request or friend
+router.delete('/:friendId', friendController.deleteFriend);
+
+// New routes for incoming and sent requests
+router.get('/incoming/:userId', friendController.getIncomingRequests);
+router.get('/sent/:userId', friendController.getSentRequests);
 
 module.exports = router;
