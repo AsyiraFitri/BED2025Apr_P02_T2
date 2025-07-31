@@ -585,21 +585,17 @@
       }
     }
     ,
-    "/api/appointments/user/{userId}": {
+    "/api/appointments/user": {
       "get": {
         "tags": ["Appointments"],
-        "summary": "Get all appointments for a user",
-        "parameters": [
-          { "name": "userId", "in": "path", "required": true, "type": "integer" }
-        ],
+        "summary": "Get all appointments for the authenticated user (userId from JWT)",
         "responses": {
           "200": {
             "description": "List of appointments",
             "schema": { "type": "array", "items": { "$ref": "#/definitions/Appointment" } }
           },
           "500": { "description": "Failed to fetch appointments" }
-        }
-        ,
+        },
         "security": [ { "Bearer": [] } ]
       }
     },
@@ -722,21 +718,17 @@
       }
     }
     ,
-    "/api/medications/user/{userId}": {
+    "/api/medications/user": {
       "get": {
         "tags": ["Medications"],
-        "summary": "Get all medications for a user",
-        "parameters": [
-          { "name": "userId", "in": "query", "required": true, "type": "integer" }
-        ],
+        "summary": "Get all medications for the authenticated user (userId from JWT)",
         "responses": {
           "200": {
             "description": "List of medications",
             "schema": { "type": "array", "items": { "$ref": "#/definitions/Medication" } }
           },
           "500": { "description": "Failed to fetch medications" }
-        }
-        ,
+        },
         "security": [ { "Bearer": [] } ]
       },
       "post": {
@@ -795,21 +787,17 @@
         "security": [ { "Bearer": [] } ]
       }
     },
-    "api/medications/schedules/user" :{
+    "/api/medications/schedules/user": {
       "get": {
         "tags": ["Medications"],
-        "summary": "Get all medication schedules (with checkbox state) for the authenticated user",
-        "parameters": [
-          { "name": "userId", "in": "query", "required": true, "type": "integer" }
-        ],
+        "summary": "Get all medication schedules (with checkbox state) for the authenticated user (userId from JWT)",
         "responses": {
           "200": {
             "description": "List of medication schedules",
             "schema": { "type": "array", "items": { "$ref": "#/definitions/MedicationSchedule" } }
           },
           "500": { "description": "Failed to fetch medication schedules" }
-        }
-        ,
+        },
         "security": [ { "Bearer": [] } ]
       }
     },

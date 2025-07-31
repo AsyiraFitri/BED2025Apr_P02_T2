@@ -20,23 +20,6 @@ function validateAppointmentId() {
   };
 }
 
-// Validate user ID parameter
-// - Checks if :userid parameter is a valid integer
-// - Adds validated user ID to req.validatedUserId for controller use
-function validateUserId() {
-  return (req, res, next) => {
-    const userId = parseInt(req.params.userid);
-    
-    // Check if user ID is a valid number
-    if (isNaN(userId) || userId <= 0) {
-      return res.status(400).json({ error: "Invalid user ID - must be a positive number" });
-    }
-    
-    // Add validated user ID to request object
-    req.validatedUserId = userId;
-    next();
-  };
-}
 
 // Validate appointment data from request body
 // - Checks all required fields for appointment creation/update
@@ -60,6 +43,11 @@ function validateAppointmentData(req, res, next) {
   }
   if (!DoctorName) {
     return res.status(400).json({ error: "DoctorName is required" });
+  }
+  // Only allow letters and spaces for DoctorName
+  const doctorNameRegex = /^[A-Za-z\s]+$/;
+  if (!doctorNameRegex.test(DoctorName.trim())) {
+    return res.status(400).json({ error: "DoctorName must contain only letters and spaces" });
   }
   if (!UserID) {
     return res.status(400).json({ error: "UserID is required" });
@@ -102,6 +90,5 @@ function validateAppointmentData(req, res, next) {
 
 module.exports = {
   validateAppointmentId,
-  validateUserId,
   validateAppointmentData
 };

@@ -11,8 +11,8 @@ const {
 // All appointment routes require user authorization first
 router.use(verifyToken);
 
-// GET /appointments/user - Get all appointments for a user
-// Uses authenticated user ID from JWT token
+// GET /appointments/user/:userid - Get all appointments for a user
+// Uses validation middleware to check user ID before calling controller
 router.get('/user', appointmentController.getAppointmentsByUserId);
 
 // GET /appointments/:id - Get single appointment by ID

@@ -1,9 +1,3 @@
-// =============================
-// Appointment management logic (frontend)
-// Handles CRUD, UI, and Google Calendar sync for appointments
-// =============================
-
-// Import utility functions for UI feedback and API headers
 import {
   showToast,
   showDeleteModal,
@@ -11,28 +5,45 @@ import {
   getAuthHeaders
 } from './health-utils.js';
 
-// Import Google Calendar sync functions
 import {
   createGoogleEvent,
+  updateGoogleEvent,
   deleteGoogleEvent,
+  syncAllAppointments,
   updateGoogleCalendarButtons
 } from './calendar.js';
 
-// State variables to track which appointment is pending deletion or being edited
-// Used to coordinate modal actions and form state
+// Module state management
 let pendingDeleteAppointmentId = null;
 let currentEditingAppointmentId = null;
 
-// ...removed DOM element references and form field mapping for consistency with medication.js...
+// DOM element references for easy access
+const elements = {
+  get container() { return document.getElementById('appointmentContainer'); },
+  get form() { return document.getElementById('appointmentForm'); },
+  get modal() { return document.getElementById('appointmentModal'); },
+  get modalLabel() { return document.getElementById('appointmentModalLabel'); },
+  get addButton() { return document.getElementById('addAppointmentBtn'); },
+  get deleteButton() { return document.getElementById('confirmDeleteBtn'); }
+};
 
-// Create a DOM element for an appointment card, including edit/delete icons and details
-// id: AppointmentID, appointment: appointment object
-// Returns a DOM element representing the appointment card
+// Form field mapping for cleaner code
+const formFields = {
+  date: 'editAppointmentDate',
+  time: 'editAppointmentTime',
+  title: 'editAppointmentTitle',
+  location: 'editAppointmentLocation',
+  doctor: 'editDoctorName',
+  notes: 'editAppointmentNotes'
+};
+
+// Create appointment card element
 function createAppointmentCard(id, appointment) {
   const card = document.createElement('div');
   card.className = 'appointment-card';
   card.dataset.appointmentId = id;
-  // Build card HTML with appointment details (date, time, title, location, doctor, notes)
+  
+  // Build card HTML
   card.innerHTML = `
     <div class="d-flex justify-content-between align-items-start mb-2">
       <div class="edit-icon-container" style="cursor:pointer;" title="Edit appointment">
@@ -53,43 +64,40 @@ function createAppointmentCard(id, appointment) {
     <div class="doctor-name">${appointment.DoctorName}</div>
     <div class="appointment-note">Note: ${appointment.Notes || 'No special instructions'}</div>
   `;
-  // Highlight card when selected (for UI feedback)
+  
+  // Card selection highlight on click
   card.addEventListener('click', () => {
     document.querySelectorAll('.appointment-card').forEach(c => c.classList.remove('selected'));
     card.classList.add('selected');
   });
-  // Attach edit/delete event listeners to icons
+
   attachAppointmentCardEventListeners(card);
   return card;
 }
 
-// Attach edit/delete event listeners to the card's icons
-// card: DOM element for the appointment card
+// Attach edit/delete event listeners to appointment card buttons
 function attachAppointmentCardEventListeners(card) {
   const editBtn = card.querySelector('.edit-icon-container');
   const deleteBtn = card.querySelector('.delete-icon');
   const id = card.dataset.appointmentId;
 
-  // Edit button opens the edit modal for this appointment
   if (editBtn) {
     editBtn.addEventListener('click', e => {
-      e.stopPropagation(); // Prevent card click event
+      e.stopPropagation();
       editAppointment(id);
     });
   }
 
-  // Delete button triggers the delete confirmation modal for this appointment
   if (deleteBtn) {
     deleteBtn.addEventListener('click', e => {
-      e.stopPropagation(); // Prevent card click event
+      e.stopPropagation();
       pendingDeleteAppointmentId = id;
       showDeleteModal(id, 'appointment');
     });
   }
 }
 
-// Format a date string as "Mon, 1 Jan" for display
-// dateStr: string in YYYY-MM-DD format
+/* Date/Time Formatting Functions */
 function formatDate(dateStr) {
   try {
     const options = { weekday: 'short', day: 'numeric', month: 'short' };
@@ -102,10 +110,9 @@ function formatDate(dateStr) {
   }
 }
 
-// Format a time string as 12-hour format (e.g., 2:30 PM) for display
-// timeStr: string in HH:MM format
 function formatTime(timeStr) {
   if (!timeStr || !timeStr.match(/^\d{2}:\d{2}$/)) return 'Invalid time'; // Basic validation
+  
   try {
     const [hour, minute] = timeStr.split(':');
     const h = parseInt(hour, 10); // Convert to number
@@ -119,120 +126,108 @@ function formatTime(timeStr) {
   }
 }
 
-// Fetch all appointments for the current user and render them as cards in the UI
-// Returns an array of appointment objects (or [] if none)
+// Load appointments and render
 async function updateAppointmentDisplay() {
   try {
-    // 1. Get current user from sessionStorage
     const user = JSON.parse(sessionStorage.getItem('user'));
-    
-    // 2. Fetch all appointments for this user from backend
     const res = await fetch(`/api/appointments/user`, {
       headers: getAuthHeaders()
     });
 
     if (!res.ok) throw new Error(`Failed to fetch appointments: ${res.statusText}`);
 
-    // 3. Parse appointments array from response
     const appointments = await res.json();
-    const container = document.getElementById('appointmentContainer');
+    const container = elements.container;
     container.innerHTML = '';
 
-    // 4. Render each appointment as a card in the UI
     if (Array.isArray(appointments) && appointments.length > 0) {
       appointments.forEach(app => {
         const card = createAppointmentCard(app.AppointmentID, app);
         container.appendChild(card);
       });
-      return appointments;
+      
+      return appointments; // Return the appointments array for calendar sync
     } else if (appointments?.AppointmentID) {
-      // Single appointment object (not array)
       container.appendChild(createAppointmentCard(appointments.AppointmentID, appointments));
-      return [appointments];
+      return [appointments]; // Return single appointment as array for calendar sync
     } else {
-      // No appointments found
       container.innerHTML = '<p class="text-danger">No appointments found.</p>';
-      return [];
+      return []; // Return empty array when no appointments for calendar sync
     }
   } catch (error) {
-    // 5. Handle fetch or parse errors
     console.error('Error fetching appointments:', error);
-    const container = document.getElementById('appointmentContainer');
-    if (container) container.innerHTML = '<p class="text-danger">Failed to load appointments.</p>';
-    return [];
+    elements.container.innerHTML = '<p class="text-danger">Failed to load appointments.</p>';
+    return []; // Return empty array on error for calendar sync
   }
 }
 
-// Show modal for adding a new appointment (reset form and set modal title)
-// Prepares the form and opens the modal for a new appointment
-function addNewAppointment() {
-  currentEditingAppointmentId = 'new'; // Set state to "new"
-  const form = document.getElementById('appointmentForm');
-  if (form) form.reset(); // Clear form fields
-  const modalLabel = document.getElementById('appointmentModalLabel');
-  if (modalLabel) modalLabel.textContent = 'Add New Appointment';
-  const modal = document.getElementById('appointmentModal');
-  if (modal) new bootstrap.Modal(modal).show(); // Show modal
+// Show modal for adding new appointment
+function openNewAppointmentModal() {
+  currentEditingAppointmentId = 'new';
+  elements.form.reset();
+  elements.modalLabel.textContent = 'Add New Appointment';
+  new bootstrap.Modal(elements.modal).show();
 }
 
 // Load appointment data into form and show modal for editing
-// id: AppointmentID to edit
 async function editAppointment(id) {
   currentEditingAppointmentId = id;
+  
   try {
-    // 1. Fetch appointment details from backend
     const res = await fetch(`/api/appointments/${id}`, {
       headers: getAuthHeaders()
     });
+
     if (!res.ok) throw new Error('Appointment not found');
     const appointment = await res.json();
-
-    // 2. Populate form fields with appointment data
-    const form = document.getElementById('appointmentForm');
-    if (form) form.reset();
-    document.getElementById('editAppointmentDate').value = new Date(appointment.AppointmentDate).toISOString().split('T')[0];
-    document.getElementById('editAppointmentTime').value = appointment.AppointmentTime.slice(0, 5);
-    document.getElementById('editAppointmentTitle').value = appointment.Title;
-    document.getElementById('editAppointmentLocation').value = appointment.Location;
-    document.getElementById('editDoctorName').value = appointment.DoctorName;
-    document.getElementById('editAppointmentNotes').value = appointment.Notes || '';
-
-    // 3. Set modal title and show modal
-    const modalLabel = document.getElementById('appointmentModalLabel');
-    if (modalLabel) modalLabel.textContent = 'Edit Appointment Details';
-    const modal = document.getElementById('appointmentModal');
-    if (modal) new bootstrap.Modal(modal).show();
-
-    // 4. Highlight the selected card in the UI
+    
+    elements.form.reset();
+    document.getElementById(formFields.date).value = new Date(appointment.AppointmentDate).toISOString().split('T')[0];
+    document.getElementById(formFields.time).value = appointment.AppointmentTime.slice(0, 5);
+    document.getElementById(formFields.title).value = appointment.Title;
+    document.getElementById(formFields.location).value = appointment.Location;
+    document.getElementById(formFields.doctor).value = appointment.DoctorName;
+    document.getElementById(formFields.notes).value = appointment.Notes || '';
+    
+    elements.modalLabel.textContent = 'Edit Appointment Details';
+    new bootstrap.Modal(elements.modal).show();
+    
     document.querySelectorAll('.appointment-card').forEach(c => c.classList.remove('selected'));
     const selectedCard = document.querySelector(`[data-appointment-id="${id}"]`);
     if (selectedCard) selectedCard.classList.add('selected');
+    
   } catch (error) {
-    // 5. Handle fetch or parse errors
-    console.error('Error fetching appointment:', error);
-    showToast('Failed to load appointment data', 'error');
+    console.error('Edit appointment error:', error);
+    showToast('Failed to load appointment data', 'success');
   }
 }
 
-// Handle form submission for adding or editing an appointment
-// e: submit event from form
+// Submit handler for add/edit appointment form
 async function handleAppointmentFormSubmit(e) {
-  e.preventDefault(); // Prevent default form submission
+  e.preventDefault();
+
 
   try {
-    // 1. Gather form data from input fields
     const user = JSON.parse(sessionStorage.getItem('user'));
+    const doctorNameValue = document.getElementById(formFields.doctor).value;
+    // Frontend validation for DoctorName: only letters and spaces
+    const doctorNameRegex = /^[A-Za-z\s]+$/;
+    if (!doctorNameRegex.test(doctorNameValue.trim())) {
+      showToast('Doctor Name must contain only letters and spaces', 'success');
+      document.getElementById(formFields.doctor).focus();
+      return;
+    }
     const appointmentData = {
-      AppointmentDate: document.getElementById('editAppointmentDate').value,
-      AppointmentTime: document.getElementById('editAppointmentTime').value,
-      Title: document.getElementById('editAppointmentTitle').value,
-      Location: document.getElementById('editAppointmentLocation').value,
-      DoctorName: document.getElementById('editDoctorName').value,
-      Notes: document.getElementById('editAppointmentNotes').value || 'No special instructions',
+      AppointmentDate: document.getElementById(formFields.date).value,
+      AppointmentTime: document.getElementById(formFields.time).value,
+      Title: document.getElementById(formFields.title).value,
+      Location: document.getElementById(formFields.location).value,
+      DoctorName: doctorNameValue,
+      Notes: document.getElementById(formFields.notes).value || 'No special instructions',
       UserID: user.UserID
     };
 
-    // 2. If editing, preserve the GoogleEventID for sync
+    // For updates, preserve the existing GoogleEventID
     if (currentEditingAppointmentId !== 'new') {
       try {
         const existingResponse = await fetch(`/api/appointments/${currentEditingAppointmentId}`, {
@@ -247,7 +242,6 @@ async function handleAppointmentFormSubmit(e) {
       }
     }
 
-    // 3. Save appointment to backend (POST for new, PUT for edit)
     const res = await fetch(
       currentEditingAppointmentId === 'new' ? '/api/appointments' : `/api/appointments/${currentEditingAppointmentId}`,
       {
@@ -259,101 +253,95 @@ async function handleAppointmentFormSubmit(e) {
 
     if (!res.ok) throw new Error('Failed to save appointment');
 
-    // 4. Refresh UI with updated appointments
     const savedAppointment = await res.json();
     await updateAppointmentDisplay();
 
-    // 5. Hide modal after save
-    const modal = bootstrap.Modal.getInstance(document.getElementById('appointmentModal'));
+    const modal = bootstrap.Modal.getInstance(elements.modal);
     if (modal) modal.hide();
 
     showSaveFeedback('#appointmentForm .btn-confirm');
     showToast(`Appointment ${currentEditingAppointmentId === 'new' ? 'created' : 'updated'} successfully`, 'success');
-
-    // 6. Get the appointment ID for Google sync
+    
+    // Get the appointment ID - for new appointments, get from response; for updates, use current ID
     let appointmentId;
     if (currentEditingAppointmentId === 'new') {
+      // For new appointments, the response should contain the new appointment data
       appointmentId = savedAppointment.AppointmentID || savedAppointment.appointmentId || savedAppointment.id;
     } else {
+      // For updates, use the current editing ID
       appointmentId = currentEditingAppointmentId;
     }
-
+    
     console.log('Appointment ID for sync:', appointmentId);
     currentEditingAppointmentId = null;
 
-    // 7. If Google tokens exist, sync with Google Calendar (with delay for user feedback)
+    // Sync with Google Calendar if tokens are available (with delay to show both toasts)
     const tokensStr = sessionStorage.getItem('google_tokens');
     if (tokensStr && appointmentId) {
       setTimeout(async () => {
-        let googleSuccess = false;
-
         try {
+          // Fetch the updated appointment data to sync with Google Calendar
           const appointmentResponse = await fetch(`/api/appointments/${appointmentId}`, {
             headers: getAuthHeaders()
           });
-
+          
           if (appointmentResponse.ok) {
             const appointmentData = await appointmentResponse.json();
             console.log('Appointment data for sync:', appointmentData);
-
+            
+            // Use createGoogleEvent which automatically handles create vs update logic
             const result = await createGoogleEvent(appointmentData);
-            googleSuccess = !!result;
+            
+            if (result) {
+              showToast('Google Calendar updated successfully', 'success');
+            } else {
+              showToast('Google Calendar sync failed', 'warning');
+            }
           } else {
             console.error('Failed to fetch appointment for sync');
           }
         } catch (syncError) {
           console.error('Error syncing with Google Calendar:', syncError);
-        }
-
-        // Show toast separately after sync completes
-        if (googleSuccess) {
-          showToast('Google Calendar updated successfully', 'success');
-        } else {
           showToast('Google Calendar sync failed', 'warning');
         }
-
-      }, 2500); // 2.5 second delay after saving to backend
+      }, 2000); // 2 second delay to show both toasts
     }
 
-
   } catch (error) {
-    // 8. Handle save errors
     console.error('Error saving appointment:', error);
-    showToast('Failed to save appointment', 'error');
+    showToast('Failed to save appointment', 'success');
   }
 }
 
-// Handle confirmation and deletion of an appointment (and Google event if needed)
-// Deletes both the appointment from backend and the Google Calendar event if present
+// Confirm deletion modal handling
 async function handleAppointmentDeletion() {
-  if (!pendingDeleteAppointmentId) return; // No appointment selected
+  if (!pendingDeleteAppointmentId) return;
 
   const modalElement = document.getElementById('confirmDeleteModal');
   const modal = bootstrap.Modal.getInstance(modalElement);
 
   try {
-    // 1. If Google tokens exist, try to delete the Google Calendar event first
     const tokensStr = sessionStorage.getItem('google_tokens');
     let appointment = null;
     let googleSuccess = false;
 
     if (tokensStr) {
-      // Fetch appointment details to get GoogleEventID
+      // Get appointment details first
       const res = await fetch(`/api/appointments/${pendingDeleteAppointmentId}`, {
         headers: getAuthHeaders()
       });
 
       if (res.ok) {
         appointment = await res.json();
-        // Delete Google event if it exists
+
+        // Try to delete Google Calendar event first
         if (appointment?.GoogleEventID) {
           googleSuccess = await deleteGoogleEvent(appointment);
-          console.log('Google Calendar event deleted:', googleSuccess);
         }
       }
     }
 
-    // 2. Delete appointment from backend
+    // Delete from backend
     const res = await fetch(`/api/appointments/${pendingDeleteAppointmentId}`, {
       method: 'DELETE',
       headers: getAuthHeaders()
@@ -361,11 +349,10 @@ async function handleAppointmentDeletion() {
 
     if (!res.ok) throw new Error('Delete failed');
 
-    // 3. Refresh UI after deletion
     await updateAppointmentDisplay();
     showToast('Appointment deleted successfully', 'success');
 
-    // 4. Show Google Calendar result after a delay if there was a sync attempt
+    // Show Google Calendar result after a delay if there was a sync attempt
     if (tokensStr && appointment?.GoogleEventID) {
       setTimeout(() => {
         if (googleSuccess) {
@@ -377,70 +364,64 @@ async function handleAppointmentDeletion() {
     }
 
   } catch (error) {
-    // 5. Handle deletion errors
     console.error('Deletion error:', error);
-    showToast('Error deleting appointment', 'error');
+    showToast('Error deleting appointment', 'success');
   } finally {
-    // 6. Reset state and hide modal
     pendingDeleteAppointmentId = null;
     if (modal) modal.hide();
   }
 }
 
 
-// ========== EVENT LISTENERS ========== 
+// ========== EVENT LISTENERS ==========
 
-// Set up all event listeners for form, buttons, and modals
-// Ensures UI is interactive and state is managed correctly
 function initializeEventListeners() {
-  // Form submission handler (add/edit appointment)
-  const form = document.getElementById('appointmentForm');
-  if (form) {
-    form.addEventListener('submit', handleAppointmentFormSubmit);
+  // Form submission
+  if (elements.form) {
+    elements.form.addEventListener('submit', handleAppointmentFormSubmit);
   }
 
-  // Add appointment button handler (opens add modal)
-  const addBtn = document.getElementById('addAppointmentBtn');
-  if (addBtn) {
-    addBtn.addEventListener('click', addNewAppointment);
+  // Add appointment button
+  if (elements.addButton) {
+    elements.addButton.addEventListener('click', openNewAppointmentModal);
   }
 
-  // Confirm delete button handler (deletes appointment)
-  const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
-  if (confirmDeleteBtn) {
-    confirmDeleteBtn.addEventListener('click', handleAppointmentDeletion);
-    confirmDeleteBtn.addEventListener('click', () => {
-      confirmDeleteBtn.blur(); // Remove focus after click
+  // Confirm delete button
+  if (elements.deleteButton) {
+    elements.deleteButton.addEventListener('click', handleAppointmentDeletion);
+    elements.deleteButton.addEventListener('click', () => {
+      elements.deleteButton.blur(); // Remove focus after click
     });
   }
 
-  // Modal event handlers for form reset and focus management
-  const modal = document.getElementById('appointmentModal');
-  if (modal) {
-    modal.addEventListener('hidden.bs.modal', () => {
+  // Modal event handlers
+  if (elements.modal) {
+    // Reset form and selection on modal hide
+    elements.modal.addEventListener('hidden.bs.modal', () => {
       currentEditingAppointmentId = null;
-      if (form) form.reset();
+      if (elements.form) elements.form.reset();
       document.querySelectorAll('.appointment-card').forEach(c => c.classList.remove('selected'));
     });
 
-    modal.addEventListener('hidden.bs.modal', () => {
-      if (document.activeElement && modal.contains(document.activeElement)) {
+    // Fix for aria-hidden focus warning
+    elements.modal.addEventListener('hidden.bs.modal', () => {
+      if (document.activeElement && elements.modal.contains(document.activeElement)) {
         document.activeElement.blur();
       }
     });
   }
 
-  // Fix for Bootstrap modals focus issues (return focus to add button)
+  // Fix for Bootstrap modals focus issues
   const modalIds = ['appointmentModal', 'appointmentModalLabel', 'confirmDeleteModal'];
   modalIds.forEach(id => {
-    const modalEl = document.getElementById(id);
-    if (modalEl) {
-      modalEl.addEventListener('hide.bs.modal', () => {
+    const modal = document.getElementById(id);
+    if (modal) {
+      modal.addEventListener('hide.bs.modal', () => {
         setTimeout(() => {
           const active = document.activeElement;
-          if (active && modalEl.contains(active)) {
+          if (active && modal.contains(active)) {
             active.blur();
-            const safeFocusTarget = addBtn || document.body;
+            const safeFocusTarget = elements.addButton || document.body;
             safeFocusTarget.focus();
           }
         }, 0);
@@ -449,15 +430,14 @@ function initializeEventListeners() {
   });
 }
 
-// Initialize event listeners and UI on DOM load
-// Ensures everything is set up when the page loads
+// Setup on DOM load
 document.addEventListener('DOMContentLoaded', () => {
   initializeEventListeners();
-  updateGoogleCalendarButtons(); // Show correct Google button state
-  updateAppointmentDisplay();    // Render appointments
+  updateGoogleCalendarButtons();
+  updateAppointmentDisplay();
 });
 
-// Public API (exported for use in other modules)
+// Public API
 export {
   updateAppointmentDisplay
 };

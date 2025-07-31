@@ -28,12 +28,12 @@ function updateGoogleCalendarButtons() {
         connectBtn.style.display = 'none';
         syncBtn.style.display = 'inline-block';
         syncBtn.disabled = false;
-        hint.textContent = 'You are connected! You can sync your appointments now.';
+        hint.textContent = 'Sync your appointments to Google Calendar';
     } else {
         connectBtn.style.display = 'inline-block';
         syncBtn.style.display = 'inline-block';
         syncBtn.disabled = true;
-        hint.textContent = 'Please connect your Google Calendar first.';
+        hint.textContent = 'Connect your Google account to sync appointments.';
     }
 }
 
@@ -226,7 +226,7 @@ document.addEventListener('DOMContentLoaded', () => {
         syncBtn.addEventListener('click', async () => {
             const tokensStr = sessionStorage.getItem(TOKEN_STORAGE_KEY);
             if (!tokensStr) {
-                showToast('Please connect your Google account first.', 'error');
+                showToast('Connect your Google account to sync appointments.', 'success');
                 return;
             }
 
@@ -234,7 +234,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 await syncAllAppointments();
             } catch (err) {
                 console.error('Error syncing appointments:', err);
-                showToast('Failed to sync appointments', 'error');
+                showToast('Failed to sync appointments', 'success');
             }
         });
     }   

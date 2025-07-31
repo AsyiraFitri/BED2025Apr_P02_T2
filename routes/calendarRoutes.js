@@ -16,7 +16,6 @@ router.get('/auth/google/callback', controller.handleCallback);
 
 router.post('/google/sync', express.json(), controller.syncAppointment);
 
-
 router.put('/google/sync/:eventId', express.json(), controller.editAppointment);
 
 // DELETE /google/sync/:eventId
