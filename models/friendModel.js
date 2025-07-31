@@ -17,12 +17,19 @@ async function sendFriendRequest(userId, friendId) {
 // Get friends and pending requests
 async function getFriends(userId) {
   const pool = await sql.connect(dbConfig);
-  return pool.request()
-    .input('UserID', sql.NVarChar, userId)
+  const result = await pool.request()
+    .input('UserID', sql.Int, userId)
     .query(`
-      SELECT * FROM Friends 
-      WHERE (UserID = @UserID OR FriendUserID = @UserID)
+      SELECT 
+        CASE 
+          WHEN UserID = @UserID THEN FriendUserID 
+          ELSE UserID 
+        END AS FriendUserID
+      FROM Friends
+      WHERE Status = 'accepted' 
+        AND (UserID = @UserID OR FriendUserID = @UserID);
     `);
+  return result.recordset; // Array of { FriendUserID }
 }
 
 // Respond to friend request

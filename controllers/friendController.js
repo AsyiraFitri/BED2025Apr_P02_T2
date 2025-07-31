@@ -19,12 +19,15 @@ async function sendFriendRequest(req, res) {
 }
 
 async function getFriends(req, res) {
-  const userId = req.params.userId;
+  const userId = parseInt(req.params.userId);
   try {
-    const result = await friendModel.getFriends(userId);
-    res.json(result.recordset);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.log("Fetching friends for userID:", userId);
+    const friends = await friendModel.getFriends(userId);
+    console.log("Friends found:", friends);
+    res.json(friends);
+  } catch (error) {
+    console.error("Error in getFriends:", error);
+    res.status(500).json({ error: "Server error" });
   }
 }
 
