@@ -72,7 +72,7 @@ async function loginUser(req, res) {
     // Generate JWT token
     const token = jwt.sign(
       { 
-        UserID: user.recordset[0].UserID, 
+        id: user.recordset[0].UserID, 
         email: user.recordset[0].email,
         first_name: user.recordset[0].first_name,
         last_name: user.recordset[0].last_name,

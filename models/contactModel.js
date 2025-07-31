@@ -1,49 +1,79 @@
-// models/emergency-contactModel.js
 const sql = require('mssql');
 const dbConfig = require('../dbConfig');
 
-async function createContact(contactData) {
-  const { name, phone, userID } = contactData;
-
+async function getAllContactsByUser(userId) {
+  let pool;
   try {
-    const pool = await sql.connect(dbConfig);
-
+    pool = await sql.connect(dbConfig);
     const result = await pool.request()
-      .input('Name', sql.NVarChar(100), name)
-      .input('Phone', sql.NVarChar(20), phone)
-      .input('UserID', sql.Int, userID)
+      .input('userId', sql.Int, userId)
       .query(`
-        INSERT INTO EmergencyContacts (name, phone, user_id)
-        VALUES (@Name, @Phone, @UserID)
+        SELECT 
+          ContactID,
+          Name,
+          Relationship,
+          PhoneNumber,
+          Note,
+          IsStarred,
+          user_id
+        FROM EmergencyContact 
+        WHERE user_id = @userId 
+        ORDER BY IsStarred DESC, Name ASC
       `);
-
-    return result;
+    
+    console.log(`Found ${result.recordset.length} contacts for user ${userId}`);
+    return result.recordset;
   } catch (error) {
-    console.error('Database error (createContact):', error);
+    console.error('Database error in getAllContactsByUser:', error);
     throw error;
+  } finally {
+    if (pool) {
+      await pool.close();
+    }
   }
 }
 
-async function getAllContactsByUser(userID) {
+async function createContact({ name, relationship, phone, note, isStarred, userId }) {
+  let pool;
   try {
-    const pool = await sql.connect(dbConfig);
+    console.log('Creating contact with userId:', userId);
+    
+    if (!userId) {
+      throw new Error('userId is required');
+    }
 
+    pool = await sql.connect(dbConfig);
     const result = await pool.request()
-      .input('UserID', sql.Int, userID)
+      .input('name', sql.NVarChar(100), name)
+      .input('relationship', sql.NVarChar(100), relationship)
+      .input('phone', sql.NVarChar(20), phone)
+      .input('note', sql.NVarChar(255), note)
+      .input('isStarred', sql.Bit, isStarred ? 1 : 0)
+      .input('userId', sql.Int, userId)
       .query(`
-        SELECT * FROM EmergencyContacts
-        WHERE user_id = @UserID
-        ORDER BY name ASC
+        INSERT INTO EmergencyContact (Name, Relationship, PhoneNumber, Note, IsStarred, user_id)
+        OUTPUT INSERTED.ContactID, INSERTED.Name, INSERTED.Relationship, INSERTED.PhoneNumber, 
+               INSERTED.Note, INSERTED.IsStarred, INSERTED.user_id
+        VALUES (@name, @relationship, @phone, @note, @isStarred, @userId)
       `);
 
-    return result.recordset;
+    if (result.recordset.length === 0) {
+      throw new Error('Failed to create contact - no data returned');
+    }
+
+    console.log('Contact created successfully:', result.recordset[0]);
+    return result.recordset[0];
   } catch (error) {
-    console.error('Database error (getAllContactsByUser):', error);
+    console.error('Database error in createContact:', error);
     throw error;
+  } finally {
+    if (pool) {
+      await pool.close();
+    }
   }
 }
 
 module.exports = {
-  createContact,
-  getAllContactsByUser
+  getAllContactsByUser,
+  createContact
 };
