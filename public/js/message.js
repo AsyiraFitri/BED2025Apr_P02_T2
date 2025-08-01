@@ -205,32 +205,72 @@ async function sendMessage() {
 }
 
 async function deleteMessage(id) {
-  if (confirm('Are you sure you want to delete this message?')) {
-    try {
-      const res = await fetch(`/api/messages/${id}`, { method: 'DELETE' });
-      if (!res.ok) throw new Error('Failed to delete message');
-      await selectFriend(currentFriendId);
-    } catch (error) {
-      console.error("Error deleting message:", error);
-      alert('Failed to delete message');
+  if (!confirm('Are you sure you want to delete this message?')) {
+    return;
+  }
+
+  try {
+    console.log(`Deleting message ${id}`);
+    const response = await fetch(`http://localhost:3000/api/messages/${id}`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${sessionStorage.getItem('token')}`
+      }
+    });
+
+    const data = await response.json();
+    console.log("Delete response:", data);
+
+    if (!response.ok) {
+      throw new Error(data.error || 'Failed to delete message');
     }
+
+    await selectFriend(currentFriendId); // Refresh the conversation
+  } catch (error) {
+    console.error("Delete message error:", error);
+    alert(`Failed to delete message: ${error.message}`);
+    
+    // Detailed error logging
+    console.group("Delete Error Details");
+    console.log("Message ID:", id);
+    console.log("Current Friend ID:", currentFriendId);
+    console.groupEnd();
   }
 }
 
 async function editMessage(id, oldText) {
-  const newText = prompt("Edit your message:", oldText);
-  if (newText && newText !== oldText) {
-    try {
-      const res = await fetch(`/api/messages/${id}`, {
+  try {
+    const newText = prompt("Edit your message:", oldText);
+    if (newText && newText !== oldText) {
+      console.log(`Updating message ${id} to: "${newText}"`);
+      
+      const response = await fetch(`http://localhost:3000/api/messages/${id}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${sessionStorage.getItem('token')}`
+        },
         body: JSON.stringify({ messageText: newText })
       });
-      if (!res.ok) throw new Error('Failed to update message');
-      await selectFriend(currentFriendId);
-    } catch (error) {
-      console.error("Error updating message:", error);
-      alert('Failed to update message');
+
+      const data = await response.json();
+      console.log("Edit response:", data);
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to update message');
+      }
+
+      await selectFriend(currentFriendId); // Refresh the conversation
     }
+  } catch (error) {
+    console.error("Edit message error:", error);
+    alert(`Failed to edit message: ${error.message}`);
+    
+    // Detailed error logging
+    console.group("Edit Error Details");
+    console.log("Message ID:", id);
+    console.log("Original Text:", oldText);
+    console.log("Current Friend ID:", currentFriendId);
+    console.groupEnd();
   }
 }

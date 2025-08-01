@@ -35,21 +35,24 @@ async function getConversation(user1, user2) {
 // Update a specific message
 async function updateMessage(messageId, newText) {
   const pool = await sql.connect(dbConfig);
-  return pool.request()
+  const result = await pool.request()
     .input('MessageID', sql.Int, messageId)
     .input('MessageText', sql.NVarChar, newText)
     .query(`
-      UPDATE Messages SET MessageText = @MessageText
+      UPDATE Messages 
+      SET MessageText = @MessageText
       WHERE MessageID = @MessageID
     `);
+  return result;
 }
 
 // Delete a specific message
 async function deleteMessage(messageId) {
   const pool = await sql.connect(dbConfig);
-  return pool.request()
+  const result = await pool.request()
     .input('MessageID', sql.Int, messageId)
     .query(`DELETE FROM Messages WHERE MessageID = @MessageID`);
+  return result;
 }
 
 module.exports = {
