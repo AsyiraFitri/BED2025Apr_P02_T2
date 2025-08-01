@@ -24,8 +24,8 @@ function showToast(message, type = 'success') {
 
   toastMsg.textContent = message;
 
-  // Clear previous bg classes
-  toastEl.classList.remove('bg-success', 'bg-danger', 'bg-warning', 'bg-info');
+  // Clear previous bg classes (including custom ones)
+  toastEl.classList.remove('bg-success', 'bg-danger', 'bg-warning', 'bg-info', 'bg-error');
 
   // Add class based on type
   toastEl.classList.add(`bg-${type}`);

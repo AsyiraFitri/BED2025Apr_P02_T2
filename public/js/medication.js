@@ -108,8 +108,8 @@ function attachMedicationCardEventListeners(card) {
     }
 }
 
-// Load medications and render, including checkbox state from DB
-// Returns nothing; updates the UI with medication cards and checkbox state
+// Fetch all medications for the current user and render them as cards in the UI
+// Returns an array of medication objects (or [] if none)
 async function updateMedicationDisplay() {
     try {
         // 1. Get current user from sessionStorage
@@ -117,7 +117,7 @@ async function updateMedicationDisplay() {
 
         // 2. Fetch all medications for this user from backend
         const medicationsRes = await fetch(`/api/medications/user`, { headers: getAuthHeaders() });
-        if (!medicationsRes.ok) throw new Error('Failed to fetch medications');
+        if (!medicationsRes.ok) throw new Error(`Failed to fetch medications: ${medicationsRes.statusText}`);
         const medications = await medicationsRes.json();
 
         // 3. Fetch today's schedule tracking data (checkbox state)
@@ -135,25 +135,31 @@ async function updateMedicationDisplay() {
             todayTrackingData = {}; // Reset if fetch fails
         }
 
-        // 5. Render medication cards in the UI
+        // 5. Render each medication as a card in the UI
         const container = document.getElementById('medicationContainer');
         container.innerHTML = '';
 
-        if (Array.isArray(medications)) {
+        if (Array.isArray(medications) && medications.length > 0) {
             medications.forEach(med => {
                 const card = createMedicationCard(med.MedicationID, med);
                 container.appendChild(card);
             });
+            return medications;
         } else if (medications?.MedicationID) {
+            // Single medication object (not array)
             container.appendChild(createMedicationCard(medications.MedicationID, medications));
+            return [medications];
         } else {
             // No medications found
-            container.innerHTML = '<p class="text-danger">Login/Sign Up to add a medication!</p>';
+            container.innerHTML = '<p class="text-muted">Click the Add button to create a new medication.</p>';
+            return [];
         }
     } catch (error) {
         // 6. Handle fetch or parse errors
         console.error('Error fetching medications:', error);
-        document.getElementById('medicationContainer').innerHTML = '<p class="text-danger">Failed to load medications.</p>';
+        const container = document.getElementById('medicationContainer');
+        if (container) container.innerHTML = '<p class="text-danger">Failed to load medications.</p>';
+        return [];
     }
 }
 

@@ -150,7 +150,7 @@ async function updateAppointmentDisplay() {
       return [appointments];
     } else {
       // No appointments found
-      container.innerHTML = '<p class="text-danger">No appointments found.</p>';
+      container.innerHTML = '<p class="text-muted">Click the Add button to create a new appointment.</p>';
       return [];
     }
   } catch (error) {
@@ -221,17 +221,25 @@ async function handleAppointmentFormSubmit(e) {
   try {
     // 1. Gather form data from input fields
     const user = JSON.parse(sessionStorage.getItem('user'));
+    const doctorName = document.getElementById('editDoctorName').value;
+    
+    // 2. Validate doctor name - no numbers allowed
+    if (/\d/.test(doctorName)) {
+      showToast('Invalid field: Doctor name cannot contain numbers', 'error');
+      return;
+    }
+    
     const appointmentData = {
       AppointmentDate: document.getElementById('editAppointmentDate').value,
       AppointmentTime: document.getElementById('editAppointmentTime').value,
       Title: document.getElementById('editAppointmentTitle').value,
       Location: document.getElementById('editAppointmentLocation').value,
-      DoctorName: document.getElementById('editDoctorName').value,
+      DoctorName: doctorName,
       Notes: document.getElementById('editAppointmentNotes').value || 'No special instructions',
       UserID: user.UserID
     };
 
-    // 2. If editing, preserve the GoogleEventID for sync
+    // 3. If editing, preserve the GoogleEventID for sync
     if (currentEditingAppointmentId !== 'new') {
       try {
         const existingResponse = await fetch(`/api/appointments/${currentEditingAppointmentId}`, {
@@ -246,7 +254,7 @@ async function handleAppointmentFormSubmit(e) {
       }
     }
 
-    // 3. Save appointment to backend (POST for new, PUT for edit)
+    // 4. Save appointment to backend (POST for new, PUT for edit)
     const res = await fetch(
       currentEditingAppointmentId === 'new' ? '/api/appointments' : `/api/appointments/${currentEditingAppointmentId}`,
       {
@@ -258,18 +266,18 @@ async function handleAppointmentFormSubmit(e) {
 
     if (!res.ok) throw new Error('Failed to save appointment');
 
-    // 4. Refresh UI with updated appointments
+    // 5. Refresh UI with updated appointments
     const savedAppointment = await res.json();
     await updateAppointmentDisplay();
 
-    // 5. Hide modal after save
+    // 6. Hide modal after save
     const modal = bootstrap.Modal.getInstance(document.getElementById('appointmentModal'));
     if (modal) modal.hide();
 
     showSaveFeedback('#appointmentForm .btn-confirm');
     showToast(`Appointment ${currentEditingAppointmentId === 'new' ? 'created' : 'updated'} successfully`, 'success');
 
-    // 6. Get the appointment ID for Google sync
+    // 7. Get the appointment ID for Google sync
     let appointmentId;
     if (currentEditingAppointmentId === 'new') {
       appointmentId = savedAppointment.AppointmentID || savedAppointment.appointmentId || savedAppointment.id;
@@ -280,7 +288,7 @@ async function handleAppointmentFormSubmit(e) {
     console.log('Appointment ID for sync:', appointmentId);
     currentEditingAppointmentId = null;
 
-    // 7. If Google tokens exist, sync with Google Calendar (with delay for user feedback)
+    // 8. If Google tokens exist, sync with Google Calendar (with delay for user feedback)
     const tokensStr = sessionStorage.getItem('google_tokens');
     if (tokensStr && appointmentId) {
       setTimeout(async () => {
@@ -316,7 +324,7 @@ async function handleAppointmentFormSubmit(e) {
 
 
   } catch (error) {
-    // 8. Handle save errors
+    // 9. Handle save errors
     console.error('Error saving appointment:', error);
     showToast('Failed to save appointment', 'error');
   }

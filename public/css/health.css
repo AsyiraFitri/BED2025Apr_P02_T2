@@ -204,6 +204,21 @@
   max-width: 90vw;
 }
 
+/* Success Toast - Keep GREEN */
+#actionToast.bg-success {
+  background-color: #1b8433 !important; /* Bootstrap green - ensure it stays green */
+}
+
+/* Error Toast - Make ORANGE */
+#actionToast.bg-error {
+  background-color: #e17f3e !important; /* Orange color for errors */
+}
+
+/* Warning Toast - Make ORANGE */
+#actionToast.bg-warning {
+  background-color: #ec623c !important; /* Darker orange for warnings */
+}
+
 #syncGoogleBtn, #connectGoogleBtn {
     color: #666;
     border: 2px solid #666;
