@@ -72,21 +72,81 @@ async function getConversation(req, res) {
 async function updateMessage(req, res) {
   const messageId = parseInt(req.params.messageId);
   const { messageText } = req.body;
+
+  console.log(`Updating message ${messageId} with text: "${messageText}"`);
+
+  if (!messageText) {
+    return res.status(400).json({ error: "Message text is required" });
+  }
+
   try {
+    const pool = await sql.connect(dbConfig);
+    
+    // First verify the message exists and belongs to the sender
+    const verifyRes = await pool.request()
+      .input('MessageID', sql.Int, messageId)
+      .query('SELECT SenderID FROM Messages WHERE MessageID = @MessageID');
+
+    if (verifyRes.recordset.length === 0) {
+      return res.status(404).json({ error: "Message not found" });
+    }
+
+    // In a real app, you would also verify the current user is the sender
+    // const senderId = verifyRes.recordset[0].SenderID;
+    // if (senderId !== req.user.id) { ... }
+
+    // Update the message
     await messageModel.updateMessage(messageId, messageText);
-    res.json({ message: 'Message updated.' });
+    
+    res.json({ 
+      message: 'Message updated successfully',
+      updatedMessageId: messageId
+    });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error("Update message error:", err);
+    res.status(500).json({ 
+      error: "Failed to update message",
+      details: process.env.NODE_ENV === 'development' ? err.message : undefined
+    });
   }
 }
 
 async function deleteMessage(req, res) {
   const messageId = parseInt(req.params.messageId);
+
+  console.log(`Deleting message ${messageId}`);
+
   try {
+    const pool = await sql.connect(dbConfig);
+    
+    // First verify the message exists and belongs to the sender
+    const verifyRes = await pool.request()
+      .input('MessageID', sql.Int, messageId)
+      .query('SELECT SenderID FROM Messages WHERE MessageID = @MessageID');
+
+    if (verifyRes.recordset.length === 0) {
+      return res.status(404).json({ error: "Message not found" });
+    }
+
+    // Optional: Verify the current user is the sender
+    // const senderId = verifyRes.recordset[0].SenderID;
+    // if (senderId !== req.user.id) {
+    //   return res.status(403).json({ error: "You can only delete your own messages" });
+    // }
+
+    // Delete the message
     await messageModel.deleteMessage(messageId);
-    res.json({ message: 'Message deleted.' });
+    
+    res.json({ 
+      message: 'Message deleted successfully',
+      deletedMessageId: messageId
+    });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error("Delete message error:", err);
+    res.status(500).json({ 
+      error: "Failed to delete message",
+      details: process.env.NODE_ENV === 'development' ? err.message : undefined
+    });
   }
 }
 
