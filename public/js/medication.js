@@ -11,8 +11,6 @@ import {
   getAuthHeaders,
   getPendingDeleteMedicationId,
   setPendingDeleteMedicationId,
-  setupModalEventListeners,
-  setupFocusManagement
 } from './health-utils.js';
 
 // State variables to track which medication is pending deletion or being edited
