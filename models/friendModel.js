@@ -24,12 +24,13 @@ async function getFriends(userId) {
         CASE 
           WHEN UserID = @UserID THEN FriendUserID 
           ELSE UserID 
-        END AS FriendUserID
+        END AS FriendID,
+        Status
       FROM Friends
       WHERE Status = 'accepted' 
-        AND (UserID = @UserID OR FriendUserID = @UserID);
+        AND (UserID = @UserID OR FriendUserID = @UserID)
     `);
-  return result.recordset; // Array of { FriendUserID }
+  return result.recordset;
 }
 
 // Respond to friend request

@@ -79,8 +79,13 @@ app.use('/api/contacts', contactRoutes);
 // Yiru Routes
 const friendRoutes = require('./routes/friendRoutes');
 const messageRoutes = require('./routes/messageRoutes');
+// updated
+const userRoutes = require('./routes/userRoutes');
+
 app.use('/api/friends', friendRoutes);
 app.use('/api/messages', messageRoutes);
+// updated
+app.use('/api/users', userRoutes);
 
 
 // ==========================
