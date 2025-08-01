@@ -16,9 +16,11 @@
     { "name": "Medications", "description": "Medication endpoints" },
     { "name": "MedicationTracker", "description": "Medication tracking endpoints" },
     { "name": "Appointments", "description": "Appointment endpoints" },
-    { "name": "Calendar", "description": "Google Calendar integration endpoints" }
+    { "name": "Calendar", "description": "Google Calendar integration endpoints" },
 
-
+    { "name": "Places", "description": "Endpoints related to places, locations, and points of interest" },
+    { "name": "PlaceNotes", "description": "Place notes creation, retrieval, editing, and deletion endpoints" },
+    { "name": "Bus"," description": "Bus arrival and related endpoints" }
   ],
   "host": "localhost:3000",
   "securityDefinitions": {
@@ -825,6 +827,253 @@
         },
         "security": [ { "Bearer": [] } ]
       }
+    },
+    "/api/places": {
+      "get": {
+        "tags": ["Places"],
+        "summary": "Get all saved places for authenticated user",
+        "security": [{ "Bearer": [] }],
+        "responses": {
+          "200": {
+            "description": "List of saved places",
+            "schema": {
+              "type": "array",
+              "items": { "$ref": "#/definitions/Place" }
+            }
+          },
+          "401": { "description": "Unauthorized" },
+          "500": { "description": "Internal server error" }
+        }
+      },
+      "post": {
+        "tags": ["Places"],
+        "summary": "Add a new place",
+        "security": [{ "Bearer": [] }],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "required": true,
+            "schema": { "$ref": "#/definitions/PlaceInput" }
+          }
+        ],
+        "responses": {
+          "201": { "description": "Place created successfully" },
+          "400": { "description": "Validation error" },
+          "401": { "description": "Unauthorized" },
+          "500": { "description": "Internal server error" }
+        }
+      }
+    },
+    "/api/places/{placeId}": {
+      "put": {
+        "tags": ["Places"],
+        "summary": "Update a saved place",
+        "security": [{ "Bearer": [] }],
+        "parameters": [
+          { "name": "placeId", "in": "path", "required": true, "type": "integer" },
+          {
+            "in": "body",
+            "name": "body",
+            "required": true,
+            "schema": { "$ref": "#/definitions/PlaceUpdateInput" }
+          }
+        ],
+        "responses": {
+          "200": { "description": "Place updated successfully" },
+          "400": { "description": "Validation error" },
+          "401": { "description": "Unauthorized" },
+          "404": { "description": "Place not found" },
+          "500": { "description": "Internal server error" }
+        }
+      },
+      "delete": {
+        "tags": ["Places"],
+        "summary": "Delete a saved place",
+        "security": [{ "Bearer": [] }],
+        "parameters": [
+          { "name": "placeId", "in": "path", "required": true, "type": "integer" }
+        ],
+        "responses": {
+          "200": { "description": "Place deleted successfully" },
+          "401": { "description": "Unauthorized" },
+          "404": { "description": "Place not found" },
+          "500": { "description": "Internal server error" }
+        }
+      }
+    },
+    "/api/place-notes/{address}": {
+      "get": {
+        "tags": ["PlaceNotes"],
+        "summary": "Get all notes for a specific address",
+        "security": [{ "Bearer": [] }],
+        "parameters": [
+          {
+            "name": "address",
+            "in": "path",
+            "description": "Address to get notes for",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of notes for the address",
+            "schema": {
+              "type": "array",
+              "items": { "$ref": "#/definitions/Note" }
+            }
+          },
+          "401": { "description": "Unauthorized" },
+          "404": { "description": "No notes found for the address" }
+        }
+      }
+    },
+    "/api/place-notes": {
+      "post": {
+        "tags": ["PlaceNotes"],
+        "summary": "Create a new note for a place",
+        "security": [{ "Bearer": [] }],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "required": true,
+            "schema": { "$ref": "#/definitions/PlaceNoteInput" }
+          }
+        ],
+        "responses": {
+          "201": { "description": "Note created successfully" },
+          "400": { "description": "Validation error" },
+          "401": { "description": "Unauthorized" }
+        }
+      }
+    },
+    "/api/place-notes/{noteId}": {
+      "put": {
+        "tags": ["PlaceNotes"],
+        "summary": "Update an existing note",
+        "security": [{ "Bearer": [] }],
+        "parameters": [
+          { "name": "noteId", "in": "path", "required": true, "type": "integer" },
+          {
+            "in": "body",
+            "name": "body",
+            "required": true,
+            "schema": { "$ref": "#/definitions/PlaceNoteInput" }
+          }
+        ],
+        "responses": {
+          "200": { "description": "Note updated successfully" },
+          "400": { "description": "Validation error" },
+          "401": { "description": "Unauthorized" },
+          "404": { "description": "Note not found" }
+        }
+      },
+      "delete": {
+        "tags": ["PlaceNotes"],
+        "summary": "Delete a note by ID",
+        "security": [{ "Bearer": [] }],
+        "parameters": [
+          { "name": "noteId", "in": "path", "required": true, "type": "integer" }
+        ],
+        "responses": {
+          "200": { "description": "Note deleted successfully" },
+          "401": { "description": "Unauthorized" },
+          "404": { "description": "Note not found" }
+        }
+      }
+    },
+    "/api/bus/bus-arrivals/{busStopCode}": {
+  "get": {
+    "tags": ["Bus"],
+    "summary": "Get bus arrival timings for a specific bus stop",
+    "parameters": [
+      {
+        "name": "busStopCode",
+        "in": "path",
+        "required": true,
+        "type": "string",
+        "description": "Code of the bus stop to fetch arrivals for"
+      }
+    ],
+    "responses": {
+      "200": {
+        "description": "Bus arrivals data",
+        "schema": {
+          "type": "object",
+          "properties": {
+            "Services": {
+              "type": "array",
+              "items": { "$ref": "#/definitions/BusService" }
+            }
+          }
+        }
+      },
+      "400": { "description": "Invalid bus stop code" },
+      "404": { "description": "Bus stop not found" },
+      "500": { "description": "Internal server error" }
     }
   }
+}
+  },
+  "definitions": {
+  "Place": {
+    "type": "object",
+    "properties": {
+      "id": { "type": "integer" },
+      "userId": { "type": "integer" },
+      "placeName": { "type": "string" },
+      "address": { "type": "string" }
+    },
+    "required": ["id", "userId", "placeName", "address"]
+  },
+  "PlaceInput": {
+    "type": "object",
+    "properties": {
+      "userId": { "type": "integer" },
+      "placeName": { "type": "string" },
+      "address": { "type": "string" }
+    },
+    "required": ["userId", "placeName", "address"]
+  },
+  "PlaceUpdateInput": {
+    "type": "object",
+    "properties": {
+      "placeName": { "type": "string" },
+      "address": { "type": "string" }
+    }
+  },
+  "Note": {
+    "type": "object",
+    "properties": {
+      "id": { "type": "integer" },
+      "userId": { "type": "integer" },
+      "address": { "type": "string" },
+      "noteText": { "type": "string" }
+    },
+    "required": ["id", "userId", "address", "noteText"]
+  },
+  "PlaceNoteInput": {
+    "type": "object",
+    "properties": {
+      "userId": { "type": "integer" },
+      "address": { "type": "string" },
+      "noteText": { "type": "string" }
+    },
+    "required": ["userId", "address", "noteText"]
+  },
+  "BusService": {
+  "type": "object",
+  "properties": {
+    "serviceNumber": { "type": "string" },
+    "arrivalTime": { "type": "string", "format": "date-time" },
+    "nextBus": { "type": "string" },
+    "status": { "type": "string" }
+  },
+  "required": ["serviceNumber", "arrivalTime"]
+}
+
+}
+
 }

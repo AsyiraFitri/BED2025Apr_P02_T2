@@ -20,9 +20,13 @@ const doc = {
     { name: "Medications", description: "Medication endpoints" },
     { name: 'MedicationTracker', description: 'Medication tracking endpoints' },
     { name: 'Appointments', description: 'Appointment endpoints' },
-    { name: 'Calendar', description: 'Google Calendar integration endpoints' }
+    { name: 'Calendar', description: 'Google Calendar integration endpoints' },
     
     // Asyira
+    { name: 'Places', description: 'Endpoints related to places, locations, and points of interest' },
+    { name: 'PlaceNotes', description: 'Place notes creation, retrieval, editing, and deletion endpoints' },
+    { name: 'Bus', description: 'Bus arrival and related endpoints' }
+
     
     // Sandi
 
@@ -30,7 +34,7 @@ const doc = {
 
   ],
 };
-
+console.log(myObject.api)
 const outputFile = './swagger-output.json';
 const endpointsFiles = ['./app.js', './routes/communityRoutes.js'];
 
