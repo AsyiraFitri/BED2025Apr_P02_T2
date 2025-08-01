@@ -88,7 +88,46 @@ function validateAppointmentData(req, res, next) {
   next();
 }
 
+// Validate Google Calendar event ID parameter
+// - Checks if :eventId parameter exists and is valid
+// - Adds validated event ID to req.validatedEventId for controller use
+function validateGoogleEventId(req, res, next) {
+  const eventId = req.params.eventId;
+  
+  // Check if event ID is provided
+  if (!eventId || eventId.trim() === '') {
+    return res.status(400).json({ error: "Google Calendar event ID is required" });
+  }
+  
+  // Add validated event ID to request object
+  req.validatedEventId = eventId.trim();
+  next();
+}
+
+// Validate Google OAuth tokens from request body
+// - Checks if tokens object exists and has required properties
+// - Adds validated tokens to req.validatedTokens for controller use
+function validateGoogleTokens(req, res, next) {
+  const { tokens } = req.body;
+  
+  // Check if tokens object exists
+  if (!tokens || typeof tokens !== 'object') {
+    return res.status(400).json({ error: "Google OAuth tokens are required" });
+  }
+  
+  // Check if tokens has access_token (minimum requirement)
+  if (!tokens.access_token) {
+    return res.status(400).json({ error: "Google OAuth access token is required" });
+  }
+  
+  // Add validated tokens to request object
+  req.validatedTokens = tokens;
+  next();
+}
+
 module.exports = {
   validateAppointmentId,
-  validateAppointmentData
+  validateAppointmentData,
+  validateGoogleEventId,
+  validateGoogleTokens
 };

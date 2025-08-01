@@ -125,25 +125,15 @@ async function updateAppointmentDisplay() {
   try {
     // 1. Get current user from sessionStorage
     const user = JSON.parse(sessionStorage.getItem('user'));
-    console.log('=== FRONTEND: updateAppointmentDisplay called ===');
-    console.log('User from sessionStorage:', user);
-    
     // 2. Fetch all appointments for this user from backend
-    console.log('Making fetch request to /api/appointments/user');
     const res = await fetch(`/api/appointments/user`, {
       headers: getAuthHeaders()
     });
-    
-    console.log('Fetch response status:', res.status, res.statusText);
 
     if (!res.ok) throw new Error(`Failed to fetch appointments: ${res.statusText}`);
 
     // 3. Parse appointments array from response
     const appointments = await res.json();
-    console.log('Appointment response data:', appointments);
-    console.log('Appointment data type:', typeof appointments);
-    console.log('Is array?', Array.isArray(appointments));
-    console.log('Length:', appointments?.length);
     const container = document.getElementById('appointmentContainer');
     container.innerHTML = '';
 

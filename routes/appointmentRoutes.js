@@ -4,7 +4,6 @@ const appointmentController = require('../controllers/appointmentController');
 const { verifyToken } = require('../middlewares/authorizeUser');
 const { 
   validateAppointmentId, 
-  validateUserId, 
   validateAppointmentData 
 } = require('../middlewares/validateAppointment');
 

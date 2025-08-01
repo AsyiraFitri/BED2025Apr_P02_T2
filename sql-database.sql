@@ -1,4 +1,4 @@
--- CREATE TABLES - Pook Xuan Tong 's
+-- CREATE TABLES - Pook Xuan Tong's
 CREATE TABLE Appointments ( 
     AppointmentID INT IDENTITY(1,1) PRIMARY KEY, 
     AppointmentDate DATE NOT NULL, 

@@ -1,8 +1,10 @@
+const medicationModel = require("../models/medicationModel");
+
 // Get all medication schedules (with checkbox state) for the authenticated user
 // - Uses authenticated user ID from token (req.user.UserID)
 async function getMedicationSchedulesByUserId(req, res) {
   try {
-    const userId = req.user.UserID;
+    const userId = req.user.id || req.user.UserID; // Get authenticated user ID from JWT token (set by verifyToken middleware)
     const schedules = await medicationModel.getMedicationSchedulesByUserId(userId);
     res.json(schedules);
   } catch (error) {
@@ -10,7 +12,6 @@ async function getMedicationSchedulesByUserId(req, res) {
     res.status(500).json({ error: "Failed to fetch medication schedules" });
   }
 }
-const medicationModel = require("../models/medicationModel");
 
 // Get all medications for the authenticated user
 // - Uses authenticated user ID from token (req.user.UserID)
@@ -18,7 +19,10 @@ const medicationModel = require("../models/medicationModel");
 async function getMedicationsByUserId(req, res) {
   try {
     // Get authenticated user ID from JWT token (set by verifyToken middleware)
-    const userId = req.user.UserID;
+    const userId = req.user.id || req.user.UserID;
+    if (!userId) {
+      return res.status(401).json({ error: "User ID not found in token" });
+    }
     
     // Call model to fetch medications
     const medications = await medicationModel.getMedicationsByUserId(userId);
