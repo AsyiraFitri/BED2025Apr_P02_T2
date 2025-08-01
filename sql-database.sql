@@ -7,6 +7,7 @@ CREATE TABLE Appointments (
     Location NVARCHAR(255) NOT NULL, 
     DoctorName NVARCHAR(255) NOT NULL, 
     Notes NVARCHAR(MAX), 
+    GoogleEventID NVARCHAR(255), 
     UserID INT NOT NULL,
     FOREIGN KEY (UserID) REFERENCES Users(UserID) 
 ); 
