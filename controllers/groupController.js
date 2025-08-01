@@ -25,17 +25,27 @@ const saveDesc = async (req, res) => {
 
 // Delete a group and its members
 const deleteCommunity = async (req, res) => {
-    const { groupId } = req.body;
-    // Validate input
+    const { groupId, userId: userIdFromBody } = req.body;
     if (!groupId) {
         return res.status(400).json({ error: 'Group ID is required' });
     }
 
-    // Get user ID from JWT (set by verifyToken middleware)
-    const userId = req.user.id || req.user.UserID;
+    // Check all possible property names and and compare the userId
+    let userId = undefined;
+    if (userIdFromBody !== undefined) {
+        userId = Number(userIdFromBody);
+    } 
+    else if (req.user) {
+        userId = req.user.id !== undefined ? Number(req.user.id)
+            : req.user.userId !== undefined ? Number(req.user.userId)
+            : undefined;
+    }
+    if (userId === undefined || isNaN(userId)) {
+        console.error('[deleteCommunity] Could not extract valid userId from token/body:', req.user, userIdFromBody);
+        return res.status(401).json({ error: 'User ID not found or invalid.' });
+    }
 
     try {
-        // Check if user is the actual owner (not admin)
         const pool = await sql.connect(config);
         const result = await pool.request()
             .input('GroupID', sql.Int, groupId)
@@ -44,12 +54,9 @@ const deleteCommunity = async (req, res) => {
         if (!row) {
             return res.status(404).json({ error: 'Group not found' });
         }
-        // Compare ownerID with userId
-        if (row.OwnerID != userId) {
-            console.warn(`Delete group denied: OwnerID in DB = ${row.OwnerID}, userId from token = ${userId}`);
+        if (Number(row.OwnerID) !== Number(userId)) {
             return res.status(403).json({ error: 'Only the group owner can delete this group' });
         }
-        // Delete the group and all associated members from the DB
         await GroupModel.deleteGroupWithMembers(groupId);
         res.status(200).json({ message: 'Community and all members deleted successfully' });
     } 
@@ -62,19 +69,29 @@ const deleteCommunity = async (req, res) => {
 // User leaves a group
 const leaveGroup = async (req, res) => {
     const { groupId } = req.body;
-    const userId = req.user.id || req.user.UserID;
+    // Simple userId extraction
+    let userId = undefined;
+    if (req.user) {
+        if (typeof req.user.id !== 'undefined') {
+            userId = Number(req.user.id);
+        } 
+        else if (typeof req.user.userId !== 'undefined') {
+            userId = Number(req.user.userId);
+        }
+    }
 
     if (!groupId) {
         return res.status(400).json({ error: 'Group ID is required' });
     }
+    if (userId === undefined || isNaN(userId)) {
+        return res.status(401).json({ error: 'User ID not found or invalid.' });
+    }
 
     try {
-        // Check if the user is the owner of the group
         const isOwner = await GroupModel.checkGroupOwnership(groupId, userId);
         if (isOwner) {
             return res.status(403).json({ error: 'Group owners cannot leave their own group. You may delete the group instead.' });
         }
-        // Remove the user from the group in the DB
         await GroupModel.removeUserFromGroup(groupId, userId);
         res.status(200).json({ message: 'Left the group successfully' });
     } 
@@ -87,21 +104,20 @@ const leaveGroup = async (req, res) => {
 // Check if a user is already a member of a group
 const checkMembership = async (req, res) => {
     const { groupId } = req.params;
-    // Get user ID from JWT token (added by verifyToken middleware)
-    const userId = req.user.id || req.user.UserID;
+    // Robust userId extraction
+    let userId = req.user && (req.user.id !== undefined ? Number(req.user.id)
+        : req.user.userId !== undefined ? Number(req.user.userId)
+        : undefined);
 
-    // Debug log to verify userId and groupId
-    console.log(`[checkMembership] groupId: ${groupId}, userId: ${userId}, req.user:`, req.user);
-
-    // Validate parameters
     if (!groupId) {
         return res.status(400).json({ error: 'Group ID is required' });
     }
+    if (userId === undefined || isNaN(userId)) {
+        return res.status(401).json({ error: 'User ID not found or invalid.' });
+    }
 
     try {
-        // Check membership in the DB
         const result = await GroupModel.checkUserMembership(groupId, userId);
-        // result is { isMember: true/false }
         res.status(200).json({ isMember: !!(result && result.isMember) });
     } 
     catch (error) {

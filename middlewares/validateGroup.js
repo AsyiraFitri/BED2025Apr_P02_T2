@@ -100,12 +100,24 @@ const preventAdminDeleteGroup = (req, res, next) => {
 // Modified validateGroupOwnership that excludes admin privileges for delete operations
 const validateGroupOwnershipForDelete = async (req, res, next) => {
     const groupId = req.params.groupId || req.body.groupId;
-    const userId = req.user.UserID;
+    // Simple userId extraction
+    let userId = undefined;
+    if (req.user) {
+        if (typeof req.user.id !== 'undefined') {
+            userId = Number(req.user.id);
+        } 
+        else if (typeof req.user.userId !== 'undefined') {
+            userId = Number(req.user.userId);
+        }
+    }
     if (!groupId) {
         return res.status(400).json({ error: 'Group ID is required' });
     }
+    if (userId === undefined || isNaN(userId)) {
+        return res.status(401).json({ error: 'User ID not found or invalid.' });
+    }
+    // Only the actual owner (who created the group) can delete, regardless of admin status
     try {
-        // For delete operations, do NOT allow admin privileges, only actual owners can delete
         const isOwner = await GroupModel.checkGroupOwnership(groupId, userId);
         if (!isOwner) {
             return res.status(403).json({ error: 'Only the group owner can delete this group' });
