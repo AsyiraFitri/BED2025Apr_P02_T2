@@ -142,3 +142,40 @@
   margin-top: 20px;
   padding: 0 10px;
 }
+
+/* Updated Translation button */
+.message-actions i.fa-language {
+  color: #6c757d;
+  margin-left: 8px;
+  cursor: pointer;
+}
+
+.message-actions i.fa-language:hover {
+  color: #17a2b8;
+}
+
+/* Translation result box */
+.message-translation {
+  padding: 5px 10px;
+  margin-top: 5px;
+  background-color: #f8f9fa;
+  border-radius: 4px;
+  font-size: 0.9em;
+  border-left: 3px solid #17a2b8;
+}
+
+.message-translation em {
+  color: #6c757d;
+  font-style: normal;
+}
+
+/* updated Friend delete button */
+.friend-item button.btn-danger {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.8rem;
+}
+
+.friend-item button.btn-danger:hover {
+  background-color: #dc3545;
+  border-color: #dc3545;
+}

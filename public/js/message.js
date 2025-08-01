@@ -62,15 +62,19 @@ async function loadFriends() {
       })
     );
 
-    // Display friends
+    // Display friends with delete buttons
     friendDetails.forEach(user => {
       const friendElement = document.createElement('div');
       friendElement.className = 'friend-item p-2 d-flex justify-content-between align-items-center';
       friendElement.innerHTML = `
-        <span>${user.first_name} ${user.last_name}</span>
-        <span class="badge bg-secondary">ID: ${user.UserID}</span>
+        <div class="flex-grow-1" onclick="selectFriend(${user.UserID})" style="cursor: pointer;">
+          <span>${user.first_name} ${user.last_name}</span>
+          <span class="badge bg-secondary ms-2">ID: ${user.UserID}</span>
+        </div>
+        <button class="btn btn-sm btn-outline-danger" onclick="deleteFriend(${user.UserID}, event)">
+          <i class="fas fa-user-minus"></i> Remove
+        </button>
       `;
-      friendElement.onclick = () => selectFriend(user.UserID);
       list.appendChild(friendElement);
     });
 
@@ -129,11 +133,13 @@ async function selectFriend(friendId) {
       messageElement.innerHTML = `
         <div class="message-content">
           <div class="message-text">${msg.MessageText}</div>
+          <div class="message-translation" id="translation-${msg.MessageID}" style="display:none"></div>
           <div class="message-time">${messageTime}</div>
           ${isCurrentUser ? `
             <div class="message-actions">
               <i class="fas fa-edit" onclick="editMessage(${msg.MessageID}, '${msg.MessageText.replace(/'/g, "\\'")}')"></i>
               <i class="fas fa-trash" onclick="deleteMessage(${msg.MessageID})"></i>
+              <i class="fas fa-language" onclick="translateMessage(${msg.MessageID}, '${msg.MessageText.replace(/'/g, "\\'")}')"></i>
             </div>
           ` : ''}
         </div>
@@ -272,5 +278,67 @@ async function editMessage(id, oldText) {
     console.log("Original Text:", oldText);
     console.log("Current Friend ID:", currentFriendId);
     console.groupEnd();
+  }
+}
+
+// Add the translation function
+async function translateMessage(messageId, text) {
+  const translationDiv = document.getElementById(`translation-${messageId}`);
+  
+  // Toggle visibility if already translated
+  if (translationDiv.style.display === 'block') {
+    translationDiv.style.display = 'none';
+    return;
+  }
+
+  // Show loading state
+  translationDiv.innerHTML = '<em>Translating...</em>';
+  translationDiv.style.display = 'block';
+
+  try {
+    // Simple language detection
+    const targetLang = /[a-zA-Z]/.test(text) ? 'zh' : 'en';
+    
+    const response = await fetch('https://libretranslate.de/translate', {
+      method: 'POST',
+      body: JSON.stringify({
+        q: text,
+        source: 'auto',
+        target: targetLang
+      }),
+      headers: { 'Content-Type': 'application/json' }
+    });
+
+    const data = await response.json();
+    translationDiv.innerHTML = `<em>Translated: ${data.translatedText}</em>`;
+  } catch (err) {
+    translationDiv.innerHTML = '<em>Translation failed</em>';
+    console.error("Translation error:", err);
+  }
+}
+
+// update deletefriend function
+async function deleteFriend(friendId, event) {
+  event.stopPropagation(); // Prevent triggering selectFriend
+  
+  if (!confirm(`Remove ${friendId} from your friends?`)) return;
+
+  try {
+    const response = await fetch(`http://localhost:3000/api/friends/${currentUserId}/${friendId}`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${sessionStorage.getItem('token')}`
+      }
+    });
+
+    if (!response.ok) throw new Error('Failed to delete friend');
+    
+    loadFriends(); // Refresh the list
+    document.getElementById('messageBox').innerHTML = `
+      <p class="text-muted text-center">Select a friend to chat</p>
+    `;
+  } catch (error) {
+    console.error("Delete friend error:", error);
+    alert(`Error removing friend: ${error.message}`);
   }
 }
