@@ -108,11 +108,10 @@ CREATE TABLE PlaceNotes (
 
 
 -- INSERT SAMPLE DATA - Pook Xuan Tong 's
-INSERT INTO Appointments (AppointmentDate, AppointmentTime, Title, Location, DoctorName, Notes, Longitude, Latitude, UserID) 
+INSERT INTO Appointments (AppointmentDate, AppointmentTime, Title, Location, DoctorName, Notes, UserID, GoogleEventID) 
 VALUES 
-('2025-07-11', '16:00:00.0000000', 'Dental Checkup', 'Tan Tock Seng Hospital', 'Dr Lim Xiao Ming', 'Bring identification card', NULL, NULL, 1), 
-('2025-07-12', '15:30:00.0000000', 'General Checkup', 'KK Hospital', 'Dr. Sarah Tan', 'Bring previous health reports.', NULL, NULL, 1), 
-('2025-07-08', '15:45:00.0000000', 'test', 'test', 'test', 'No special instructions', NULL, NULL, 1); 
+('2025-08-01', '15:27:00.0000000', 'Dental Checkup', 'Tan Tock Seng Hospital', 'Dr Lim Xiao Ming', 'Bring identification card', 1, NULL), 
+('2025-08-02', '15:30:00.0000000', 'General Checkup', 'KK Hospital', 'Dr. Sarah Tan', 'Bring previous health reports.', 1, NULL), 
 
 INSERT INTO Medications (Name, Dosage, Frequency, Notes, UserID) 
 VALUES 
