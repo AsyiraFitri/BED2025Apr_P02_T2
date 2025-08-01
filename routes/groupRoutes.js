@@ -1,6 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const controller = require('../controllers/groupController');
+// Import groupModel early so it’s available for event routes
+const groupModel = require('../models/groupModel');
 const { validateGroupOwnership, preventAdminLeaveGroup, validateGroupOwnershipForDelete, validateEvent, validateChannel } = require('../middlewares/validateGroup');
 const { verifyToken } = require('../middlewares/authorizeUser');
 require('dotenv').config();
@@ -51,8 +53,6 @@ router.post('/createChannel', verifyToken, validateGroupOwnership, validateChann
 // Delete a channel from a group (owner only)
 router.delete('/deleteChannel', verifyToken, validateGroupOwnership, controller.deleteChannel);
 
-// Create a new event in a group (owner only)
-const groupModel = require('../models/groupModel');
 router.post('/createEvent', verifyToken, validateGroupOwnership, validateEvent, async (req, res) => {
   try {
     const {
