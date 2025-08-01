@@ -3,7 +3,7 @@ const messageModel = require('../models/messageModel');
 async function sendMessage(req, res) {
   const { senderId, receiverId, messageText } = req.body;
   try {
-    await messageModel.sendMessage(senderId, receiverId, messageText);
+    await messageModel.sendMessage(parseInt(senderId), parseInt(receiverId), messageText);
     res.status(201).json({ message: 'Message sent.' });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -11,7 +11,8 @@ async function sendMessage(req, res) {
 }
 
 async function getConversation(req, res) {
-  const { user1, user2 } = req.params;
+  const user1 = parseInt(req.params.user1);
+  const user2 = parseInt(req.params.user2);
   try {
     const result = await messageModel.getConversation(user1, user2);
     res.json(result.recordset);
@@ -21,7 +22,7 @@ async function getConversation(req, res) {
 }
 
 async function updateMessage(req, res) {
-  const { messageId } = req.params;
+  const messageId = parseInt(req.params.messageId);
   const { messageText } = req.body;
   try {
     await messageModel.updateMessage(messageId, messageText);
@@ -32,7 +33,7 @@ async function updateMessage(req, res) {
 }
 
 async function deleteMessage(req, res) {
-  const { messageId } = req.params;
+  const messageId = parseInt(req.params.messageId);
   try {
     await messageModel.deleteMessage(messageId);
     res.json({ message: 'Message deleted.' });
