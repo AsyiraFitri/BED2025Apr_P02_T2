@@ -1,6 +1,4 @@
 
-// Start the scheduler when this model is loaded
-scheduleDailyReset();
 // Get all medication schedules (with checkbox state) for a user
 // Returns MedicationID, Name, ScheduleTime, IsChecked
 async function getMedicationSchedulesByUserId(userId) {
@@ -300,13 +298,19 @@ async function deleteMedication(id) {
 
 // Save or update medication checkbox state
 // - Updates IsChecked status for a specific medication/time
+// - Also updates LastResetDate to ensure reset logic works correctly
 async function saveTracking(medicationId, scheduleTime, isChecked) {
   let connection;
   try {
     connection = await sql.connect(dbConfig);
     const updateQuery = `
       UPDATE MedicationSchedule
-      SET IsChecked = @isChecked
+      SET IsChecked = @isChecked, 
+          LastResetDate = CASE 
+            WHEN LastResetDate IS NULL OR LastResetDate != CAST(GETDATE() AS DATE) 
+            THEN CAST(GETDATE() AS DATE) 
+            ELSE LastResetDate 
+          END
       WHERE MedicationID = @medicationId
       AND ScheduleTime = @scheduleTime
     `;
@@ -331,13 +335,14 @@ async function saveTracking(medicationId, scheduleTime, isChecked) {
 
 // Reset all medication tracking for all users (called daily at 12am)
 // - Sets all IsChecked values to false for a fresh start each day
+// - Updates LastResetDate to current date
 async function resetAllTracking() {
   let connection;
   try {
     connection = await sql.connect(dbConfig);
     const resetQuery = `
       UPDATE MedicationSchedule
-      SET IsChecked = 0
+      SET IsChecked = 0, LastResetDate = CAST(GETDATE() AS DATE)
     `;
     const request = connection.request();
     const result = await request.query(resetQuery);
@@ -357,7 +362,55 @@ async function resetAllTracking() {
   }
 }
 // ========== Medication Daily Reset Scheduler (runs at 12AM) ==========
+async function checkAndPerformDailyReset() {
+  let connection;
+  try {
+    connection = await sql.connect(dbConfig);
+    
+    // Check if any records need resetting (LastResetDate is not today or is NULL)
+    const checkResetNeededQuery = `
+      SELECT COUNT(*) as NeedResetCount 
+      FROM MedicationSchedule 
+      WHERE LastResetDate IS NULL OR LastResetDate != CAST(GETDATE() AS DATE)
+    `;
+    
+    const request = connection.request();
+    const result = await request.query(checkResetNeededQuery);
+    const needsReset = result.recordset[0].NeedResetCount > 0;
+    
+    if (needsReset) {
+      console.log('Server startup: Performing daily medication reset...');
+      
+      // Reset all tracking and update LastResetDate to today
+      const resetQuery = `
+        UPDATE MedicationSchedule 
+        SET IsChecked = 0, LastResetDate = CAST(GETDATE() AS DATE)
+      `;
+      const resetRequest = connection.request();
+      const resetResult = await resetRequest.query(resetQuery);
+      
+      console.log(`Server startup: Daily medication reset completed successfully - ${resetResult.rowsAffected[0]} schedules reset`);
+    } else {
+      console.log('Server startup: All medications already reset for today - skipping');
+    }
+    
+  } catch (error) {
+    console.error('Error during startup reset check:', error);
+  } finally {
+    if (connection) {
+      try {
+        await connection.close();
+      } catch (err) {
+        console.error("Error closing connection:", err);
+      }
+    }
+  }
+}
+
 function scheduleDailyReset() {
+  // First, check if we need to reset on startup (in case server was down overnight)
+  checkAndPerformDailyReset();
+  
   const now = new Date();
   const midnight = new Date();
   midnight.setHours(24, 0, 0, 0); // Next midnight
@@ -365,21 +418,21 @@ function scheduleDailyReset() {
 
   setTimeout(async () => {
     try {
-      console.log('Running daily medication tracking reset...');
+      console.log('Scheduled: Running daily medication tracking reset...');
       await resetAllTracking();
-      console.log('Daily medication tracking reset completed successfully');
+      console.log('Scheduled: Daily medication tracking reset completed successfully');
     } catch (error) {
-      console.error('Error during daily medication tracking reset:', error);
+      console.error('Error during scheduled daily medication tracking reset:', error);
     }
 
     // Schedule recurring daily resets (every 24 hours)
     setInterval(async () => {
       try {
-        console.log('Running daily medication tracking reset...');
+        console.log('Scheduled: Running daily medication tracking reset...');
         await resetAllTracking();
-        console.log('Daily medication tracking reset completed successfully');
+        console.log('Scheduled: Daily medication tracking reset completed successfully');
       } catch (error) {
-        console.error('Error during daily medication tracking reset:', error);
+        console.error('Error during scheduled daily medication tracking reset:', error);
       }
     }, 24 * 60 * 60 * 1000); // 24 hours in milliseconds
   }, timeUntilMidnight);
@@ -395,5 +448,9 @@ module.exports = {
   deleteMedication,
   saveTracking,
   resetAllTracking,
-  getMedicationSchedulesByUserId
+  getMedicationSchedulesByUserId,
+  checkAndPerformDailyReset
 };
+
+// Start the scheduler when this model is loaded (after all imports are available)
+scheduleDailyReset();

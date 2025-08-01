@@ -123,8 +123,7 @@ function formatTime(timeStr) {
 // Returns an array of appointment objects (or [] if none)
 async function updateAppointmentDisplay() {
   try {
-    // 1. Get current user from sessionStorage
-    const user = JSON.parse(sessionStorage.getItem('user'));
+    // 1. No need to retrieve user from sessionStorage; backend uses JWT for user identification
     // 2. Fetch all appointments for this user from backend
     const res = await fetch(`/api/appointments/user`, {
       headers: getAuthHeaders()
@@ -219,8 +218,7 @@ async function handleAppointmentFormSubmit(e) {
   e.preventDefault(); // Prevent default form submission
 
   try {
-    // 1. Gather form data from input fields
-    const user = JSON.parse(sessionStorage.getItem('user'));
+    // 1. Gather form data from input fields - no need to get user from sessionStorage; backend uses JWT
     const doctorName = document.getElementById('editDoctorName').value;
     
     // 2. Validate doctor name - no numbers allowed
@@ -235,8 +233,7 @@ async function handleAppointmentFormSubmit(e) {
       Title: document.getElementById('editAppointmentTitle').value,
       Location: document.getElementById('editAppointmentLocation').value,
       DoctorName: doctorName,
-      Notes: document.getElementById('editAppointmentNotes').value || 'No special instructions',
-      UserID: user.UserID
+      Notes: document.getElementById('editAppointmentNotes').value || 'No special instructions'
     };
 
     // 3. If editing, preserve the GoogleEventID for sync

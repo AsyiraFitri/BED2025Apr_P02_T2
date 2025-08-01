@@ -27,6 +27,7 @@ CREATE TABLE MedicationSchedule (
     MedicationID INT NOT NULL,
     ScheduleTime NVARCHAR(50) NOT NULL,
     IsChecked BIT NOT NULL,
+    LastResetDate DATE NULL, -- Date when this schedule was last reset
     FOREIGN KEY (MedicationID) REFERENCES Medications(MedicationID)
 );
 
@@ -118,13 +119,13 @@ VALUES
 ('Panadol', 2, 3, 'After meals', 1), 
 ('Vitamin C', 1, 2, 'Take with water', 1); 
 
-INSERT INTO MedicationSchedule (MedicationID, ScheduleTime, IsChecked)
+INSERT INTO MedicationSchedule (MedicationID, ScheduleTime, IsChecked, LastResetDate)
 VALUES
-(1, 'Morning', 0),
-(1, 'Afternoon', 1),
-(1, 'Night', 0),
-(2, 'Morning', 1), 
-(2, 'Afternoon', 0);
+(1, 'Morning', 0, NULL),
+(1, 'Afternoon', 1, NULL),
+(1, 'Night', 0, NULL),
+(2, 'Morning', 1, NULL), 
+(2, 'Afternoon', 0, NULL);
 
 -- INSERT SAMPLE DATA - Ong Jing Yin's
 INSERT INTO Users (UserID, first_name, last_name, phone_number, email, password, role)

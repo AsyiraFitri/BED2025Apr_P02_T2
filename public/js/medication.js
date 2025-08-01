@@ -112,8 +112,7 @@ function attachMedicationCardEventListeners(card) {
 // Returns an array of medication objects (or [] if none)
 async function updateMedicationDisplay() {
     try {
-        // 1. Get current user from sessionStorage
-        const user = JSON.parse(sessionStorage.getItem('user'));
+        // 1. No need to retrieve user from sessionStorage; backend uses JWT for user identification
 
         // 2. Fetch all medications for this user from backend
         const medicationsRes = await fetch(`/api/medications/user`, { headers: getAuthHeaders() });
@@ -241,14 +240,12 @@ async function handleDeleteConfirmation() {
 // Submit handler for add/edit medication form
 // Handles both adding and editing medication
 async function handleMedicationFormSubmit(e) {
-    e.preventDefault(); // Prevent default form submission
-    const user = JSON.parse(sessionStorage.getItem('user'));
+    e.preventDefault(); // Prevent default form submission - no need to get user from sessionStorage; backend uses JWT
     const data = {
         Name: document.getElementById('editMedicineName').value,
         Dosage: parseInt(document.getElementById('editDosage').value, 10),
         Frequency: parseInt(document.getElementById('editFrequency').value, 10),
-        Notes: document.getElementById('editNotes').value,
-        UserID: user.UserID
+        Notes: document.getElementById('editNotes').value
     };
 
     try {
