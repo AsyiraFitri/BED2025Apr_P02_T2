@@ -16,7 +16,7 @@
     <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
         <div class="container d-flex justify-content-between align-items-center">
             <a class="navbar-brand logo-container d-flex align-items-center" href="index.html">
-                <img src="images/logo.jpg" alt="logo" class="logo-image" />
+                <img src="images/logo.jpg" alt="logo" class="logo-image">
             </a>
             <button class="navbar-toggler ms-auto" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
@@ -24,7 +24,7 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item">
-                        <a class="nav-link" href="#navigation"><i class="fas fa-map-marker-alt"></i> Navigation</a>
+                        <a class="nav-link" href="navigation.html"><i class="fas fa-map-marker-alt"></i> Navigation</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="community.html"><i class="fas fa-users"></i> Community</a>
@@ -33,11 +33,13 @@
                         <a class="nav-link" href="health.html"><i class="fas fa-heartbeat"></i> Health</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#emergency"><i class="fas fa-exclamation-triangle"></i> Emergency</a>
+                        <a class="nav-link" href="emergency.html"><i class="fas fa-exclamation-triangle"></i> Emergency</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#accessibility"><i class="fas fa-universal-access"></i>
-                            Accessibility</a>
+                        <a class="nav-link" href="message.html"><i class="fa-solid fa-user-group"></i> Friends</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" id="logoutBtn"><i class="fa fa-sign-out"></i> Logout</a>
                     </li>
                 </ul>
             </div>
@@ -264,6 +266,7 @@
         </div>
 
         <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+        <script src="js/auth.js"></script> <!-- for logout -->
         <script type="module" src="js/health-utils.js"></script>
         <script type="module" src="js/calendar.js"></script>
         <script type="module" src="js/appointment.js"></script>
