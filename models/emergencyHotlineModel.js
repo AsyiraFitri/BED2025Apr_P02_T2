@@ -1,5 +1,5 @@
 const sql = require('mssql');
-const poolPromise = require('../config/db');
+const poolPromise = require('../dbConfig');
 
 async function getAllHotlines() {
   const pool = await poolPromise;
