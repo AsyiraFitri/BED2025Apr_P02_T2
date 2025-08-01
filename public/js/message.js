@@ -87,65 +87,101 @@ async function loadFriends() {
 async function selectFriend(friendId) {
   try {
     currentFriendId = parseInt(friendId);
-    const res = await fetch(`/api/messages/${currentUserId}/${friendId}`);
-    if (!res.ok) throw new Error('Failed to load messages');
+    console.log(`Loading messages between ${currentUserId} and ${currentFriendId}`);
     
-    const messages = await res.json();
+    // Get friend's details for the chat header
+    const friendRes = await fetch(`http://localhost:3000/api/users/${currentFriendId}`);
+    const friend = friendRes.ok ? await friendRes.json() : null;
+    
+    // Get messages
+    const response = await fetch(
+      `http://localhost:3000/api/messages/${currentUserId}/${currentFriendId}`
+    );
+    
+    console.log("Messages API response status:", response.status);
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const messages = await response.json();
+    console.log("Messages received:", messages);
+    
     const box = document.getElementById('messageBox');
     box.innerHTML = '';
 
-    if (messages.length === 0) {
-      box.innerHTML = `<div class="text-muted text-center p-3">No messages yet. Start a new conversation!</div>`;
+    if (!messages || messages.length === 0) {
+      box.innerHTML = `
+        <div class="text-center p-3 text-muted">
+          No messages yet. Start the conversation!
+        </div>
+      `;
       return;
     }
 
-    // Get friend's details for display
-    const friendRes = await fetch(`/api/users/${friendId}`);
-    const friend = friendRes.ok ? await friendRes.json() : { first_name: 'User', last_name: friendId };
-
+    // Display messages
     messages.forEach(msg => {
-      const div = document.createElement('div');
-      div.className = `message ${msg.SenderID === currentUserId ? 'own-message' : 'friend-message'}`;
-      div.innerHTML = `
+      const isCurrentUser = msg.SenderID === currentUserId;
+      const messageTime = new Date(msg.Timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      
+      const messageElement = document.createElement('div');
+      messageElement.className = `message ${isCurrentUser ? 'sent' : 'received'}`;
+      messageElement.innerHTML = `
         <div class="message-content">
-          <div class="message-header">
-            <strong>${msg.SenderID === currentUserId ? 'You' : friend.first_name}</strong>
-            <small class="text-muted">${new Date(msg.Timestamp).toLocaleString()}</small>
-          </div>
           <div class="message-text">${msg.MessageText}</div>
-          ${msg.SenderID === currentUserId ? `
+          <div class="message-time">${messageTime}</div>
+          ${isCurrentUser ? `
             <div class="message-actions">
-              <i class="fas fa-edit" onclick="editMessage(${msg.MessageID}, '${escapeHtml(msg.MessageText)}')"></i>
+              <i class="fas fa-edit" onclick="editMessage(${msg.MessageID}, '${msg.MessageText.replace(/'/g, "\\'")}')"></i>
               <i class="fas fa-trash" onclick="deleteMessage(${msg.MessageID})"></i>
             </div>
           ` : ''}
         </div>
       `;
-      box.appendChild(div);
+      box.appendChild(messageElement);
     });
 
+    // Scroll to bottom
     box.scrollTop = box.scrollHeight;
+    
   } catch (error) {
     console.error("Error loading messages:", error);
     document.getElementById('messageBox').innerHTML = `
-      <div class="alert alert-danger">Error loading messages</div>
+      <div class="alert alert-danger">
+        Error loading messages. Please try again.
+        ${error.message}
+      </div>
     `;
   }
-}
-
-function escapeHtml(text) {
-  return text.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 }
 
 async function sendMessage() {
   const input = document.getElementById('messageInput');
   const text = input.value.trim();
-  if (!text || !currentUserId || !currentFriendId) return;
+  
+  if (!text) {
+    alert("Please enter a message");
+    return;
+  }
+  
+  if (!currentFriendId) {
+    alert("Please select a friend to message");
+    return;
+  }
 
   try {
-    const res = await fetch('/api/messages', {
+    console.log("Attempting to send message:", {
+      senderId: currentUserId,
+      receiverId: currentFriendId,
+      messageText: text
+    });
+
+    const response = await fetch('http://localhost:3000/api/messages', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${sessionStorage.getItem('token')}`
+      },
       body: JSON.stringify({
         senderId: currentUserId,
         receiverId: currentFriendId,
@@ -153,14 +189,18 @@ async function sendMessage() {
       })
     });
 
-    if (!res.ok) throw new Error('Failed to send message');
+    const data = await response.json();
+    console.log("Server response:", data);
+
+    if (!response.ok) {
+      throw new Error(data.error || 'Failed to send message');
+    }
 
     input.value = '';
-    await selectFriend(currentFriendId);
-    input.focus();
+    await selectFriend(currentFriendId); // Refresh the conversation
   } catch (error) {
-    console.error("Error sending message:", error);
-    alert('Failed to send message');
+    console.error("Message sending error:", error);
+    alert(`Failed to send message: ${error.message}`);
   }
 }
 

@@ -42,8 +42,9 @@
 }
 
 .message {
-  margin-bottom: 15px;
+  margin: 8px 0;
   max-width: 70%;
+  clear: both;
 }
 
 .message-content {
@@ -103,4 +104,47 @@
   align-items: center;
   margin-top: 20px;
   padding: 0 10px;
+}
+
+.message.sent {
+  float: right;
+  background-color: #dcf8c6;
+  border-radius: 12px 12px 0 12px;
+}
+
+.message.received {
+  float: left;
+  background-color: #ffffff;
+  border-radius: 12px 12px 12px 0;
+}
+
+.message-content {
+  padding: 10px 15px;
+  position: relative;
+}
+
+.message-time {
+  font-size: 0.75rem;
+  color: #666;
+  text-align: right;
+  margin-top: 4px;
+}
+
+.message-actions {
+  position: absolute;
+  right: -25px;
+  top: 50%;
+  transform: translateY(-50%);
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.message:hover .message-actions {
+  opacity: 1;
+}
+
+#messageBox {
+  min-height: 300px;
+  overflow-y: auto;
+  padding: 15px;
 }

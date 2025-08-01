@@ -4,14 +4,18 @@ const dbConfig = require('../dbConfig');
 // Create a new message
 async function sendMessage(senderId, receiverId, messageText) {
   const pool = await sql.connect(dbConfig);
-  return pool.request()
-    .input("SenderID", sql.Int, senderId)  // now using integer
+  const result = await pool.request()
+    .input("SenderID", sql.Int, senderId)
     .input("ReceiverID", sql.Int, receiverId)
     .input('MessageText', sql.NVarChar, messageText)
     .query(`
       INSERT INTO Messages (SenderID, ReceiverID, MessageText)
+      OUTPUT INSERTED.MessageID
       VALUES (@SenderID, @ReceiverID, @MessageText)
     `);
+  
+  console.log("Message stored with ID:", result.recordset[0].MessageID);
+  return result;
 }
 
 // Get message history between two users
