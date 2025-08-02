@@ -1,9 +1,97 @@
 document.addEventListener("DOMContentLoaded", () => {
+  // Check authentication status and update navbar
+  checkAuthAndUpdateNavbar();
+
   // Section switching
   window.switchSection = (id) => {
     document.querySelectorAll(".section").forEach(sec => sec.classList.remove("active"));
     document.getElementById(id).classList.add("active");
   };
+
+  // Function to decode JWT token without verification (client-side only)
+  function decodeJWT(token) {
+    try {
+      const base64Url = token.split('.')[1];
+      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+      const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+      }).join(''));
+      return JSON.parse(jsonPayload);
+    } catch (error) {
+      console.error('Error decoding JWT:', error);
+      return null;
+    }
+  }
+
+  // Function to check if JWT token is expired
+  function isTokenExpired(token) {
+    const decoded = decodeJWT(token);
+    if (!decoded || !decoded.exp) return true;
+    
+    const currentTime = Date.now() / 1000;
+    return decoded.exp < currentTime;
+  }
+
+  // Function to check authentication status and update navbar
+  function checkAuthAndUpdateNavbar() {
+    const token = sessionStorage.getItem('token');
+    let isLoggedIn = false;
+
+    if (token) {
+      // Check if token is valid and not expired
+      if (!isTokenExpired(token)) {
+        isLoggedIn = true;
+        
+        // Ensure backward compatibility: if user object doesn't exist, create it from JWT
+        const existingUser = sessionStorage.getItem('user');
+        if (!existingUser) {
+          const decoded = decodeJWT(token);
+          if (decoded) {
+            const userObj = {
+              UserID: decoded.id,
+              email: decoded.email,
+              first_name: decoded.first_name,
+              last_name: decoded.last_name,
+              role: decoded.role
+            };
+            sessionStorage.setItem('user', JSON.stringify(userObj));
+          }
+        }
+      } else {
+        // Token is expired, remove both token and user data
+        sessionStorage.removeItem('token');
+        sessionStorage.removeItem('user');
+      }
+    }
+
+    // Find the logout button in the navbar
+    const logoutBtn = document.getElementById('logoutBtn');
+    
+    if (logoutBtn) {
+      // Remove any existing event listeners
+      logoutBtn.replaceWith(logoutBtn.cloneNode(true));
+      const newLogoutBtn = document.getElementById('logoutBtn');
+      
+      if (isLoggedIn) {
+        // User is logged in - show logout button
+        console.log('Setting up logout button');
+        newLogoutBtn.innerHTML = '<i class="fa fa-sign-out"></i> Logout';
+        newLogoutBtn.href = '#';
+        newLogoutBtn.onclick = function(e) {
+          e.preventDefault();
+          handleLogout();
+        };
+      } else {
+        // User is not logged in - show login button
+        console.log('Setting up login button');
+        newLogoutBtn.innerHTML = '<i class="fa fa-sign-in"></i> Login';
+        newLogoutBtn.href = 'auth.html';
+        newLogoutBtn.onclick = null; // Let default href behavior work
+      }
+    } else {
+      console.log('No logoutBtn element found');
+    }
+  }
 
   // Password visibility toggle
   document.querySelectorAll('.toggle-password').forEach(icon => {
@@ -69,9 +157,21 @@ document.addEventListener("DOMContentLoaded", () => {
         password: document.getElementById("login_password").value
       });
 
-      // Store token and user data
+      // Store the JWT token as primary source of truth
       sessionStorage.setItem('token', data.token);
-      sessionStorage.setItem('user', JSON.stringify(data.user));
+      
+      // For backward compatibility, also store user object for existing code
+      const userObj = {
+        UserID: data.user.UserID,
+        email: data.user.email,
+        first_name: data.user.first_name,
+        last_name: data.user.last_name,
+        role: data.user.role || 'user'
+      };
+      sessionStorage.setItem('user', JSON.stringify(userObj));
+      
+      // Update navbar to show logout button
+      checkAuthAndUpdateNavbar();
       
       // Redirect to dashboard
       alert("Login successful!");
@@ -114,24 +214,67 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // Logout button (works on any page with #logoutBtn)
-  const logoutBtn = document.getElementById('logoutBtn');
-  if (logoutBtn) {
-    logoutBtn.addEventListener('click', async function (e) {
-      e.preventDefault();
+  function handleLogout() {
+    try {
+      // Clear both JWT token and user data for full logout
+      sessionStorage.removeItem('token');
+      sessionStorage.removeItem('user');
 
-      try {
-        // Clear client-side stored data (sessionStorage)
-        sessionStorage.removeItem('token');
-        sessionStorage.removeItem('user');
+      // Update navbar to show login button
+      checkAuthAndUpdateNavbar();
 
-        // Redirect to login/signup page
-        window.location.href = 'auth.html';
-      } 
-      catch (error) {
-        console.error('Logout error:', error);
-        alert('An error occurred while logging out.');
-      }
-    });
+      // Redirect to login/signup page
+      window.location.href = 'auth.html';
+    } 
+    catch (error) {
+      console.error('Logout error:', error);
+      alert('An error occurred while logging out.');
+    }
   }
+
+  // Global function to check if user is authenticated
+  window.isUserAuthenticated = function() {
+    const token = sessionStorage.getItem('token');
+    if (!token) return false;
+    
+    // Check if token is not expired
+    return !isTokenExpired(token);
+  };
+
+  // Global function to get current user data (backward compatible)
+  window.getCurrentUser = function() {
+    // First try to get from JWT token (primary source)
+    const token = sessionStorage.getItem('token');
+    if (token && !isTokenExpired(token)) {
+      const decoded = decodeJWT(token);
+      if (decoded) {
+        return {
+          id: decoded.id,
+          UserID: decoded.id, // Backward compatibility
+          email: decoded.email,
+          first_name: decoded.first_name,
+          last_name: decoded.last_name,
+          role: decoded.role
+        };
+      }
+    }
+    
+    // Fallback to sessionStorage user object for backward compatibility
+    const user = sessionStorage.getItem('user');
+    return user ? JSON.parse(user) : null;
+  };
+
+  // Global function to get JWT token
+  window.getAuthToken = function() {
+    const token = sessionStorage.getItem('token');
+    if (!token || isTokenExpired(token)) {
+      return null;
+    }
+    return token;
+  };
+
+  // Global function to update navbar from any page
+  window.updateNavbar = function() {
+    checkAuthAndUpdateNavbar();
+  };
 });

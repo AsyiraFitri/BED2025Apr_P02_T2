@@ -129,6 +129,19 @@ async function updateAppointmentDisplay() {
       headers: getAuthHeaders()
     });
 
+    // Check if user is not authenticated (401 status)
+    if (res.status === 401) {
+      const container = document.getElementById('appointmentContainer');
+      container.innerHTML = `
+        <div class="text-center p-4">
+          <i class="fas fa-user-lock fa-3x text-muted mb-3"></i>
+          <h5>Please login to manage your appointments</h5>
+          <p class="text-muted">You need to be logged in to view and manage your appointments.</p>
+        </div>
+      `;
+      return [];
+    }
+
     if (!res.ok) throw new Error(`Failed to fetch appointments: ${res.statusText}`);
 
     // 3. Parse appointments array from response

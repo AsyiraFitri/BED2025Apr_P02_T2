@@ -116,6 +116,20 @@ async function updateMedicationDisplay() {
 
         // 2. Fetch all medications for this user from backend
         const medicationsRes = await fetch(`/api/medications/user`, { headers: getAuthHeaders() });
+        
+        // Check if user is not authenticated (401 status)
+        if (medicationsRes.status === 401) {
+            const container = document.getElementById('medicationContainer');
+            container.innerHTML = `
+                <div class="text-center p-4">
+                    <i class="fas fa-user-lock fa-3x text-muted mb-3"></i>
+                    <h5>Please login to manage your medications</h5>
+                    <p class="text-muted">You need to be logged in to view and manage your medications.</p>
+                </div>
+            `;
+            return [];
+        }
+        
         if (!medicationsRes.ok) throw new Error(`Failed to fetch medications: ${medicationsRes.statusText}`);
         const medications = await medicationsRes.json();
 
