@@ -12,22 +12,23 @@ body {
 
 /* Navigation */
 .logo-container {
-  height: 90px; /* smaller height suitable for navbar */
-  display: flex;
-  align-items: center;
-  overflow: hidden;
+    height: 90px;
+    /* smaller height suitable for navbar */
+    display: flex;
+    align-items: center;
+    overflow: hidden;
 }
 
 .logo-image {
-  height: 100%;
-  width: auto;
-  object-fit: contain;
-  display: block;
-  transition: transform 0.3s ease;
+    height: 100%;
+    width: auto;
+    object-fit: contain;
+    display: block;
+    transition: transform 0.3s ease;
 }
 
 .logo-container:hover .logo-image {
-  transform: scale(1.05);
+    transform: scale(1.05);
 }
 
 .nav-link {
@@ -37,6 +38,7 @@ body {
     text-decoration: none;
     transition: color 0.3s ease;
 }
+
 .nav-link:hover {
     color: #e74c3c;
 }
@@ -69,7 +71,6 @@ body {
     color: black;
     margin-bottom: 2rem;
     text-align: center;
-    
 }
 
 .section-link:hover {
@@ -89,7 +90,7 @@ body {
     background: white;
     border-radius: 15px;
     padding: 2rem;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
     height: 100%;
     transition: transform 0.3s ease;
 }
@@ -97,10 +98,11 @@ body {
 .feature-card:hover {
     transform: translateY(-5px);
 }
-.feature-icon-section{
+
+.feature-icon-section {
     display: flex;
     gap: 10px;
-    align-items: center;  
+    align-items: center;
 }
 
 .feature-icon {
@@ -158,4 +160,64 @@ body {
     color: white;
     padding: 2rem 0;
     text-align: center;
+}
+
+/*-------------Credit Page Styles-------------*/
+.credit-feature-card {
+    background: white;
+    border-radius: 15px;
+    padding: 1.5rem 2rem 1rem 2rem;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    margin-bottom: 1rem;
+}
+
+.credit-feature-card h3 {
+    margin-bottom: 0.75rem;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+}
+
+.credit-header-icon {
+    width: 40px;
+    height: 40px;
+    background: #e74c3c;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.2rem;
+    margin-right: 1rem;
+    flex-shrink: 0;
+}
+
+.credit-feature-card h4 {
+    font-weight: bold;
+}
+
+.credit-feature-card h5 {
+    margin-bottom: 0.5rem;
+    font-weight: bold;
+}
+
+.credit-feature-card p {
+    margin-bottom: 0.5rem;
+}
+
+.credit-feature-card ul {
+    margin-bottom: 0.5rem;
+}
+
+.credit-feature-card li {
+    padding: 0.1rem 0;
+}
+
+/* Inline Citation Styles */
+.citation {
+    font-size: 0.85rem;
+    color: #666;
+    margin-left: 1rem;
+    margin-bottom: 0.75rem !important;
+    line-height: 1.4;
 }
