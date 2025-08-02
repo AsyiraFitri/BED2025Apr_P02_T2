@@ -150,11 +150,17 @@ document.addEventListener("DOMContentLoaded", () => {
   // Login form
   document.getElementById("loginForm")?.addEventListener("submit", async (e) => {
     e.preventDefault();
+    const captchaToken = grecaptcha.getResponse(); // get CAPTCHA response
+      if (!captchaToken) {
+    alert("Please complete the CAPTCHA.");
+    return;
+  }
     
     try {
       const data = await makeAuthRequest("http://localhost:3000/api/auth/login", {
         email: document.getElementById("login_email").value,
-        password: document.getElementById("login_password").value
+        password: document.getElementById("login_password").value,
+        captchaToken
       });
 
       // Store the JWT token as primary source of truth
@@ -178,6 +184,8 @@ document.addEventListener("DOMContentLoaded", () => {
       window.location.href = "index.html";
     } catch (error) {
       alert(error.message);
+    }finally {
+    grecaptcha.reset(); // reset CAPTCHA after attempt
     }
   });
 
