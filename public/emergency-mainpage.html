@@ -57,8 +57,9 @@
                             <h4 class="mb-4">Services</h4>
                             
                             <!-- Help Request Assistance -->
-                            <div class="service-card" onclick="handleHelpRequest()">
-                                <div class="service-icon help-request-icon"></div>
+                            <div class="service-card red-service-card" onclick="handleHelpRequest()">
+                            <div class="service-icon">
+                            <img src="images/assisted-living.png" alt="Help Icon">                            </div>
                                 <div class="service-content">
                                     <h3>Help Request Assistance</h3>
                                     <div class="service-buttons">
@@ -68,8 +69,10 @@
                             </div>
 
                             <!-- Emergency Contact -->
-                            <a href="#" class="service-card" onclick="handleEmergencyContact()">
-                                <div class="service-icon emergency-contact-icon"></div>
+                            <a href="#" class="service-card red-service-card" onclick="handleEmergencyContact()">
+                            <div class="service-icon">
+                                 <img src="images/phone-book.png" alt="Help Icon"> 
+                            </div>
                                 <div class="service-content">
                                     <h3>Emergency Contact</h3>
                                     <div class="service-buttons">
@@ -80,9 +83,9 @@
                             </a>
 
                             <!-- Emergency Call -->
-                            <a href="#" class="service-card emergency-call-card" onclick="handleEmergencyCall()">
-                                <div class="emergency-call-icon">
-                                    <i class="fas fa-phone"></i>
+                            <a href="#" class="service-card red-service-card" onclick="handleEmergencyCall()">
+                            <div class="service-icon">
+                                    <img src="images/mobile.png" alt="Help Icon"> 
                                 </div>
                                 <div class="service-content">
                                     <h3>Emergency Service Hotlines</h3>
@@ -98,36 +101,9 @@
         </div>
     </div>
 
-    <!-- Bootstrap JS -->
+ 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
-    
-    <script>
-        function handleHelpRequest() {
-           // alert('Help Request Assistance - Sign up functionality would be implemented here');
-        }
+    <script src="js/emergency-mainpage.js"></script>
 
-        function handleEmergencyContact() {
-            //alert('Emergency Contact management - Create/View contacts functionality would be implemented here');
-        }
-
-        function handleEmergencyCall() {
-           // alert('Emergency Service Hotlines - Search functionality would be implemented here');
-        }
-
-        // Add smooth hover effects
-        document.addEventListener('DOMContentLoaded', function() {
-            const cards = document.querySelectorAll('.service-card');
-            
-            cards.forEach(card => {
-                card.addEventListener('mouseenter', function() {
-                    this.style.transform = 'translateY(-3px)';
-                });
-                
-                card.addEventListener('mouseleave', function() {
-                    this.style.transform = 'translateY(0)';
-                });
-            });
-        });
-    </script>
 </body>
 </html>
