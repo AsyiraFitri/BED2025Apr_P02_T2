@@ -11,11 +11,6 @@ const FormData = require('form-data');
 const MAILGUN_API_KEY = process.env.MAILGUN_API_KEY;
 const DOMAIN = process.env.MAILGUN_DOMAIN;
 
-console.log('=== MAILGUN CONFIG CHECK ===');
-console.log('API Key present:', !!MAILGUN_API_KEY);
-console.log('API Key format correct:', MAILGUN_API_KEY?.startsWith('key-') && MAILGUN_API_KEY?.length > 40);
-console.log('Domain:', DOMAIN);
-
 const mailgun = new Mailgun(FormData);
 const mg = mailgun.client({
   username: 'api',

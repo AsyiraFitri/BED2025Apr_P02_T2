@@ -800,3 +800,7 @@ button {
         min-width: 80px;
     }
 }
+/* reset page*/
+ .form-container { max-width: 500px; margin: 0 auto; padding: 20px; }
+ .bottom-link { text-align: center; margin-top: 15px; }
+ .btn-primary { width: 100%; padding: 10px; }
