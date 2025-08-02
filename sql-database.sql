@@ -10,7 +10,34 @@ CREATE TABLE Users (
 	role VARCHAR(20) CHECK (role IN ('admin', 'user')) DEFAULT 'user'
 ); 
 
+CREATE TABLE HelpRequests ( 
+    RequestID INT PRIMARY KEY IDENTITY(1,1),  
+    user_id INT NOT NULL,                    
+    category VARCHAR(100),
+    description TEXT,
+    request_date DATE,
+    request_time NVARCHAR(10),
+    status VARCHAR(50),
+    FOREIGN KEY (user_id) REFERENCES Users(UserID)
+);
 
+CREATE TABLE EmergencyContact (
+    ContactID INT PRIMARY KEY IDENTITY(1,1),
+    user_id INT, 
+    Name NVARCHAR(100) NOT NULL,
+    Relationship NVARCHAR(100),
+    PhoneNumber NVARCHAR(20) NOT NULL,
+    Note NVARCHAR(255),
+    IsStarred BIT DEFAULT 0,
+    FOREIGN KEY (user_id) REFERENCES Users(UserID)
+);
+
+CREATE TABLE EmergencyHotlines (
+  HotlineID INT PRIMARY KEY IDENTITY(1,1),
+  ServiceName NVARCHAR(255),
+  Number NVARCHAR(20),
+  Description NVARCHAR(255)
+);
 -- CREATE TABLES - Pook Xuan Tong's
 CREATE TABLE Appointments ( 
     AppointmentID INT IDENTITY(1,1) PRIMARY KEY, 
@@ -124,6 +151,27 @@ VALUES
 (8, 'David', 'Goh', '90123456', 'david.goh@gmail.com', 'davidpass2024', 'user'),
 (9, 'Anna', 'Wong', '90234567', 'anna.wong@gmail.com', 'annawong99', 'user'),
 (10, 'Liam', 'Teo', '90345678', 'liam.teo@gmail.com', 'liamteo88', 'user');
+
+--Help Request
+INSERT INTO HelpRequests (user_id, category, description, request_date, request_time, status) VALUES
+(1, 'Medical', 'Need assistance with medication', '2025-08-01', '14:30', 'Pending'),
+(2, 'Transport', 'Requesting transport to hospital', '2025-08-02', '09:00', 'Completed'),
+(1, 'Safety', 'Help needed for home safety check', '2025-08-03', '16:15', 'Cancelled');
+
+--Emergency Contacts
+INSERT INTO EmergencyContact (user_id, Name, Relationship, PhoneNumber, Note, IsStarred) VALUES
+(1, N'Jane Doe', N'Sister', '91234567', N'Lives nearby', 1),
+(2, N'John Smith', N'Friend', '98765432', N'Available after 6pm', 0),
+(1, N'Mary Johnson', N'Mother', '91239876', N'Primary emergency contact', 1);
+
+--Emergency Hotlines
+INSERT INTO EmergencyHotlines (ServiceName, Number, Description) VALUES
+('Police Emergencies', '999', 'Police'),
+('SCDF Ambulance & Fire Service', '995', 'Ambulance & Fire'),
+('Non Emergency Ambulance', '1777', 'Non-Emergency Medical'),
+('Police Hotline', '1800 255 0000', 'Police'),
+('Senior Helpline', '1800 555 5555', 'SAGE Counselling'),
+('EVERYDAY CARE Helpline', '8697 4230', 'In-house Support');
 
 -- INSERT SAMPLE DATA - Pook Xuan Tong 's
 INSERT INTO Appointments (AppointmentDate, AppointmentTime, Title, Location, DoctorName, Notes, UserID, GoogleEventID) 
