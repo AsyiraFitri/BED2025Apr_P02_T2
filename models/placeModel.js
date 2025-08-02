@@ -2,6 +2,21 @@ const sql = require("mssql");
 const dbConfig = require("../dbConfig");
 const geocodeAddress = require("../public/js/geoCode");
 
+// check if a specific place is already saved for a given user
+async function checkSavedPlace(userId, placeName) {
+  try {
+    const pool = await sql.connect(dbConfig);
+    const result = await pool.request()
+      .input("UserID", sql.Int, userId)
+      .input("PlaceName", sql.NVarChar, placeName)
+      .query("SELECT * FROM SavedPlaces WHERE UserID = @UserID AND PlaceName = @PlaceName");
+
+    return result.recordset.length > 0 ? result.recordset[0] : null;
+  } catch (error) {
+    throw error;
+  }
+}
+
 // get all places saved by a specific user
 async function getUserPlaces(userId) {
   try {
@@ -71,6 +86,7 @@ async function deletePlace(placeId) {
 }
 
 module.exports = {
+  checkSavedPlace,
   getUserPlaces,
   createPlace,
   updatePlace,
