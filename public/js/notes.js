@@ -22,12 +22,18 @@ function getUserFromToken() {
   }
 }
 
+function isTokenExpired(token) {
+  if (!token) return true;
+  const payload = JSON.parse(atob(token.split('.')[1]));
+  const currentTime = Math.floor(Date.now() / 1000); // Get current time in seconds
+  return currentTime >= payload.exp;
+}
 
 // function to check authentication status
 function checkUserAuthentication() {
   const token = sessionStorage.getItem('token');
   
-  if (!token) {
+  if (!token || isTokenExpired(token)) {
     alert('Please log in first');
     window.location.href = 'auth.html';
     return null;
@@ -272,7 +278,7 @@ document.addEventListener("DOMContentLoaded", () => {
     noteModal.style.display = "none";
     editingNoteId = null;  // reset editing state
     saveNoteBtn.textContent = "save note";  // reset button text to "save note"
-    document.getElementById("modalHeader").textContent = "add a note";  // reset header text
+    document.getElementById("modalHeader").textContent = "Add note";  // reset header text
     document.getElementById("addressSelection").style.display = 'block'; 
   });
 
@@ -280,7 +286,7 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("addnotebtn").addEventListener("click", () => {
     editingNoteId = null;  // reset editing state
     saveNoteBtn.textContent = "save note";  // reset button text to "save note"
-    document.getElementById("modalHeader").textContent = "add a note";  // reset header text
+    document.getElementById("modalHeader").textContent = "Add note";  // reset header text
     document.getElementById("addressSelection").style.display = 'block'
     noteTextInput.value = '';  // clear the input field
     noteModal.style.display = "block";  // show the modal
@@ -327,13 +333,11 @@ async function editNote(noteId) {
   editingNoteId = noteId;  // save the note ID to the editingNoteId variable
 
   // hide address selection dropdowns
-  fromSelect.style.display = 'none';
-  toSelect.style.display = 'none';
   document.getElementById("addressSelection").style.display = 'none'; 
 
   // update the button text to "save changes"
-  saveNoteBtn.textContent = "save changes";  
-  document.getElementById("modalHeader").textContent = "editing note";  // update header text
+  saveNoteBtn.textContent = "Save changes";  
+  document.getElementById("modalHeader").textContent = "Editing Note";  // update header text
   noteModal.style.display = 'block';  // show the modal
 }
 
@@ -365,4 +369,10 @@ async function deleteNote(noteId) {
   } catch (error) {
     console.error("error deleting note:", error);
   }
+}
+
+// Clear the existing notes from the DOM
+function clearNotes() {
+  const notesList = document.getElementById('notesList');
+  notesList.innerHTML = '';  // This will clear the notes list
 }

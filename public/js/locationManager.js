@@ -21,13 +21,18 @@ function getUserFromToken() {
     return null;
   }
 }
-
+function isTokenExpired(token) {
+  if (!token) return true;
+  const payload = JSON.parse(atob(token.split('.')[1]));
+  const currentTime = Math.floor(Date.now() / 1000); // Get current time in seconds
+  return currentTime >= payload.exp;
+}
 
 // function to check authentication status
 function checkUserAuthentication() {
   const token = sessionStorage.getItem('token');
   
-  if (!token) {
+  if (!token || isTokenExpired(token)) {
     alert('Please log in first');
     window.location.href = 'auth.html';
     return null;
@@ -111,8 +116,8 @@ document.addEventListener("DOMContentLoaded", () => {
         <strong>${place.PlaceName}</strong><br/>
         <span>${place.Address}</span><br/>
         ${showEditButtons ? `
-          <button class="btn btn-warning btn-sm edit-btn" data-place-id="${place.PlaceID}">edit</button>
-          <button class="btn btn-danger btn-sm delete-btn" data-place-id="${place.PlaceID}">delete</button>
+          <button class="btn btn-warning btn-sm edit-btn" data-place-id="${place.PlaceID}">Edit</button>
+          <button class="btn btn-danger btn-sm delete-btn" data-place-id="${place.PlaceID}">Delete</button>
         ` : ""}
       `;
 
@@ -154,14 +159,14 @@ document.addEventListener("DOMContentLoaded", () => {
     modal.classList.add("modal");
     modal.innerHTML = `
       <div class="modal-content">
-        <p>do you want to add "${place.PlaceName}" to your route?<br>
-            if no, click <strong>cancel</strong><br>
-            if yes, click <strong>from</strong> and/or <strong>to</strong> to add location.
+        <p>Do you want to add "${place.PlaceName}" to your route?<br>
+            If No, click <strong>Cancel</strong><br>
+            If Yes, click <strong>From</strong> and/or <strong>To</strong> to add location.
         </p>
 
-        <button class="btn btn-primary" id="addToFromBtn">from</button>
-        <button class="btn btn-secondary" id="addToToBtn">to</button>
-        <button class="btn btn-danger" id="cancelAddBtn">cancel</button>
+        <button class="btn btn-primary" id="addToFromBtn">From</button>
+        <button class="btn btn-secondary" id="addToToBtn">To</button>
+        <button class="btn btn-danger" id="cancelAddBtn">Cancel</button>
       </div>
     `;
 
@@ -250,8 +255,8 @@ document.addEventListener("DOMContentLoaded", () => {
           document.getElementById("placeName").value = place.PlaceName;
           document.getElementById("address").value = place.Address;
           currentEditPlaceId = place.PlaceID;
-          document.querySelector("#addPlaceModal h3").textContent = "update place";
-          savePlaceBtn.textContent = "update place";
+          document.querySelector("#addPlaceModal h3").textContent = "Update place";
+          savePlaceBtn.textContent = "Update place";
           addPlaceModal.style.display = "block";
         }
       })
@@ -322,8 +327,8 @@ document.addEventListener("DOMContentLoaded", () => {
   // open modal for adding new place
   document.getElementById("addPlaceBtn").addEventListener("click", () => {
     addPlaceModal.style.display = "block";
-    document.querySelector("#addPlaceModal h3").textContent = "add new place";
-    savePlaceBtn.textContent = "save place";
+    document.querySelector("#addPlaceModal h3").textContent = "Add new place";
+    savePlaceBtn.textContent = "Save place";
     currentEditPlaceId = null;
   });
     // close modal and reset fields
@@ -335,7 +340,7 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("placeName").value = "";
     document.getElementById("address").value = "";
     currentEditPlaceId = null;
-    savePlaceBtn.textContent = "save place";
+    savePlaceBtn.textContent = "Save place";
   }
     // save or update place depending on mode
   savePlaceBtn.addEventListener("click", () => {

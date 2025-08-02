@@ -555,7 +555,7 @@ button:hover {
     overflow-wrap: break-word;
 }
 .notes{
-    max-height: 500px;
+    max-height: 520px;
     overflow-y: auto;
     position: sticky;
     top: 0;
@@ -573,6 +573,112 @@ button:hover {
 }
 
 
+@media (max-width: 768px) {
+    main {
+        flex-direction: column;
+        padding: 10px;
+        gap: 20px;
+    }
 
+    /* left Panel */
+    .left-panel {
+        width: 100%; /* make it take full width on mobile */
+        border-right: none; /* remove right border on mobile */
+        height: auto; /* allow it to grow based on content */
+        position: relative;
+        padding: 10px;
+    }
 
-/*----------------------------------------*/
+    .left-panel h3 {
+        font-size: 14px; /* reduce font size */
+    }
+
+    .left-panel ul {
+        padding-left: 10px;
+    }
+
+    /* map & info */
+    .map-and-info {
+        width: 100%;
+        padding: 10px;
+    }
+
+    #map {
+        height: 300px; /* reduce map size */
+    }
+
+    /* Aajust font sizes for form controls */
+    .route-selection label {
+        font-size: 14px;
+    }
+
+    .route-selection input,
+    .route-selection select {
+        padding: 6px;
+        font-size: 14px;
+    }
+
+    /* info Panels */
+    .info-panels {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .info-panels > div {
+        min-width: 100%; /* make info panels take full width */
+        padding: 15px;
+    }
+
+    /* button Styling */
+    button, #searchRoute, .save-btn {
+        padding: 6px 12px;
+        font-size: 14px;
+    }
+
+    /* modal Content */
+    .modal-content {
+        width: 90%;
+        padding: 20px;
+        margin: 0;
+        border-radius: 10px;
+    }
+
+    /* nearby Services */
+    #servicesList {
+        gap: 10px;
+    }
+
+    .service-item {
+        padding: 10px;
+        font-size: 14px;
+    }
+
+    .service-item h5 {
+        font-size: 14px;
+    }
+
+    .service-item button {
+        padding: 6px 12px;
+        font-size: 12px;
+    }
+
+    /* flex adjustments for icons */
+    .notes .icon-wrapper {
+        justify-content: space-between;
+    }
+
+    .material-symbols-rounded {
+        font-size: 25px;
+    }
+
+    /* search Input */
+    .search-container input {
+        padding: 8px;
+        font-size: 14px;
+    }
+
+    /* adjust bus stop interval text */
+    #bus-interval {
+        font-size: 14px;
+    }
+}

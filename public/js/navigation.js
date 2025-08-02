@@ -197,6 +197,7 @@ queries.forEach(query => {
 // display the nearby services in the UI
 function displayNearbyService(place) {
   const servicesList = document.getElementById('servicesList');
+  clearNotes();
 
   // create HTML list item
   const serviceItem = document.createElement('div');
