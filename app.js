@@ -79,7 +79,6 @@ app.use('/api/auth', authRoutes);
 app.use('/api/requests', requestRoutes);
 app.use('/api/contacts', contactRoutes);
 app.use('/api/hotlines', emergencyHotlineRoutes);
-//app.get('/api/auth/test-mailgun-simple', testMailgunSimple);
 
 // Yiru Routes
 const friendRoutes = require('./routes/friendRoutes');
