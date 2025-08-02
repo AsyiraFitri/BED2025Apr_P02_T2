@@ -1,17 +1,5 @@
 const medicationModel = require("../models/medicationModel");
 
-// Get all medication schedules (with checkbox state) for the authenticated user
-// - Uses authenticated user ID from token (req.user.UserID)
-async function getMedicationSchedulesByUserId(req, res) {
-  try {
-    const userId = req.user.id || req.user.UserID; // Get authenticated user ID from JWT token (set by verifyToken middleware)
-    const schedules = await medicationModel.getMedicationSchedulesByUserId(userId);
-    res.json(schedules);
-  } catch (error) {
-    console.error("Controller error (getMedicationSchedulesByUserId):", error);
-    res.status(500).json({ error: "Failed to fetch medication schedules" });
-  }
-}
 
 // Get all medications for the authenticated user
 // - Uses authenticated user ID from token (req.user.UserID)
@@ -107,13 +95,34 @@ async function deleteMedication(req, res) {
   }
 }
 
+// Get all medication schedules (with checkbox state) for the authenticated user
+// - Uses authenticated user ID from token (req.user.UserID)
+async function getMedicationSchedulesByUserId(req, res) {
+  try {
+    // Receives a request from the client to get all medication schedules for the authenticated user
+    // Extracts the user ID from the JWT token set by the verifyToken middleware
+    const userId = req.user.id || req.user.UserID; 
+
+    // Calls the model to fetch medication schedules for the user
+    const schedules = await medicationModel.getMedicationSchedulesByUserId(userId);
+
+    // Sends the schedules as a JSON response
+    res.json(schedules);
+  } catch (error) {
+    console.error("Controller error (getMedicationSchedulesByUserId):", error);
+    res.status(500).json({ error: "Failed to fetch medication schedules" });
+  }
+}
 
 // Save medication checkbox state
 // - Uses validated tracking data from middleware (req.validatedTrackingData)
 // - Saves checkbox state for a specific medication/time
 async function saveTrackingState(req, res) {
   try {
+    // Get validated tracking data from middleware
     const { medicationId, scheduleTime, isChecked } = req.validatedTrackingData;
+
+    // Call model to save tracking state
     await medicationModel.saveTracking(medicationId, scheduleTime, isChecked);
     res.json({ message: "Tracking state saved successfully" });
   } catch (error) {
@@ -126,7 +135,10 @@ async function saveTrackingState(req, res) {
 // - Resets all checkbox states to unchecked
 async function resetAllTracking(req, res) {
   try {
+    // Call model to reset all medication tracking
     const resetCount = await medicationModel.resetAllTracking();
+
+    // Respond with the number of records reset
     res.json({ 
       message: "All medication tracking reset successfully",
       resetCount 

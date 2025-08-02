@@ -26,7 +26,7 @@ function validateAppointmentId() {
 // - Validates data types and formats
 // - Adds validated data to req.validatedData for controller use
 function validateAppointmentData(req, res, next) {
-  const { AppointmentDate, AppointmentTime, Title, Location, DoctorName, Notes, UserID, GoogleEventID } = req.body;
+  const { AppointmentDate, AppointmentTime, Title, Location, DoctorName, Notes, GoogleEventID } = req.body;
   
   // Check required fields
   if (!AppointmentDate) {
@@ -49,8 +49,11 @@ function validateAppointmentData(req, res, next) {
   if (!doctorNameRegex.test(DoctorName.trim())) {
     return res.status(400).json({ error: "DoctorName must contain only letters and spaces" });
   }
-  if (!UserID) {
-    return res.status(400).json({ error: "UserID is required" });
+  
+  // Get UserID from JWT token (set by authentication middleware)
+  const userId = req.user.id || req.user.UserID;
+  if (!userId) {
+    return res.status(401).json({ error: "User not authenticated" });
   }
   
   // Validate date format (YYYY-MM-DD)
@@ -65,12 +68,6 @@ function validateAppointmentData(req, res, next) {
     return res.status(400).json({ error: "AppointmentTime must be in HH:MM format" });
   }
   
-  // Validate UserID is a number
-  const userIdNum = parseInt(UserID);
-  if (isNaN(userIdNum) || userIdNum <= 0) {
-    return res.status(400).json({ error: "UserID must be a positive number" });
-  }
-  
   // Build validated appointment object
   const validatedAppointment = {
     AppointmentDate,
@@ -79,7 +76,7 @@ function validateAppointmentData(req, res, next) {
     Location: Location.trim(),
     DoctorName: DoctorName.trim(),
     Notes: Notes ? Notes.trim() : "No special instructions",
-    UserID: userIdNum,
+    UserID: userId,
     GoogleEventID: GoogleEventID || null
   };
   

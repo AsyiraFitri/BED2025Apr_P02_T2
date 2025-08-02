@@ -109,7 +109,7 @@ async function syncAppointment(req, res) {
   const startDateTime = new Date(`${AppointmentDate}T${AppointmentTime}`);
   const endDateTime = new Date(startDateTime.getTime() + 30 * 60000); // 30 minutes later
 
-  // 5. Create a new OAuth2 client with tokens for this user
+  // 5. Create a new OAuth2 client with tokens to access Google Calendar
   const auth = createOAuthClient(tokens); 
   const calendar = google.calendar({ version: 'v3', auth }); // Initialize calendar API
 
@@ -128,7 +128,7 @@ async function syncAppointment(req, res) {
   };
 
   try {
-    // 7. If GoogleEventID exists, update; else, insert new event
+    // 7. If GoogleEventID exists in request body from frontend, update; else, insert new event
     const result = GoogleEventID
       ? await calendar.events.update({
           calendarId: CALENDAR_ID,
