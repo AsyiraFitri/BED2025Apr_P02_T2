@@ -25,7 +25,7 @@ function validateMedicationId() {
 // - Validates data types and formats
 // - Adds validated data to req.validatedData for controller use
 function validateMedicationData(req, res, next) {
-  const { Name, Dosage, Frequency, Notes, UserID } = req.body;
+  const { Name, Dosage, Frequency, Notes } = req.body;
   
   // Check required fields
   if (!Name) {
@@ -37,14 +37,11 @@ function validateMedicationData(req, res, next) {
   if (!Frequency) {
     return res.status(400).json({ error: "Frequency is required" });
   }
-  if (!UserID) {
-    return res.status(400).json({ error: "UserID is required" });
-  }
   
-  // Validate UserID is a number
-  const userIdNum = parseInt(UserID);
-  if (isNaN(userIdNum) || userIdNum <= 0) {
-    return res.status(400).json({ error: "UserID must be a positive number" });
+  // Get UserID from JWT token (set by authentication middleware)
+  const userId = req.user.id || req.user.UserID;
+  if (!userId) {
+    return res.status(401).json({ error: "User not authenticated" });
   }
   
   // Build validated medication object
@@ -53,7 +50,7 @@ function validateMedicationData(req, res, next) {
     Dosage: Dosage.toString().trim(),
     Frequency: Frequency.toString().trim(),
     Notes: Notes ? Notes.trim() : "No special instructions",
-    UserID: userIdNum
+    UserID: userId
   };
   
   // Add validated data to request object

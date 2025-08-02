@@ -1,3 +1,16 @@
+
+-- CREATE TABLES - Le Wun Sandi Kyaw's
+CREATE TABLE Users ( 
+	UserID INT PRIMARY KEY IDENTITY(1,1), 
+	first_name VARCHAR(100), 
+	last_name VARCHAR(100), 
+	phone_number VARCHAR(20), 
+	email VARCHAR(255) UNIQUE NOT NULL, 
+	password VARCHAR(255) NOT NULL,
+	role VARCHAR(20) CHECK (role IN ('admin', 'user')) DEFAULT 'user'
+); 
+
+
 -- CREATE TABLES - Pook Xuan Tong's
 CREATE TABLE Appointments ( 
     AppointmentID INT IDENTITY(1,1) PRIMARY KEY, 
@@ -32,15 +45,6 @@ CREATE TABLE MedicationSchedule (
 );
 
 -- CREATE TABLES - Ong Jing Yin's
-CREATE TABLE Users ( 
-	UserID INT PRIMARY KEY IDENTITY(1,1), 
-	first_name VARCHAR(100), 
-	last_name VARCHAR(100), 
-	phone_number VARCHAR(20), 
-	email VARCHAR(255) UNIQUE NOT NULL, 
-	password VARCHAR(255) NOT NULL,
-	role VARCHAR(20) CHECK (role IN ('admin', 'user')) DEFAULT 'user'
-); 
 
 CREATE TABLE HobbyGroups ( 
 	OwnerID INT,
@@ -107,6 +111,19 @@ CREATE TABLE PlaceNotes (
   FOREIGN KEY (UserID) REFERENCES Users(UserID)
 );
 
+-- INSERT SAMPLE DATA - Le Wun Sandi Kyaw's
+INSERT INTO Users (UserID, first_name, last_name, phone_number, email, password, role)
+VALUES  
+(1, 'Sarah', 'Tan', '98097102', 'sarah20@gmail.com', 'password123', 'admin'), 
+(2, 'Rachel', 'Chuu', '89764291', 'rachel2018@gmail.com', 'rachel1976!', 'admin'), 
+(3, 'Emily', 'Tan', '91234567', 'emily.tan@gmail.com', 'emilypass18', 'admin'), 
+(4, 'Daniel', 'Lim', '98765432', 'daniel.lim@gmail.com', 'SecurePass456', 'admin'), 
+(5, 'Siti', 'Rahman', '87654321', 'siti.rahman@gmail.com', 'MyPassword789', 'admin'), 
+(6, 'Marcus', 'Lee', '96543210', 'marcus.lee@gmail.com', 'Qwerty2024', 'user'), 
+(7, 'Chloe', 'Ng', '92345678', 'chloe.ng@gmail.com', 'HelloWorld1', 'user'),
+(8, 'David', 'Goh', '90123456', 'david.goh@gmail.com', 'davidpass2024', 'user'),
+(9, 'Anna', 'Wong', '90234567', 'anna.wong@gmail.com', 'annawong99', 'user'),
+(10, 'Liam', 'Teo', '90345678', 'liam.teo@gmail.com', 'liamteo88', 'user');
 
 -- INSERT SAMPLE DATA - Pook Xuan Tong 's
 INSERT INTO Appointments (AppointmentDate, AppointmentTime, Title, Location, DoctorName, Notes, UserID, GoogleEventID) 
@@ -128,18 +145,6 @@ VALUES
 (2, 'Afternoon', 0, NULL);
 
 -- INSERT SAMPLE DATA - Ong Jing Yin's
-INSERT INTO Users (UserID, first_name, last_name, phone_number, email, password, role)
-VALUES  
-(1, 'Sarah', 'Tan', '98097102', 'sarah20@gmail.com', 'password123', 'admin'), 
-(2, 'Rachel', 'Chuu', '89764291', 'rachel2018@gmail.com', 'rachel1976!', 'admin'), 
-(3, 'Emily', 'Tan', '91234567', 'emily.tan@gmail.com', 'emilypass18', 'admin'), 
-(4, 'Daniel', 'Lim', '98765432', 'daniel.lim@gmail.com', 'SecurePass456', 'admin'), 
-(5, 'Siti', 'Rahman', '87654321', 'siti.rahman@gmail.com', 'MyPassword789', 'admin'), 
-(6, 'Marcus', 'Lee', '96543210', 'marcus.lee@gmail.com', 'Qwerty2024', 'user'), 
-(7, 'Chloe', 'Ng', '92345678', 'chloe.ng@gmail.com', 'HelloWorld1', 'user'),
-(8, 'David', 'Goh', '90123456', 'david.goh@gmail.com', 'davidpass2024', 'user'),
-(9, 'Anna', 'Wong', '90234567', 'anna.wong@gmail.com', 'annawong99', 'user'),
-(10, 'Liam', 'Teo', '90345678', 'liam.teo@gmail.com', 'liamteo88', 'user');
 
 INSERT INTO HobbyGroups (GroupName, GroupDescription, OwnerID)
 VALUES 

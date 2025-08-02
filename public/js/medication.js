@@ -285,7 +285,6 @@ function loadCheckboxState(medicationId, timeLabel) {
 
 // Save checkbox state to backend
 // medicationId: MedicationID, scheduleTime: time label, isChecked: boolean
-// Persists the checkbox state for the user for today
 async function saveCheckboxState(medicationId, scheduleTime, isChecked) {
     try {
         const response = await fetch('/api/medications/tracking/save', {

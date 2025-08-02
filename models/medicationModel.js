@@ -1,39 +1,8 @@
-
-// Get all medication schedules (with checkbox state) for a user
-// Returns MedicationID, Name, ScheduleTime, IsChecked
-async function getMedicationSchedulesByUserId(userId) {
-  let connection;
-  try {
-    connection = await sql.connect(dbConfig);
-    const query = `
-      SELECT m.MedicationID, m.Name, ms.ScheduleTime, ms.IsChecked
-      FROM Medications m
-      INNER JOIN MedicationSchedule ms ON m.MedicationID = ms.MedicationID
-      WHERE m.UserID = @userId
-      ORDER BY m.MedicationID, ms.ScheduleTime
-    `;
-    const request = connection.request();
-    request.input("userId", sql.Int, userId);
-    const result = await request.query(query);
-    return result.recordset;
-  } catch (error) {
-    console.error("Database error (getMedicationSchedulesByUserId):", error);
-    throw error;
-  } finally {
-    if (connection) {
-      try {
-        await connection.close();
-      } catch (err) {
-        console.error("Error closing connection:", err);
-      }
-    }
-  }
-}
 const sql = require("mssql");
 const dbConfig = require("../dbConfig");
 
 // Get all medications for a specific user
-// - Retrieves all medications where UserID matches the given input
+// - Retrieves all medications based on UserID
 async function getMedicationsByUserId(userId) {
   let connection;
   try {
@@ -146,6 +115,7 @@ async function createMedication(med) {
       await transaction.commit();
     } catch (error) {
       // Rollback transaction on error
+      // rollback means all changes made in this transaction will be undone
       await transaction.rollback();
       throw error;
     }
@@ -264,7 +234,7 @@ async function deleteMedication(id) {
     try {
       // Delete schedule entries first (foreign key constraint)
       const deleteScheduleQuery = "DELETE FROM MedicationSchedule WHERE MedicationID = @id";
-      const scheduleRequest = new sql.Request(transaction);
+      const scheduleRequest = new sql.Request(transaction); 
       scheduleRequest.input("id", sql.Int, id);
       await scheduleRequest.query(deleteScheduleQuery);
       
@@ -295,6 +265,51 @@ async function deleteMedication(id) {
   }
 }
 
+//--------------------------------------------Medication Tracking Functions--------------------------------------------
+
+// Get all medication schedules (with checkbox state) for a user
+// Returns MedicationID, Name, ScheduleTime, IsChecked
+async function getMedicationSchedulesByUserId(userId) {
+  let connection;
+  try {
+    // Connect to the database
+    connection = await sql.connect(dbConfig);
+
+    // Creates a parameterized SQL query to select medication schedules for a user, 
+    // joining the Medications and MedicationSchedule tables.
+
+    // Uses input parameters to prevent SQL injection.
+    const query = `
+      SELECT m.MedicationID, m.Name, ms.ScheduleTime, ms.IsChecked
+      FROM Medications m
+      INNER JOIN MedicationSchedule ms ON m.MedicationID = ms.MedicationID
+      WHERE m.UserID = @userId
+      ORDER BY m.MedicationID, ms.ScheduleTime
+    `;
+
+    // Create a request object and set the input parameter
+    // to the userId provided in the function argument.
+    const request = connection.request();
+    request.input("userId", sql.Int, userId);
+
+    // Execute the query and get the result set
+    const result = await request.query(query);
+
+    // Return the result set
+    return result.recordset;
+  } catch (error) {
+    console.error("Database error (getMedicationSchedulesByUserId):", error);
+    throw error;
+  } finally {
+    if (connection) {
+      try {
+        await connection.close();
+      } catch (err) {
+        console.error("Error closing connection:", err);
+      }
+    }
+  }
+}
 
 // Save or update medication checkbox state
 // - Updates IsChecked status for a specific medication/time
@@ -361,7 +376,10 @@ async function resetAllTracking() {
     }
   }
 }
-// ========== Medication Daily Reset Scheduler (runs at 12AM) ==========
+
+// check if daily reset is needed on server startup
+// - Checks if any records have LastResetDate not equal to today or is NULL
+// - If server does not run overnight
 async function checkAndPerformDailyReset() {
   let connection;
   try {
@@ -407,6 +425,9 @@ async function checkAndPerformDailyReset() {
   }
 }
 
+// Schedule daily reset at midnight
+// - Runs once at server startup to check if reset is needed
+// - If server runs overnight
 function scheduleDailyReset() {
   // First, check if we need to reset on startup (in case server was down overnight)
   checkAndPerformDailyReset();
@@ -438,6 +459,7 @@ function scheduleDailyReset() {
   }, timeUntilMidnight);
   console.log(`Daily medication reset scheduled. Next reset in ${Math.round(timeUntilMidnight / 1000 / 60)} minutes`);
 }
+
 
 
 module.exports = {
