@@ -1,3 +1,5 @@
+const sql = require('mssql');
+const dbConfig = require('../dbConfig');
 const friendModel = require('../models/friendModel');
 
 async function sendFriendRequest(req, res) {
@@ -43,10 +45,10 @@ async function respondToFriendRequest(req, res) {
 }
 
 async function deleteFriend(req, res) {
-  const { userId, friendId } = req.params;
   try {
-    await friendModel.deleteFriend(userId, friendId);
-    res.json({ message: 'Friend removed.' });
+    const { userId, friendId } = req.params;
+    await friendModel.deleteFriend(parseInt(userId), parseInt(friendId));
+    res.json({ message: 'Friend removed' });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -72,11 +74,36 @@ async function getSentRequests(req, res) {
   }
 }
 
+//update deleteFriend request function
+/*
+async function deleteFriendRequest(req, res) {
+  const requestId = parseInt(req.params.requestId);
+  console.log(`Attempting to delete request ID: ${requestId}`);
+  
+  try {
+    const result = await friendModel.deleteFriendRequest(requestId);
+    console.log('Delete result:', result);
+    
+    res.json({ 
+      success: true,
+      message: 'Friend request deleted successfully',
+      deletedId: requestId
+    });
+  } catch (err) {
+    console.error('Delete failed:', err);
+    res.status(500).json({
+      success: false,
+      error: err.message
+    });
+  }
+}
+*/
+
 module.exports = {
   sendFriendRequest,
   getFriends,
   respondToFriendRequest,
   deleteFriend,
   getIncomingRequests,
-  getSentRequests
+  getSentRequests,
 };
