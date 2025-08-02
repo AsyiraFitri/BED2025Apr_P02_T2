@@ -53,7 +53,7 @@ function displayRequests(containerId, data, isIncoming) {
                 <button class="btn btn-sm btn-success me-2" onclick="respondToRequest(${req.FriendID}, 'accepted')">Accept</button>
                 <button class="btn btn-sm btn-danger me-2" onclick="respondToRequest(${req.FriendID}, 'rejected')">Reject</button>
             ` : ''}
-        <button class="btn btn-sm btn-outline-secondary" onclick="deleteFriendRequest(${req.FriendID})">Delete</button>
+        
         </div>
     `;
     container.appendChild(wrapper);
