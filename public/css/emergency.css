@@ -257,19 +257,40 @@ html, body {
 }
 
 /* Emergency Call Card */
-.emergency-call-card {
+/* Shared Red Service Card Style */
+.red-service-card {
     background: linear-gradient(135deg, #dc3545, #c82333);
     color: white;
     border: none;
 }
 
-.emergency-call-card:hover {
+.red-service-card:hover {
     background: linear-gradient(135deg, #c82333, #b21e2f);
     transform: translateY(-2px);
     box-shadow: 0 4px 15px rgba(220, 53, 69, 0.3);
 }
 
-.emergency-call-icon {
+.red-service-card h3 {
+    color: white;
+    font-size: 1.5rem;
+    margin-bottom: 5px;
+}
+
+.red-service-card .service-btn {
+    background-color: rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: white;
+}
+
+.red-service-card .service-btn:hover {
+    background-color: white;
+    color: var(--primary-red);
+}
+
+/* Icon style */
+.red-service-card .service-icon
+ {
+    
     background-color: white;
     border-radius: 50%;
     width: 60px;
@@ -281,23 +302,10 @@ html, body {
     color: var(--primary-red);
 }
 
-.emergency-call-card h3 {
-    color: white;
-    font-size: 1.5rem;
-    margin-bottom: 5px;
+.red-service-card .service-icon img{
+    width: 30px;
+    height: 30px;
 }
-
-.emergency-call-card .service-btn {
-    background-color: rgba(255, 255, 255, 0.2);
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    color: white;
-}
-
-.emergency-call-card .service-btn:hover {
-    background-color: white;
-    color: var(--primary-red);
-}
-
 /* ===== FORM STYLES ===== */
 .form-section,
 .form-container {
@@ -407,6 +415,41 @@ button {
 
 .btn-secondary:hover {
     background: #dee2e6;
+}
+
+/* request and contact icons*/
+.help-request-card,
+.emergency-contact-card {
+    background: linear-gradient(135deg, #dc3545, #c82333);
+    color: white;
+    border: none;
+}
+
+.help-request-card:hover,
+.emergency-contact-card:hover {
+    background: linear-gradient(135deg, #c82333, #b21e2f);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(220, 53, 69, 0.3);
+}
+
+/* Make icons inside red cards consistent */
+.help-request-card .service-icon img,
+.emergency-contact-card .service-icon img {
+    width: 40px;
+    height: 40px;
+}
+
+.help-request-card .service-btn,
+.emergency-contact-card .service-btn {
+    background-color: rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: white;
+}
+
+.help-request-card .service-btn:hover,
+.emergency-contact-card .service-btn:hover {
+    background-color: white;
+    color: var(--primary-red);
 }
 
 /* ===== REQUEST MANAGEMENT STYLES ===== */
@@ -800,3 +843,7 @@ button {
         min-width: 80px;
     }
 }
+/* reset page*/
+ .form-container { max-width: 500px; margin: 0 auto; padding: 20px; }
+ .bottom-link { text-align: center; margin-top: 15px; }
+ .btn-primary { width: 100%; padding: 10px; }

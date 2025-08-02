@@ -86,7 +86,7 @@ async function deleteHelpRequest(req, res) {
         res.status(500).json({ error: 'Internal server error' });
     }
 }
-// PATCH - Update help request status
+//Update help request status
 async function updateHelpRequest(req, res) {
     try {
         const RequestID = req.params.id;
@@ -105,7 +105,7 @@ async function updateHelpRequest(req, res) {
         // Check if request exists
         const checkResult = await pool.request()
             .input('id', sql.Int, RequestID)
-            .query('SELECT id FROM HelpRequests WHERE RequestID  = @id');
+            .query('SELECT RequestID FROM HelpRequests WHERE RequestID  = @id');
         
         if (checkResult.recordset.length === 0) {
             return res.status(404).json({ error: 'Request not found' });
@@ -123,9 +123,14 @@ async function updateHelpRequest(req, res) {
 
         res.json({ message: `Request status updated to ${status}` });
     } catch (error) {
-        console.error('Error updating help request:', error);
-        res.status(500).json({ error: 'Internal server error' });
-    }
+    console.error('Error updating help request:', error);
+    res.status(500).json({ 
+      error: 'Internal server error', 
+      details: error.message,
+      stack: error.stack 
+    });
+}
+
 }
 module.exports = {
   getHelpRequests,

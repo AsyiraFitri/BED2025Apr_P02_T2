@@ -74,6 +74,7 @@ const requestRoutes = require('./routes/requestRoutes');
 const contactRoutes = require('./routes/emergencyContactRoutes');
 const emergencyHotlineRoutes = require('./routes/emergencyHotlineRoutes');
 
+
 app.use('/api/auth', authRoutes);
 app.use('/api/requests', requestRoutes);
 app.use('/api/contacts', contactRoutes);
