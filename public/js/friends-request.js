@@ -47,14 +47,14 @@ function displayRequests(containerId, data, isIncoming) {
     const wrapper = document.createElement('div');
     wrapper.className = 'd-flex justify-content-between align-items-center border p-2 mb-2';
     wrapper.innerHTML = `
-      <span><strong>${isIncoming ? req.UserID : req.FriendUserID}</strong> - ${req.Status}</span>
-      <div>
-        ${isIncoming && req.Status === 'pending' ? `
-          <button class="btn btn-sm btn-success me-2" onclick="respondToRequest(${req.FriendID}, 'accepted')">Accept</button>
-          <button class="btn btn-sm btn-danger me-2" onclick="respondToRequest(${req.FriendID}, 'rejected')">Reject</button>
-        ` : ''}
+        <span><strong>${isIncoming ? req.UserID : req.FriendUserID}</strong> - ${req.Status}</span>
+        <div>
+            ${isIncoming && req.Status === 'pending' ? `
+                <button class="btn btn-sm btn-success me-2" onclick="respondToRequest(${req.FriendID}, 'accepted')">Accept</button>
+                <button class="btn btn-sm btn-danger me-2" onclick="respondToRequest(${req.FriendID}, 'rejected')">Reject</button>
+            ` : ''}
         <button class="btn btn-sm btn-outline-secondary" onclick="deleteFriendRequest(${req.FriendID})">Delete</button>
-      </div>
+        </div>
     `;
     container.appendChild(wrapper);
   });
@@ -127,16 +127,55 @@ async function respondToRequest(friendId, status) {
   }
 }
 
+// Update delete friend request
+/*
 async function deleteFriendRequest(friendId) {
+  if (!confirm('Permanently delete this friend request?')) return;
+
   try {
-    const res = await fetch(`${apiUrl}/${friendId}`, { method: 'DELETE' });
-    if (!res.ok) {
-      const data = await res.json();
-      throw new Error(data.message || 'Failed to delete request');
+    // First verify the request exists
+    const verifyRes = await fetch(`http://localhost:3000/api/friends/verify/${friendId}`);
+    const verifyData = await verifyRes.json();
+    
+    if (!verifyData.exists) {
+      throw new Error('Request not found in database');
     }
+
+    console.log('Verification result:', verifyData);
+
+    // Then attempt deletion
+    const deleteRes = await fetch(`http://localhost:3000/api/friends/request/${friendId}`, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${sessionStorage.getItem('token')}`
+      }
+    });
+
+    const deleteData = await deleteRes.json();
+    console.log('Delete result:', deleteData);
+    
+    if (!deleteRes.ok) {
+      throw new Error(deleteData.error || 'Delete request failed');
+    }
+
+    // Verify deletion
+    const postVerifyRes = await fetch(`http://localhost:3000/api/friends/verify/${friendId}`);
+    const postVerifyData = await postVerifyRes.json();
+    
+    if (postVerifyData.exists) {
+      throw new Error('Request still exists after deletion');
+    }
+
+    alert('Friend request successfully deleted');
     loadFriendData();
-  } catch (err) {
-    console.error("Delete friend request error:", err);
-    alert('Error deleting friend request: ' + err.message);
+    
+  } catch (error) {
+    console.error('Full error:', {
+      message: error.message,
+      stack: error.stack
+    });
+    alert(`Deletion failed: ${error.message}`);
   }
 }
+*/

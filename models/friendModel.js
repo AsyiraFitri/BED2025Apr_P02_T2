@@ -49,13 +49,13 @@ async function respondToFriendRequestById(friendId, status) {
 // Delete friend
 async function deleteFriend(userId, friendId) {
   const pool = await sql.connect(dbConfig);
-  return pool.request()
-    .input('UserID', sql.NVarChar, userId)
-    .input('FriendUserID', sql.NVarChar, friendId)
+  await pool.request()
+    .input('User1', sql.Int, userId)
+    .input('User2', sql.Int, friendId)
     .query(`
       DELETE FROM Friends 
-      WHERE (UserID = @UserID AND FriendUserID = @FriendUserID)
-         OR (UserID = @FriendUserID AND FriendUserID = @UserID)
+      WHERE (UserID = @User1 AND FriendUserID = @User2)
+         OR (UserID = @User2 AND FriendUserID = @User1)
     `);
 }
 
@@ -77,6 +77,39 @@ async function getSentRequests(userId) {
     );
 }
 
+//update deleteFriend request function
+/*
+async function deleteFriendRequest(requestId) {
+  const pool = await sql.connect(dbConfig);
+  try {
+    // First verify the record exists
+    const verify = await pool.request()
+      .input('FriendID', sql.Int, requestId)
+      .query('SELECT 1 FROM Friends WHERE FriendID = @FriendID');
+    
+    if (verify.recordset.length === 0) {
+      throw new Error(`No record found with FriendID: ${requestId}`);
+    }
+
+    // Then delete it
+    const result = await pool.request()
+      .input('FriendID', sql.Int, requestId)
+      .query('DELETE FROM Friends WHERE FriendID = @FriendID');
+
+    if (result.rowsAffected[0] === 0) {
+      throw new Error('Delete operation affected 0 rows');
+    }
+
+    return { 
+      success: true, 
+      deletedId: requestId,
+      rowsAffected: result.rowsAffected[0]
+    };
+  } finally {
+    await pool.close();
+  }
+}
+*/
 
 
 module.exports = {
@@ -85,5 +118,5 @@ module.exports = {
   respondToFriendRequestById,
   deleteFriend,
   getIncomingRequests,
-  getSentRequests
+  getSentRequests,
 };
