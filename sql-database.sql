@@ -431,3 +431,19 @@ FROM SavedPlaces
 WHERE Address = '376 Clementi Ave 4, Singapore 120376'
   AND UserID = 8;
 
+-- CREATE TABLES - Wang Yiru's
+CREATE TABLE Friends (
+  FriendID INT PRIMARY KEY IDENTITY,
+  UserID INT,
+  FriendUserID INT,
+  Status NVARCHAR(10),
+  CreatedAt DATETIME DEFAULT GETDATE()
+);
+
+CREATE TABLE Messages (
+  MessageID INT PRIMARY KEY IDENTITY,
+  SenderID INT,
+  ReceiverID INT,
+  MessageText NVARCHAR(500),
+  Timestamp DATETIME DEFAULT GETDATE()
+);
