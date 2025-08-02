@@ -95,49 +95,77 @@ async function checkUserMembership(groupId, userId) {
     }
 }
 
-// Get member count for a group
+// Get member count for a group including members, all admins and owner
 async function getMemberCount(groupId) {
     try {
         const pool = await sql.connect(config);
-        const result = await pool.request()
+        // Fetch owner ID
+        const ownerRes = await pool.request()
             .input('GroupID', sql.Int, groupId)
-            .query('SELECT COUNT(DISTINCT UserID) as memberCount FROM Members WHERE GroupID = @GroupID');
-        return result.recordset[0].memberCount;
+            .query('SELECT OwnerID FROM HobbyGroups WHERE GroupID = @GroupID');
+        const ownerId = ownerRes.recordset[0]?.OwnerID;
+        // Fetch explicit members
+        const membersRes = await pool.request()
+            .input('GroupID', sql.Int, groupId)
+            .query('SELECT DISTINCT UserID FROM Members WHERE GroupID = @GroupID');
+        const memberIds = new Set(membersRes.recordset.map(r => r.UserID));
+        // Fetch all admins
+        const adminsRes = await pool.request().query("SELECT UserID FROM Users WHERE role = 'admin'");
+        adminsRes.recordset.forEach(r => memberIds.add(r.UserID));
+        // Include owner
+        if (ownerId != null) memberIds.add(ownerId);
+        return memberIds.size;
     } 
     catch (error) {
         throw new Error(`Database error in getMemberCount: ${error.message}`);
     }
 }
 
-// Get list of all group members and their roles
+// Get list of all group members and their roles, including members, admins, and owner
 async function getMemberListWithRoles(groupId) {
     try {
         const pool = await sql.connect(config);
-        const result = await pool.request()
-            .input('GroupID', sql.Int, groupId)
-            .query(`
-                SELECT 
-                    m.Name,
-                    CASE 
-                        WHEN m.UserID = hg.OwnerID THEN 'Owner'
-                        WHEN u.role = 'admin' THEN 'Admin'
-                        ELSE 'Member'
-                    END as Role,
-                    CASE 
-                        WHEN m.UserID = hg.OwnerID THEN 1
-                        WHEN u.role = 'admin' THEN 2
-                        ELSE 3
-                    END as SortOrder
-                FROM Members m
-                INNER JOIN HobbyGroups hg ON m.GroupID = hg.GroupID
-                INNER JOIN Users u ON m.UserID = u.UserID
-                WHERE m.GroupID = @GroupID
-                ORDER BY SortOrder ASC, m.Name ASC
-            `);
-        return result.recordset.map(member => ({
-            name: member.Name,
-            role: member.Role
-        }));
+        // Fetch owner ID and members table entries
+        const [ownerRes, membersRes, adminsRes] = await Promise.all([
+            pool.request().input('GroupID', sql.Int, groupId)
+                .query('SELECT OwnerID FROM HobbyGroups WHERE GroupID = @GroupID'),
+            pool.request().input('GroupID', sql.Int, groupId)
+                .query('SELECT UserID, Name FROM Members WHERE GroupID = @GroupID'),
+            pool.request().query("SELECT UserID, first_name, last_name FROM Users WHERE role = 'admin'")
+        ]);
+        const ownerId = ownerRes.recordset[0]?.OwnerID;
+        // Map to track unique users
+        const userMap = new Map();
+        // Add explicit members
+        for (const m of membersRes.recordset) {
+            const isOwner = m.UserID === ownerId;
+            const role = isOwner ? 'Owner' : 'Member';
+            const sortOrder = isOwner ? 1 : 3;
+            userMap.set(m.UserID, { name: m.Name, role, sortOrder });
+        }
+        // Add admins
+        for (const a of adminsRes.recordset) {
+            const isOwner = a.UserID === ownerId;
+            if (!userMap.has(a.UserID)) {
+                const fullName = `${a.first_name} ${a.last_name}`.trim();
+                const role = isOwner ? 'Owner' : 'Admin';
+                const sortOrder = isOwner ? 1 : 2;
+                userMap.set(a.UserID, { name: fullName, role, sortOrder });
+            } 
+            else {
+                // Upgrade existing member to admin role if applicable
+                const entry = userMap.get(a.UserID);
+                if (entry.role !== 'Owner') {
+                    entry.role = 'Admin';
+                    entry.sortOrder = 2;
+                }
+            }
+        }
+        // Convert to array and sort
+        const members = Array.from(userMap.values())
+            .sort((a, b) => a.sortOrder - b.sortOrder || a.name.localeCompare(b.name))
+            .map(u => ({ name: u.name, role: u.role }));
+        return members;
     } 
     catch (error) {
         throw new Error(`Database error in getMemberListWithRoles: ${error.message}`);
