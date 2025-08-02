@@ -35,7 +35,8 @@ function getUserFromToken(token) {
       firstName: decoded.first_name || decoded.username || '',
       lastName: decoded.last_name || ''
     };
-  } catch (error) {
+  } 
+  catch (error) {
     console.error('Error extracting user from token:', error);
     throw new Error('Invalid or expired token');
   }
@@ -66,7 +67,8 @@ async function createMessage(channelId, messageText, groupId, channelName, token
       lastMessageBy: user.userName
     }, { merge: true });
     return docRef.id;
-  } catch (error) {
+  } 
+  catch (error) {
     console.error('Error creating message:', error);
     throw error;
   }
@@ -106,7 +108,8 @@ async function createChannel(groupId, channelName, token) {
       createdAt: admin.firestore.FieldValue.serverTimestamp()
     });
     return channelRef.id;
-  } catch (error) {
+  } 
+  catch (error) {
     console.error('Error creating channel:', error);
     throw error;
   }
@@ -180,9 +183,16 @@ async function deleteMessage(messageId, token, groupId, channelName) {
   }
 }
 
+// Returns the Firestore database instance, initializing Firebase if needed
+// Use this to access Firestore in other backend modules
+function getDb() {
+  ensureFirebaseInitialized();
+  return db;
+}
+
 module.exports = {
   admin,
-  getDb: () => { ensureFirebaseInitialized(); return db; },
+  getDb,
   createMessage,
   getMessages,
   createChannel,
