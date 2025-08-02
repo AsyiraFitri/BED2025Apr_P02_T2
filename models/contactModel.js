@@ -72,8 +72,92 @@ async function createContact({ name, relationship, phone, note, isStarred, userI
     }
   }
 }
+async function deleteContact(contactId, userId) {
+  let pool;
+  try {
+    pool = await sql.connect(dbConfig);
+    const result = await pool.request()
+      .input('contactId', sql.Int, contactId)
+      .input('userId', sql.Int, userId)
+      .query(`
+        DELETE FROM EmergencyContact
+        WHERE ContactID = @contactId AND user_id = @userId
+      `);
+
+    // Return true if a row was deleted
+    return result.rowsAffected[0] > 0;
+  } catch (error) {
+    console.error('Database error in deleteContact:', error);
+    throw error;
+  } finally {
+    if (pool) {
+      await pool.close();
+    }
+  }
+}
+async function getContactById(contactId, userId) {
+  let pool;
+  try {
+    pool = await sql.connect(dbConfig);
+    const result = await pool.request()
+      .input('contactId', sql.Int, contactId)
+      .input('userId', sql.Int, userId)
+      .query(`
+        SELECT ContactID, Name, Relationship, PhoneNumber, Note, IsStarred, user_id
+        FROM EmergencyContact
+        WHERE ContactID = @contactId AND user_id = @userId
+      `);
+
+    return result.recordset[0] || null;
+  } catch (error) {
+    console.error('Database error in getContactById:', error);
+    throw error;
+  } finally {
+    if (pool) {
+      await pool.close();
+    }
+  }
+}
+async function updateContact(contactId, userId, { name, relationship, phone, note, isStarred }) {
+  let pool;
+  try {
+    pool = await sql.connect(dbConfig);
+    const result = await pool.request()
+      .input('contactId', sql.Int, contactId)
+      .input('userId', sql.Int, userId)
+      .input('name', sql.NVarChar(100), name)
+      .input('relationship', sql.NVarChar(100), relationship)
+      .input('phone', sql.NVarChar(20), phone)
+      .input('note', sql.NVarChar(255), note)
+      .input('isStarred', sql.Bit, isStarred ? 1 : 0)
+      .query(`
+        UPDATE EmergencyContact
+        SET 
+          Name = @name,
+          Relationship = @relationship,
+          PhoneNumber = @phone,
+          Note = @note,
+          IsStarred = @isStarred
+        WHERE ContactID = @contactId AND user_id = @userId
+      `);
+
+    // Returns true if a row was updated
+    return result.rowsAffected[0] > 0;
+  } catch (error) {
+    console.error('Database error in updateContact:', error);
+    throw error;
+  } finally {
+    if (pool) {
+      await pool.close();
+    }
+  }
+}
+
 
 module.exports = {
   getAllContactsByUser,
-  createContact
+  createContact,
+    getContactById,
+  updateContact,
+  deleteContact
 };
