@@ -310,7 +310,7 @@ function showNearbyServices() {
 // set manual location
 function setManualLocation() {
   const manualLocation = document.getElementById('manualLocation').value;
-
+  
   if (manualLocation) {
     geocoder.geocode({ address: manualLocation }, (results, status) => {
       if (status === 'OK' && results[0]) {
