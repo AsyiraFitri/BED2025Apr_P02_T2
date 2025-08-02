@@ -25,17 +25,26 @@ const doc = {
     // Asyira
     { name: 'Places', description: 'Endpoints related to places, locations, and points of interest' },
     { name: 'PlaceNotes', description: 'Place notes creation, retrieval, editing, and deletion endpoints' },
-    { name: 'Bus', description: 'Bus arrival and related endpoints' }
+    { name: 'Bus', description: 'Bus arrival and related endpoints' },
 
     
     // Sandi
+    { name: 'Authentication', description: 'Signup, login, forgot password, and reset password endpoints ( Mailgun and reCAPTCHA integration)' },
+    { name: 'HelpRequests', description: 'Emergency help request creation, cancellation, and completion endpoints' },
+    { name: 'EmergencyContacts', description: 'Create, edit, and delete emergency contact endpoints' },
+    { name: 'EmergencyHotlines', description: 'View and call emergency hotline numbers and SOS endpoints' },
 
     // Yiru
 
   ],
 };
-console.log(myObject.api)
+try {
+  console.log(myObject.api);
+} catch (err) {
+  console.warn('Optional log skipped: myObject is not defined.');
+}
+
 const outputFile = './swagger-output.json';
-const endpointsFiles = ['./app.js', './routes/communityRoutes.js'];
+const endpointsFiles = ['./app.js', './routes/communityRoutes.js','./routes/authRoutes.js','./routes/requestRoutes.js','./routes/emergencyContactRoutes.js', './routes/emergencyHotlineRoutes.js'];
 
 swaggerAutogen(outputFile, endpointsFiles, doc);
