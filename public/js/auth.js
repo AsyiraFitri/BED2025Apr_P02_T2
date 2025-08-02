@@ -150,8 +150,8 @@ document.addEventListener("DOMContentLoaded", () => {
   // Login form
   document.getElementById("loginForm")?.addEventListener("submit", async (e) => {
     e.preventDefault();
-    const token = grecaptcha.getResponse(); // get CAPTCHA response
-      if (!token) {
+    const captchaToken = grecaptcha.getResponse(); // get CAPTCHA response
+      if (!captchaToken) {
     alert("Please complete the CAPTCHA.");
     return;
   }
@@ -160,7 +160,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const data = await makeAuthRequest("http://localhost:3000/api/auth/login", {
         email: document.getElementById("login_email").value,
         password: document.getElementById("login_password").value,
-        token
+        captchaToken
       });
 
       // Store the JWT token as primary source of truth
