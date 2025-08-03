@@ -100,8 +100,7 @@ swaggerAutogen(outputFile, endpointsFiles, doc).then(() => {
     if (path === '/' || path === '/{id}' || path === '/join' || path === '/events/{eventId}' || 
         path === '/checkMembership/{groupId}' || path === '/memberCount/{groupId}' ||
         path === '/memberList/{groupId}' || path === '/channels/{groupId}' ||
-        path === '/saveDesc' || path === '/createChannel' || path === '/deleteChannel' ||
-        path === '/register' || path === '/events/{eventId}' || 
+        path === '/saveDesc' || path === '/register' || path === '/events/{eventId}' || 
         !path.startsWith('/api/')) {
       pathsToRemove.push(path);
     }
@@ -134,10 +133,12 @@ swaggerAutogen(outputFile, endpointsFiles, doc).then(() => {
           endpoint.tags = ['Events'];
         } else if (path.includes('/firebase') || path.includes('/messages')) {
           endpoint.tags = ['ChatMessages'];
-        } else if (path.includes('/channels')) {
+        } else if (path.includes('/channels') || path.includes('/channels/create') || path.includes('/channels/delete')) {
           endpoint.tags = ['Channels'];
-        } else if (path.includes('/member') || path.includes('/user/')) {
+        } else if (path.includes('/memberCount') || path.includes('/memberList') || path.includes('/checkMembership')) {
           endpoint.tags = ['Members'];
+        } else if (path.includes('/events/create') || path.includes('/createEvent')) {
+          endpoint.tags = ['Events'];
         } else {
           endpoint.tags = ['Group'];
         }

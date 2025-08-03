@@ -6,9 +6,14 @@ const { validateGroupOwnership, preventAdminLeaveGroup, validateGroupOwnershipFo
 const { verifyToken } = require('../middlewares/authorizeUser');
 require('dotenv').config();
 
-// Route: PATCH /events/:eventId - Update an event (admin/owner only)
-router.patch('/events/:eventId', verifyToken, validateGroupOwnership, validateEvent, controller.updateEvent);
+// ============= GROUP MANAGEMENT ROUTES =============
+// Route: PATCH /saveDesc - Update group description (owner only)
+router.patch('/saveDesc', verifyToken, validateGroupOwnership, controller.saveDesc);
 
+// Route: GET /user/:userId - Get user details by userId
+router.get('/user/:userId', controller.getUserDetailsById);
+
+// ============= MEMBER MANAGEMENT ROUTES =============
 // Route: GET /checkMembership/:groupId - Check user membership
 router.get('/checkMembership/:groupId', verifyToken, controller.checkMembership);
 
@@ -18,27 +23,30 @@ router.get('/memberCount/:groupId', controller.getMemberCount);
 // Route: GET /memberList/:groupId - Get member list with roles
 router.get('/memberList/:groupId', controller.getMemberList);
 
+// ============= CHANNEL MANAGEMENT ROUTES =============
 // Route: GET /channels/:groupId - Get all channels for a group
 router.get('/channels/:groupId', controller.getChannels);
 
-// Route: PATCH /saveDesc - Update group description (owner only)
-router.patch('/saveDesc', verifyToken, validateGroupOwnership, controller.saveDesc);
+// Route: POST /channels/create - Create a new channel (owner only)
+router.post('/channels/create', verifyToken, validateGroupOwnership, validateChannel, controller.createChannel);
 
-// Route: POST /createChannel - Create a new channel (owner only)
-router.post('/createChannel', verifyToken, validateGroupOwnership, validateChannel, controller.createChannel);
+// Route: DELETE /channels/delete - Delete a channel (owner only)
+router.delete('/channels/delete', verifyToken, validateGroupOwnership, controller.deleteChannel);
 
-// Route: DELETE /deleteChannel - Delete a channel (owner only)
-router.delete('/deleteChannel', verifyToken, validateGroupOwnership, controller.deleteChannel);
+// ============= EVENT MANAGEMENT ROUTES =============
+// Route: GET /events/:groupId - Get all events for a group
+router.get('/events/:groupId', controller.getEvents);
 
-// Route: POST /createEvent - Create a new event
-router.post('/createEvent', verifyToken, validateGroupOwnership, validateEvent, controller.createEvent);
+// Route: POST /events/create - Create a new event
+router.post('/events/create', verifyToken, validateGroupOwnership, validateEvent, controller.createEvent);
 
-// Route: DELETE /deleteCommunity - Delete community/group (owner only)
-router.delete('/deleteCommunity', verifyToken, validateGroupOwnershipForDelete, controller.deleteCommunity);
+// Route: PATCH /events/:eventId - Update an event (admin/owner only)
+router.patch('/events/:eventId', verifyToken, validateGroupOwnership, validateEvent, controller.updateEvent);
 
-// Route: POST /leaveGroup - Leave group (members only, admins restricted)
-router.post('/leaveGroup', verifyToken, preventAdminLeaveGroup, controller.leaveGroup);
+// Route: DELETE /events/:eventId - Delete an event
+router.delete('/events/:eventId', verifyToken, controller.deleteEvent);
 
+// ============= FIREBASE CHAT ROUTES =============
 // Route: GET /firebase/channels/:groupId/:channelName - Get messages from Firebase
 router.get('/firebase/channels/:groupId/:channelName', firebaseChatController.getFirebaseMessages);
 
@@ -54,13 +62,11 @@ router.delete('/firebase/messages/:messageId', firebaseChatController.deleteFire
 // Route: GET /firebase-config - Provide Firebase client configuration
 router.get('/firebase-config', firebaseChatController.getConfig);
 
-// Route: DELETE /events/:eventId - Delete an event
-router.delete('/events/:eventId', verifyToken, controller.deleteEvent);
+// ============= GROUP LIFECYCLE ROUTES =============
+// Route: DELETE /deleteCommunity - Delete community/group (owner only)
+router.delete('/deleteCommunity', verifyToken, validateGroupOwnershipForDelete, controller.deleteCommunity);
 
-// Route: GET /events/:groupId - Get all events for a group
-router.get('/events/:groupId', controller.getEvents);
-
-// Route: GET /user/:userId - Get user details by userId
-router.get('/user/:userId', controller.getUserDetailsById);
+// Route: POST /leaveGroup - Leave group (members only, admins restricted)
+router.post('/leaveGroup', verifyToken, preventAdminLeaveGroup, controller.leaveGroup);
 
 module.exports = router;

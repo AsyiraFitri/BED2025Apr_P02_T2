@@ -285,7 +285,7 @@ async function addChannel() {
     }
     
     // Send API request to create the channel
-    const response = await fetch(`${apiBaseUrl}/groups/createChannel`, {
+    const response = await fetch(`${apiBaseUrl}/groups/channels/create`, {
       method: 'POST',
       headers: { 
         'Content-Type': 'application/json',
@@ -333,7 +333,7 @@ async function deleteChannel(channelName) {
     }
     
     // Send API request to delete the channel
-    const response = await fetch(`${apiBaseUrl}/groups/deleteChannel`, {
+    const response = await fetch(`${apiBaseUrl}/groups/channels/delete`, {
       method: 'DELETE',
       headers: { 
         'Content-Type': 'application/json',
@@ -625,7 +625,7 @@ async function submitEventForm(groupId) {
   }
 
   try {
-    const response = await fetch(`${apiBaseUrl}/groups/createEvent`, {
+    const response = await fetch(`${apiBaseUrl}/groups/events/create`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -1820,7 +1820,7 @@ function showEventCreationForm() {
           }
 
           try {
-            const response = await fetch(`${apiBaseUrl}/groups/createEvent`, {
+            const response = await fetch(`${apiBaseUrl}/groups/events/create`, {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
