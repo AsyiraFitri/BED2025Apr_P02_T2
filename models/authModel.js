@@ -1,8 +1,10 @@
+// This model handles database operations related to the Users table.
+
 const sql = require('mssql');
 const dbConfig = require('../dbConfig');
 const bcrypt = require("bcrypt");
 
-
+/* Find user by email */
 async function findUserByEmail(email) {
     const pool = await sql.connect(dbConfig);
     const result = await pool
@@ -11,7 +13,7 @@ async function findUserByEmail(email) {
         .query("SELECT * FROM Users WHERE email = @email");
     return result.recordset[0];
 }
-
+/*Creates a new user in the database. */
 async function createUser(userData) {
     const { email, password, first_name, last_name, phone_number, role = 'user' } = userData;
     const pool = await sql.connect(dbConfig);
@@ -30,7 +32,7 @@ async function createUser(userData) {
 
     return result;
 }
-
+/* update password */
 async function updateUserPassword(email, newPassword) {
     const pool = await sql.connect(dbConfig);
     const hashedPassword = await bcrypt.hash(newPassword, 10);
