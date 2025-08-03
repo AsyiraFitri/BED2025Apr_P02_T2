@@ -1,14 +1,16 @@
 // Controller for Firebase chat functionality
 require('dotenv').config();
+const firebaseChatModel = require('../models/firebaseChatModel');
 
 // Get messages from Firebase for a channel
 const getFirebaseMessages = async (req, res) => {
     try {
         const { groupId, channelName } = req.params;
         const channelId = `${groupId}_${channelName}`;
-        const messages = await require('../public/js/firebaseChat').getMessages(channelId);
+        const messages = await firebaseChatModel.getMessages(channelId);
         res.json(messages);
-    } catch (error) {
+    } 
+    catch (error) {
         console.error('Error getting messages:', error);
         res.status(500).json({ error: error.message });
     }
@@ -24,9 +26,10 @@ const postFirebaseMessage = async (req, res) => {
         if (!token) {
             return res.status(401).json({ error: 'No authorization token provided' });
         }
-        const messageId = await require('../public/js/firebaseChat').createMessage(channelId, message, groupId, channelName, token);
+        const messageId = await firebaseChatModel.createMessage(channelId, message, groupId, channelName, token);
         res.json({ success: true, messageId });
-    } catch (error) {
+    } 
+    catch (error) {
         console.error('Error sending message:', error);
         res.status(500).json({ error: error.message });
     }
@@ -44,9 +47,10 @@ const updateFirebaseMessage = async (req, res) => {
         if (!newText || !newText.trim()) {
             return res.status(400).json({ error: 'Message text is required' });
         }
-        const result = await require('../public/js/firebaseChat').updateMessage(messageId, newText.trim(), token, groupId, channelName);
+        const result = await firebaseChatModel.updateMessage(messageId, newText.trim(), token, groupId, channelName);
         res.json(result);
-    } catch (error) {
+    } 
+    catch (error) {
         console.error('Error updating message:', error);
         res.status(500).json({ error: error.message });
     }
@@ -61,9 +65,10 @@ const deleteFirebaseMessage = async (req, res) => {
         if (!token) {
             return res.status(401).json({ error: 'No authorization token provided' });
         }
-        const result = await require('../public/js/firebaseChat').deleteMessage(messageId, token, groupId, channelName);
+        const result = await firebaseChatModel.deleteMessage(messageId, token, groupId, channelName);
         res.json(result);
-    } catch (error) {
+    } 
+    catch (error) {
         console.error('Error deleting message:', error);
         res.status(500).json({ error: error.message });
     }
