@@ -233,13 +233,14 @@ async function handleAppointmentFormSubmit(e) {
   try {
     // 1. Gather form data from input fields - no need to get user from sessionStorage; backend uses JWT
     const doctorName = document.getElementById('editDoctorName').value;
-    
-    // 2. Validate doctor name - no numbers allowed
-    if (/\d/.test(doctorName)) {
-      showToast('Invalid field: Doctor name cannot contain numbers', 'error');
+
+    // 2. Validate doctor name - only letters, spaces, and periods allowed
+    const doctorNameRegex = /^[A-Za-z\s.]+$/;
+    if (!doctorNameRegex.test(doctorName.trim())) {
+      showToast('Invalid field: Doctor name can only contain letters, spaces, and periods', 'error');
       return;
     }
-    
+
     const appointmentData = {
       AppointmentDate: document.getElementById('editAppointmentDate').value,
       AppointmentTime: document.getElementById('editAppointmentTime').value,

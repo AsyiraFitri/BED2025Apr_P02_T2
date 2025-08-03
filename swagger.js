@@ -35,16 +35,94 @@ const doc = {
     { name: 'EmergencyHotlines', description: 'View and call emergency hotline numbers and SOS endpoints' },
 
     // Yiru
-
+    { name: 'Friends', description: 'Friend request and management endpoints' },
+    { name: 'Messages', description: 'Private messaging endpoints' },
+    { name: 'Users', description: 'User profile and information endpoints' },
   ],
 };
-try {
-  console.log(myObject.api);
-} catch (err) {
-  console.warn('Optional log skipped: myObject is not defined.');
-}
 
 const outputFile = './swagger-output.json';
-const endpointsFiles = ['./app.js', './routes/communityRoutes.js','./routes/authRoutes.js','./routes/requestRoutes.js','./routes/emergencyContactRoutes.js', './routes/emergencyHotlineRoutes.js'];
+const endpointsFiles = [
+  './app.js', 
+  './routes/communityRoutes.js',
+  './routes/groupRoutes.js',
+  './routes/medicationRoutes.js',
+  './routes/appointmentRoutes.js',
+  './routes/calendarRoutes.js',
+  './routes/placesRoutes.js',
+  './routes/placeNotesRoutes.js',
+  './routes/busRoutes.js',
+  './routes/authRoutes.js',
+  './routes/requestRoutes.js',
+  './routes/emergencyContactRoutes.js', 
+  './routes/emergencyHotlineRoutes.js',
+  './routes/friendRoutes.js',
+  './routes/messageRoutes.js',
+  './routes/userRoutes.js'
+];
 
-swaggerAutogen(outputFile, endpointsFiles, doc);
+swaggerAutogen(outputFile, endpointsFiles, doc).then(() => {
+  console.log('Swagger documentation generated successfully!');
+  
+  // Post-process the generated file to add tags based on route paths
+  const fs = require('fs');
+  const swaggerOutput = JSON.parse(fs.readFileSync(outputFile, 'utf8'));
+  
+  // Add tags to endpoints based on their paths
+  Object.keys(swaggerOutput.paths).forEach(path => {
+    Object.keys(swaggerOutput.paths[path]).forEach(method => {
+      const endpoint = swaggerOutput.paths[path][method];
+      
+      // Assign tags based on path patterns
+      if (path.includes('/hobby-groups')) {
+        endpoint.tags = ['Community'];
+      } else if (path.includes('/groups')) {
+        if (path.includes('/events')) {
+          endpoint.tags = ['Events'];
+        } else if (path.includes('/firebase') || path.includes('/messages')) {
+          endpoint.tags = ['ChatMessages'];
+        } else if (path.includes('/channels')) {
+          endpoint.tags = ['Channels'];
+        } else if (path.includes('/member') || path.includes('/user/')) {
+          endpoint.tags = ['Members'];
+        } else {
+          endpoint.tags = ['Group'];
+        }
+      } else if (path.includes('/medications')) {
+        if (path.includes('/tracking') || path.includes('/schedules')) {
+          endpoint.tags = ['MedicationTracker'];
+        } else {
+          endpoint.tags = ['Medications'];
+        }
+      } else if (path.includes('/appointments')) {
+        endpoint.tags = ['Appointments'];
+      } else if (path.includes('/calendar')) {
+        endpoint.tags = ['Calendar'];
+      } else if (path.includes('/places')) {
+        endpoint.tags = ['Places'];
+      } else if (path.includes('/place-notes')) {
+        endpoint.tags = ['PlaceNotes'];
+      } else if (path.includes('/bus')) {
+        endpoint.tags = ['Bus'];
+      } else if (path.includes('/auth')) {
+        endpoint.tags = ['Authentication'];
+      } else if (path.includes('/requests')) {
+        endpoint.tags = ['HelpRequests'];
+      } else if (path.includes('/contacts')) {
+        endpoint.tags = ['EmergencyContacts'];
+      } else if (path.includes('/hotlines')) {
+        endpoint.tags = ['EmergencyHotlines'];
+      } else if (path.includes('/friends')) {
+        endpoint.tags = ['Friends'];
+      } else if (path.includes('/messages')) {
+        endpoint.tags = ['Messages'];
+      } else if (path.includes('/users')) {
+        endpoint.tags = ['Users'];
+      }
+    });
+  });
+  
+  // Write the updated swagger file
+  fs.writeFileSync(outputFile, JSON.stringify(swaggerOutput, null, 2));
+  console.log('Tags added to endpoints successfully!');
+});

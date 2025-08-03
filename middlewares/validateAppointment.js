@@ -44,10 +44,11 @@ function validateAppointmentData(req, res, next) {
   if (!DoctorName) {
     return res.status(400).json({ error: "DoctorName is required" });
   }
-  // Only allow letters and spaces for DoctorName
-  const doctorNameRegex = /^[A-Za-z\s]+$/;
+
+  // Only allow letters, spaces, and periods for DoctorName
+  const doctorNameRegex = /^[A-Za-z\s.]+$/;
   if (!doctorNameRegex.test(DoctorName.trim())) {
-    return res.status(400).json({ error: "DoctorName must contain only letters and spaces" });
+    return res.status(400).json({ error: "DoctorName must contain only letters, spaces, and periods" });
   }
   
   // Get UserID from JWT token (set by authentication middleware)
