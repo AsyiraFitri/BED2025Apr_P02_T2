@@ -1,53 +1,75 @@
 // Improved contact form submission
-document.querySelector(".btn-primary").addEventListener("click", async () => {
+document.querySelector(".btn-primary").addEventListener("click", async (e) => {
+  e.preventDefault();
+
   const name = document.getElementById("name").value.trim();
   const relationship = document.getElementById("relationship").value.trim();
   const phone = document.getElementById("phone").value.trim();
   const note = document.getElementById("note").value.trim();
 
-  // Basic validation
   if (!name || !phone) {
     showMessage("Name and Phone are required!", "error");
     return;
   }
 
-  try {
-    const token = sessionStorage.getItem('token');
-    if (!token) {
-      showMessage("Please log in to add contacts", "error");
-      return;
-    }
+  const token = sessionStorage.getItem('token');
+  if (!token) {
+    showMessage("Please log in to add or update contacts", "error");
+    // Redirect to login page after showing message (give it a short delay so user can see the message)
+  setTimeout(() => {
+    window.location.href = 'auth.html'
+  }, 1500);
 
-    const res = await fetch("http://localhost:3000/api/contacts", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${token}`
-      },
-      body: JSON.stringify({ name, relationship, phone, note, isStarred: false })
-    });
+    return;
+  }
+
+  const contactData = { name, relationship, phone, note, isStarred: false };
+
+  try {
+    let res;
+    if (editingContactId) {
+      // Update
+      res = await fetch(`http://localhost:3000/api/contacts/${editingContactId}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify(contactData)
+      });
+    } else {
+      // Create
+      res = await fetch("http://localhost:3000/api/contacts", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify(contactData)
+      });
+    }
 
     const data = await res.json();
 
     if (!res.ok) {
-      throw new Error(data.error || "Failed to add contact");
+      throw new Error(data.error || (editingContactId ? "Failed to update contact" : "Failed to add contact"));
     }
 
-    // Success feedback
-    showMessage("Contact added successfully!", "success");
-    
-    // Clear form
+    showMessage(editingContactId ? "Contact updated successfully!" : "Contact added successfully!", "success");
+
+    // Reset form
     document.getElementById("name").value = "";
     document.getElementById("relationship").value = "";
     document.getElementById("phone").value = "";
     document.getElementById("note").value = "";
-    
-    // Refresh contact list
+    editingContactId = null;
+    document.querySelector(".btn-primary").textContent = "Add Contact";
+
     await loadContacts();
-    
+
   } catch (err) {
-    console.error("Error adding contact:", err);
-    showMessage(err.message || "Error adding contact", "error");
+    console.error("Error submitting contact:", err);
+    showMessage(err.message || "Error submitting contact", "error");
   }
 });
 
@@ -132,6 +154,75 @@ function escapeHtml(text) {
   div.textContent = text;
   return div.innerHTML;
 }
+async function deleteContact(contactId) {
+  if (!confirm("Are you sure you want to delete this contact?")) return;
+
+  try {
+    const token = sessionStorage.getItem('token');
+    if (!token) {
+      showMessage("Please log in to delete contacts", "error");
+      return;
+    }
+
+    const res = await fetch(`http://localhost:3000/api/contacts/${contactId}`, {
+      method: "DELETE",
+      headers: {
+        "Authorization": `Bearer ${token}`
+      }
+    });
+
+    if (!res.ok) {
+      const data = await res.json();
+      throw new Error(data.error || "Failed to delete contact");
+    }
+
+    showMessage("Contact deleted successfully!", "success");
+    await loadContacts();
+  } catch (err) {
+    console.error("Error deleting contact:", err);
+    showMessage(err.message || "Error deleting contact", "error");
+  }
+}
+let editingContactId = null;
+
+async function editContact(contactId) {
+  try {
+    const token = sessionStorage.getItem('token');
+    if (!token) {
+      showMessage("Please log in to edit contacts", "error");
+      return;
+    }
+
+    const res = await fetch(`http://localhost:3000/api/contacts/${contactId}`, {
+      headers: {
+        "Authorization": `Bearer ${token}`
+      }
+    });
+
+    if (!res.ok) {
+      const data = await res.json();
+      throw new Error(data.error || "Failed to load contact");
+    }
+
+    const contact = await res.json();
+
+    // Populate form
+    document.getElementById("name").value = contact.Name || '';
+    document.getElementById("relationship").value = contact.Relationship || '';
+    document.getElementById("phone").value = contact.PhoneNumber || '';
+    document.getElementById("note").value = contact.Note || '';
+
+    editingContactId = contactId;
+    document.querySelector(".btn-primary").textContent = "Update Contact";
+    // Change button text to "Update"
+    document.querySelector(".btn-primary").textContent = "Update Contact";
+
+  } catch (err) {
+    console.error("Error loading contact:", err);
+    showMessage(err.message || "Error loading contact", "error");
+  }
+}
+
 
 // Load contacts on page load
 loadContacts();

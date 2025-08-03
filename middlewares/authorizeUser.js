@@ -51,6 +51,7 @@ function verifyToken(req, res, next) {
   });
 }
 
+
 function verifyAdmin(req, res, next) {
   const authHeader = req.headers.authorization;
   
@@ -127,4 +128,25 @@ function verifyGroupOwner(req, res, next) {
   });
 }
 
-module.exports = { verifyToken, verifyAdmin, verifyGroupOwner };
+// Verify CAPTCHA token middleware
+async function verifyCaptcha(req, res, next) {
+  const { captchaToken } = req.body;
+  if (!captchaToken) {
+    return res.status(400).json({ message: "CAPTCHA token missing" });
+  }
+
+  const verifyUrl = `https://www.google.com/recaptcha/api/siteverify?secret=${process.env.RECAPTCHA_SECRET_KEY}&response=${captchaToken}`;
+  try {
+    const captchaRes = await fetch(verifyUrl, { method: 'POST' });
+    const captchaData = await captchaRes.json();
+
+    if (!captchaData.success) {
+      return res.status(403).json({ message: "Failed CAPTCHA verification" });
+    }
+    next();
+  } catch (err) {
+    console.error("CAPTCHA verification error:", err);
+    res.status(500).json({ message: "CAPTCHA verification failed" });
+  }
+}
+module.exports = { verifyToken, verifyAdmin, verifyGroupOwner,verifyCaptcha };

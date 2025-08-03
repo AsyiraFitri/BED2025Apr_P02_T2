@@ -1,7 +1,11 @@
 const sql = require('mssql');
 const dbConfig = require('../dbConfig');
 
-// Create a new message
+// [CREATE] - Stores a new message in the database
+// Key Points:
+// 1. Uses OUTPUT clause to return the newly created MessageID
+// 2. Records sender, receiver, message text and automatic timestamp
+// 3. Returns the complete result object for error handling
 async function sendMessage(senderId, receiverId, messageText) {
   const pool = await sql.connect(dbConfig);
   const result = await pool.request()
@@ -18,7 +22,11 @@ async function sendMessage(senderId, receiverId, messageText) {
   return result;
 }
 
-// Get message history between two users
+// [READ] - Retrieves full conversation history
+// Key Points:
+// 1. Gets messages in both directions (A→B and B→A)
+// 2. Orders by timestamp for chronological display
+// 3. Returns all message fields for display
 async function getConversation(user1, user2) {
   const pool = await sql.connect(dbConfig);
   return pool.request()
@@ -32,7 +40,11 @@ async function getConversation(user1, user2) {
     `);
 }
 
-// Update a specific message
+// [UPDATE] - Modifies an existing message
+// Key Points:
+// 1. Updates only the message text (timestamp auto-updates)
+// 2. Uses precise MessageID targeting
+// 3. Could be extended to track edit history
 async function updateMessage(messageId, newText) {
   const pool = await sql.connect(dbConfig);
   const result = await pool.request()
@@ -46,7 +58,11 @@ async function updateMessage(messageId, newText) {
   return result;
 }
 
-// Delete a specific message
+// [DELETE] - Permanently removes a message
+// Key Points:
+// 1. Hard delete (consider soft delete for production)
+// 2. Minimal operation targeting only by MessageID
+// 3. Could add archival system for deleted messages
 async function deleteMessage(messageId) {
   const pool = await sql.connect(dbConfig);
   const result = await pool.request()

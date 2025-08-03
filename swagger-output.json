@@ -2,1078 +2,3276 @@
   "swagger": "2.0",
   "info": {
     "title": "EverydayCare API Documentation",
-    "version": "1.0.0",
-    "description": "Documentation follows the order of: Jing Yin, Xuan Tong, Asyira, Sandi, and Yiru. Each section contains endpoints related to the respective team member's features."
+    "description": "Documentation follows the order of: Jing Yin, Xuan Tong, Asyira, Sandi, and Yiru. Each section contains endpoints related to the respective team member's features.",
+    "version": "1.0.0"
   },
-  "tags": [
-    { "name": "Community", "description": "Community endpoints" },
-    { "name": "Group", "description": "Group endpoints" },
-    { "name": "Members", "description": "Group members endpoints" },
-    { "name": "Channels", "description": "Channel endpoints" },
-    { "name": "ChatMessages", "description": "Chat messages endpoints" },
-    { "name": "Events", "description": "Event endpoints" },
-
-    { "name": "Medications", "description": "Medication endpoints" },
-    { "name": "MedicationTracker", "description": "Medication tracking endpoints" },
-    { "name": "Appointments", "description": "Appointment endpoints" },
-    { "name": "Calendar", "description": "Google Calendar integration endpoints" },
-
-    { "name": "Places", "description": "Endpoints related to places, locations, and points of interest" },
-    { "name": "PlaceNotes", "description": "Place notes creation, retrieval, editing, and deletion endpoints" },
-    { "name": "Bus"," description": "Bus arrival and related endpoints" }
-  ],
   "host": "localhost:3000",
+  "basePath": "/",
+  "tags": [
+    {
+      "name": "Community",
+      "description": "Community related endpoints"
+    },
+    {
+      "name": "Group",
+      "description": "Group related endpoints"
+    },
+    {
+      "name": "Members",
+      "description": "Group members endpoints"
+    },
+    {
+      "name": "Channels",
+      "description": "Channel endpoints"
+    },
+    {
+      "name": "ChatMessages",
+      "description": "Chat messages endpoints"
+    },
+    {
+      "name": "Events",
+      "description": "Event endpoints"
+    },
+    {
+      "name": "Medications",
+      "description": "Medication endpoints"
+    },
+    {
+      "name": "MedicationTracker",
+      "description": "Medication tracking endpoints"
+    },
+    {
+      "name": "Appointments",
+      "description": "Appointment endpoints"
+    },
+    {
+      "name": "Calendar",
+      "description": "Google Calendar integration endpoints"
+    },
+    {
+      "name": "Places",
+      "description": "Endpoints related to places, locations, and points of interest"
+    },
+    {
+      "name": "PlaceNotes",
+      "description": "Place notes creation, retrieval, editing, and deletion endpoints"
+    },
+    {
+      "name": "Bus",
+      "description": "Bus arrival and related endpoints"
+    },
+    {
+      "name": "Authentication",
+      "description": "Signup, login, forgot password, and reset password endpoints ( Mailgun and reCAPTCHA integration)"
+    },
+    {
+      "name": "HelpRequests",
+      "description": "Emergency help request creation, cancellation, and completion endpoints"
+    },
+    {
+      "name": "EmergencyContacts",
+      "description": "Create, edit, and delete emergency contact endpoints"
+    },
+    {
+      "name": "EmergencyHotlines",
+      "description": "View and call emergency hotline numbers and SOS endpoints"
+    },
+    {
+      "name": "Friends",
+      "description": "Friend request and management endpoints"
+    },
+    {
+      "name": "Messages",
+      "description": "Private messaging endpoints"
+    },
+    {
+      "name": "Users",
+      "description": "User profile and information endpoints"
+    }
+  ],
+  "schemes": [
+    "http"
+  ],
   "securityDefinitions": {
-    "Bearer": {
+    "bearerAuth": {
       "type": "apiKey",
-      "name": "Authorization",
+      "name": "authorization",
       "in": "header",
-      "description": "Paste your token as: Bearer <your JWT token>"
+      "description": "JWT Authorization header using the Bearer scheme. Example: \"Bearer {token}\""
     }
   },
-  "basePath": "/",
-  "schemes": ["http"],
   "paths": {
-    "/api/hobby-groups": {
+    "/api/hobby-groups/": {
       "get": {
-        "tags": ["Community"],
-        "summary": "Get all community groups",
+        "description": "",
         "responses": {
-          "200": { "description": "A list of community groups" },
-          "400": { "description": "Bad request" },
-          "500": { "description": "Internal server error" }
-        }
+          "200": {
+            "description": "OK"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "tags": [
+          "Community"
+        ],
+        "security": []
       },
       "post": {
-        "tags": ["Community"],
-        "summary": "Create a new community group",
+        "description": "",
         "parameters": [
           {
-            "in": "body",
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          },
+          {
             "name": "body",
-            "required": true,
+            "in": "body",
             "schema": {
               "type": "object",
               "properties": {
-                "groupName": { "type": "string" },
-                "groupDescription": { "type": "string" }
-              },
-              "required": ["groupName", "groupDescription"]
+                "groupName": {
+                  "example": "any"
+                },
+                "groupDescription": {
+                  "example": "any"
+                }
+              }
             }
           }
         ],
         "responses": {
-          "200": { "description": "OK" },
-          "201": { "description": "Community group created" },
-          "400": { "description": "Validation error" },
-          "500": { "description": "Internal server error" }
+          "201": {
+            "description": "Created"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
         },
-        "security": [ { "Bearer": [] } ]
+        "tags": [
+          "Community"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       }
     },
     "/api/hobby-groups/{id}": {
       "get": {
-        "tags": ["Community"],
-        "summary": "Get a community group by ID",
-        "parameters": [
-          { "name": "id", "in": "path", "required": true, "type": "string" }
-        ],
-        "responses": {
-          "200": { "description": "Community group details" },
-          "404": { "description": "Not found" },
-          "500": { "description": "Internal server error" }
-        },
-        "security": [ { "Bearer": [] } ]
-      },
-      "put": {
-        "tags": ["Community"],
-        "summary": "Update a community group",
-        "parameters": [
-          { "name": "id", "in": "path", "required": true, "type": "string" },
-          {
-            "in": "body",
-            "name": "body",
-            "required": true,
-            "schema": {
-              "type": "object",
-              "properties": {
-                "groupName": { "type": "string" },
-                "groupDescription": { "type": "string" }
-              }
-            }
-          }
-        ],
-        "responses": {
-          "200": { "description": "Community group updated" },
-          "400": { "description": "Validation error" },
-          "404": { "description": "Not found" },
-          "500": { "description": "Internal server error" }
-        },
-        "security": [ { "Bearer": [] } ]
-      },
-      "delete": {
-        "tags": ["Community"],
-        "summary": "Delete a community group",
-        "parameters": [
-          { "name": "id", "in": "path", "required": true, "type": "string" }
-        ],
-        "responses": {
-          "200": { "description": "Community group deleted" },
-          "404": { "description": "Not found" },
-          "500": { "description": "Internal server error" }
-        },
-        "security": [ { "Bearer": [] } ]
-      }
-    },
-    "/api/groups": {
-      "get": {
-        "tags": ["Group"],
-        "summary": "Get all groups",
-        "responses": {
-          "200": { "description": "A list of groups" },
-          "400": { "description": "Bad request" },
-          "500": { "description": "Internal server error" }
-        }
-      },
-      "post": {
-        "tags": ["Group"],
-        "summary": "Create a new group",
+        "description": "",
         "parameters": [
           {
-            "in": "body",
-            "name": "body",
-            "required": true,
-            "schema": {
-              "type": "object",
-              "properties": {
-                "groupName": { "type": "string" },
-                "groupDescription": { "type": "string" }
-              }
-            }
-          }
-        ],
-        "responses": {
-          "200": { "description": "OK" },
-          "201": { "description": "Group created" },
-          "400": { "description": "Validation error" },
-          "500": { "description": "Internal server error" }
-        },
-        "security": [ { "Bearer": [] } ]
-      }
-    },
-    "/api/groups/{groupId}": {
-      "get": {
-        "tags": ["Group"],
-        "summary": "Get group by ID",
-        "parameters": [
-          { "name": "groupId", "in": "path", "required": true, "type": "string" }
-        ],
-        "responses": {
-          "200": { "description": "Group details" },
-          "404": { "description": "Not found" },
-          "500": { "description": "Internal server error" }
-        },
-        "security": [ { "Bearer": [] } ]
-      },
-      "put": {
-        "tags": ["Group"],
-        "summary": "Update group",
-        "parameters": [
-          { "name": "groupId", "in": "path", "required": true, "type": "string" },
-          {
-            "in": "body",
-            "name": "body",
-            "required": true,
-            "schema": {
-              "type": "object",
-              "properties": {
-                "groupName": { "type": "string" },
-                "groupDescription": { "type": "string" }
-              }
-            }
-          }
-        ],
-        "responses": {
-          "200": { "description": "Group updated" },
-          "400": { "description": "Validation error" },
-          "404": { "description": "Not found" },
-          "500": { "description": "Internal server error" }
-        },
-        "security": [ { "Bearer": [] } ]
-      },
-      "delete": {
-        "tags": ["Group"],
-        "summary": "Delete group",
-        "parameters": [
-          { "name": "groupId", "in": "path", "required": true, "type": "string" }
-        ],
-        "responses": {
-          "200": { "description": "Group deleted" },
-          "404": { "description": "Not found" },
-          "500": { "description": "Internal server error" }
-        },
-        "security": [ { "Bearer": [] } ]
-      }
-    },
-    "/api/groups/memberList/{groupId}": {
-      "get": {
-        "tags": ["Members"],
-        "summary": "Get all members in a group",
-        "parameters": [
-          { "name": "groupId", "in": "path", "required": true, "type": "string" }
-        ],
-        "responses": {
-          "200": { "description": "List of group members" },
-          "404": { "description": "Not found" },
-          "500": { "description": "Internal server error" }
-        },
-        "security": [ { "Bearer": [] } ]
-      }
-    },
-    "/api/groups/memberList/{groupId}/{memberId}": {
-      "get": {
-        "tags": ["Members"],
-        "summary": "Get member details",
-        "parameters": [
-          { "name": "groupId", "in": "path", "required": true, "type": "string" },
-          { "name": "memberId", "in": "path", "required": true, "type": "string" }
-        ],
-        "responses": {
-          "200": { "description": "Member details" },
-          "404": { "description": "Not found" },
-          "500": { "description": "Internal server error" }
-        },
-        "security": [ { "Bearer": [] } ]
-      },
-      "put": {
-        "tags": ["Members"],
-        "summary": "Update member role",
-        "parameters": [
-          { "name": "groupId", "in": "path", "required": true, "type": "string" },
-          { "name": "memberId", "in": "path", "required": true, "type": "string" },
-          {
-            "in": "body",
-            "name": "body",
-            "required": true,
-            "schema": {
-              "type": "object",
-              "properties": {
-                "role": { "type": "string" }
-              }
-            }
-          }
-        ],
-        "responses": {
-          "200": { "description": "Member updated" },
-          "400": { "description": "Validation error" },
-          "404": { "description": "Not found" },
-          "500": { "description": "Internal server error" }
-        },
-        "security": [ { "Bearer": [] } ]
-      },
-      "delete": {
-        "tags": ["Members"],
-        "summary": "Remove member from group",
-        "parameters": [
-          { "name": "groupId", "in": "path", "required": true, "type": "string" },
-          { "name": "memberId", "in": "path", "required": true, "type": "string" }
-        ],
-        "responses": {
-          "200": { "description": "Member removed" },
-          "404": { "description": "Not found" },
-          "500": { "description": "Internal server error" }
-        },
-        "security": [ { "Bearer": [] } ]
-      }
-    },
-    "/api/groups/channels/{groupId}": {
-      "get": {
-        "tags": ["Channels"],
-        "summary": "Get all channels in a group",
-        "parameters": [
-          { "name": "groupId", "in": "path", "required": true, "type": "string" }
-        ],
-        "responses": {
-          "200": { "description": "List of channels" },
-          "404": { "description": "Not found" },
-          "500": { "description": "Internal server error" }
-        },
-        "security": [ { "Bearer": [] } ]
-      },
-      "post": {
-        "tags": ["Channels"],
-        "summary": "Create a channel in a group",
-        "parameters": [
-          { "name": "groupId", "in": "path", "required": true, "type": "string" },
-          {
-            "in": "body",
-            "name": "body",
-            "required": true,
-            "schema": {
-              "type": "object",
-              "properties": {
-                "channelName": { "type": "string" }
-              }
-            }
-          }
-        ],
-        "responses": {
-          "200": { "description": "Channel created" },
-          "400": { "description": "Validation error" },
-          "500": { "description": "Internal server error" }
-        },
-        "security": [ { "Bearer": [] } ]
-      }
-    },
-    "/api/groups/channels/{groupId}/{channelName}": {
-      "get": {
-        "tags": ["Channels"],
-        "summary": "Get channel details",
-        "parameters": [
-          { "name": "groupId", "in": "path", "required": true, "type": "string" },
-          { "name": "channelName", "in": "path", "required": true, "type": "string" }
-        ],
-        "responses": {
-          "200": { "description": "Channel details" },
-          "404": { "description": "Not found" },
-          "500": { "description": "Internal server error" }
-        },
-        "security": [ { "Bearer": [] } ]
-      },
-      "put": {
-        "tags": ["Channels"],
-        "summary": "Update channel",
-        "parameters": [
-          { "name": "groupId", "in": "path", "required": true, "type": "string" },
-          { "name": "channelName", "in": "path", "required": true, "type": "string" },
-          {
-            "in": "body",
-            "name": "body",
-            "required": true,
-            "schema": {
-              "type": "object",
-              "properties": {
-                "channelName": { "type": "string" }
-              }
-            }
-          }
-        ],
-        "responses": {
-          "200": { "description": "Channel updated" },
-          "400": { "description": "Validation error" },
-          "404": { "description": "Not found" },
-          "500": { "description": "Internal server error" }
-        },
-        "security": [ { "Bearer": [] } ]
-      },
-      "delete": {
-        "tags": ["Channels"],
-        "summary": "Delete channel",
-        "parameters": [
-          { "name": "groupId", "in": "path", "required": true, "type": "string" },
-          { "name": "channelName", "in": "path", "required": true, "type": "string" }
-        ],
-        "responses": {
-          "200": { "description": "Channel deleted" },
-          "404": { "description": "Not found" },
-          "500": { "description": "Internal server error" }
-        },
-        "security": [ { "Bearer": [] } ]
-      }
-    },
-    "/api/groups/channels/{groupId}/{channelName}/messages": {
-      "get": {
-        "tags": ["ChatMessages"],
-        "summary": "Get all chat messages in a channel",
-        "parameters": [
-          { "name": "groupId", "in": "path", "required": true, "type": "string" },
-          { "name": "channelName", "in": "path", "required": true, "type": "string" }
-        ],
-        "responses": {
-          "200": { "description": "List of chat messages" },
-          "404": { "description": "Not found" },
-          "500": { "description": "Internal server error" }
-        },
-        "security": [ { "Bearer": [] } ]
-      },
-      "post": {
-        "tags": ["ChatMessages"],
-        "summary": "Send a chat message",
-        "parameters": [
-          { "name": "groupId", "in": "path", "required": true, "type": "string" },
-          { "name": "channelName", "in": "path", "required": true, "type": "string" },
-          {
-            "in": "body",
-            "name": "body",
-            "required": true,
-            "schema": {
-              "type": "object",
-              "properties": {
-                "text": { "type": "string" }
-              }
-            }
-          }
-        ],
-        "responses": {
-          "200": { "description": "Message sent" },
-          "400": { "description": "Validation error" },
-          "500": { "description": "Internal server error" }
-        },
-        "security": [ { "Bearer": [] } ]
-      }
-    },
-    "/api/groups/channels/{groupId}/{channelName}/messages/{messageId}": {
-      "get": {
-        "tags": ["ChatMessages"],
-        "summary": "Get a chat message by ID",
-        "parameters": [
-          { "name": "groupId", "in": "path", "required": true, "type": "string" },
-          { "name": "channelName", "in": "path", "required": true, "type": "string" },
-          { "name": "messageId", "in": "path", "required": true, "type": "string" }
-        ],
-        "responses": {
-          "200": { "description": "Chat message details" },
-          "404": { "description": "Not found" },
-          "500": { "description": "Internal server error" }
-        },
-        "security": [ { "Bearer": [] } ]
-      },
-      "put": {
-        "tags": ["ChatMessages"],
-        "summary": "Update a chat message",
-        "parameters": [
-          { "name": "groupId", "in": "path", "required": true, "type": "string" },
-          { "name": "channelName", "in": "path", "required": true, "type": "string" },
-          { "name": "messageId", "in": "path", "required": true, "type": "string" },
-          {
-            "in": "body",
-            "name": "body",
-            "required": true,
-            "schema": {
-              "type": "object",
-              "properties": {
-                "text": { "type": "string" }
-              }
-            }
-          }
-        ],
-        "responses": {
-          "200": { "description": "Chat message updated" },
-          "400": { "description": "Validation error" },
-          "404": { "description": "Not found" },
-          "500": { "description": "Internal server error" }
-        },
-        "security": [ { "Bearer": [] } ]
-      },
-      "delete": {
-        "tags": ["ChatMessages"],
-        "summary": "Delete a chat message",
-        "parameters": [
-          { "name": "groupId", "in": "path", "required": true, "type": "string" },
-          { "name": "channelName", "in": "path", "required": true, "type": "string" },
-          { "name": "messageId", "in": "path", "required": true, "type": "string" }
-        ],
-        "responses": {
-          "200": { "description": "Chat message deleted" },
-          "404": { "description": "Not found" },
-          "500": { "description": "Internal server error" }
-        },
-        "security": [ { "Bearer": [] } ]
-      }
-    },
-    "/api/groups/events/{groupId}": {
-      "get": {
-        "tags": ["Events"],
-        "summary": "Get all events for a group",
-        "parameters": [
-          { "name": "groupId", "in": "path", "required": true, "type": "string" }
-        ],
-        "responses": {
-          "200": { "description": "List of events" },
-          "404": { "description": "Not found" },
-          "500": { "description": "Internal server error" }
-        },
-        "security": [ { "Bearer": [] } ]
-      },
-      "post": {
-        "tags": ["Events"],
-        "summary": "Create an event for a group",
-        "parameters": [
-          { "name": "groupId", "in": "path", "required": true, "type": "string" },
-          {
-            "in": "body",
-            "name": "body",
-            "required": true,
-            "schema": {
-              "type": "object",
-              "properties": {
-                "title": { "type": "string" },
-                "description": { "type": "string" },
-                "eventDate": { "type": "string" },
-                "startTime": { "type": "string" },
-                "endTime": { "type": "string" },
-                "location": { "type": "string" }
-              }
-            }
-          }
-        ],
-        "responses": {
-          "200": { "description": "Event created" },
-          "400": { "description": "Validation error" },
-          "500": { "description": "Internal server error" }
-        },
-        "security": [ { "Bearer": [] } ]
-      }
-    },
-    "/api/groups/events/{groupId}/{eventId}": {
-      "get": {
-        "tags": ["Events"],
-        "summary": "Get event details",
-        "parameters": [
-          { "name": "groupId", "in": "path", "required": true, "type": "string" },
-          { "name": "eventId", "in": "path", "required": true, "type": "string" }
-        ],
-        "responses": {
-          "200": { "description": "Event details" },
-          "404": { "description": "Not found" },
-          "500": { "description": "Internal server error" }
-        },
-        "security": [ { "Bearer": [] } ]
-      },
-      "put": {
-        "tags": ["Events"],
-        "summary": "Update event",
-        "parameters": [
-          { "name": "groupId", "in": "path", "required": true, "type": "string" },
-          { "name": "eventId", "in": "path", "required": true, "type": "string" },
-          {
-            "in": "body",
-            "name": "body",
-            "required": true,
-            "schema": {
-              "type": "object",
-              "properties": {
-                "title": { "type": "string" },
-                "description": { "type": "string" },
-                "eventDate": { "type": "string" },
-                "startTime": { "type": "string" },
-                "endTime": { "type": "string" },
-                "location": { "type": "string" }
-              }
-            }
-          }
-        ],
-        "responses": {
-          "200": { "description": "Event updated" },
-          "400": { "description": "Validation error" },
-          "404": { "description": "Not found" },
-          "500": { "description": "Internal server error" }
-        },
-        "security": [ { "Bearer": [] } ]
-      },
-      "delete": {
-        "tags": ["Events"],
-        "summary": "Delete event",
-        "parameters": [
-          { "name": "groupId", "in": "path", "required": true, "type": "string" },
-          { "name": "eventId", "in": "path", "required": true, "type": "string" }
-        ],
-        "responses": {
-          "200": { "description": "Event deleted" },
-          "404": { "description": "Not found" },
-          "500": { "description": "Internal server error" }
-        },
-        "security": [ { "Bearer": [] } ]
-      }
-    }
-    ,
-    "/api/appointments/user": {
-      "get": {
-        "tags": ["Appointments"],
-        "summary": "Get all appointments for the authenticated user (userId from JWT)",
-        "responses": {
-          "200": {
-            "description": "List of appointments",
-            "schema": { "type": "array", "items": { "$ref": "#/definitions/Appointment" } }
-          },
-          "500": { "description": "Failed to fetch appointments" }
-        },
-        "security": [ { "Bearer": [] } ]
-      }
-    },
-    "/api/appointments/{id}": {
-      "get": {
-        "tags": ["Appointments"],
-        "summary": "Get appointment by ID",
-        "parameters": [
-          { "name": "id", "in": "path", "required": true, "type": "integer" }
-        ],
-        "responses": {
-          "200": { "description": "Appointment details", "schema": { "$ref": "#/definitions/Appointment" } },
-          "404": { "description": "Appointment not found" }
-        }
-        ,
-        "security": [ { "Bearer": [] } ]
-      },
-      "put": {
-        "tags": ["Appointments"],
-        "summary": "Update appointment",
-        "parameters": [
-          { "name": "id", "in": "path", "required": true, "type": "integer" },
-          { "in": "body", "name": "body", "required": true, "schema": { "$ref": "#/definitions/AppointmentInput" } }
-        ],
-        "responses": {
-          "200": { "description": "Appointment updated" },
-          "400": { "description": "Validation error" }
-        }
-        ,
-        "security": [ { "Bearer": [] } ]
-      },
-      "delete": {
-        "tags": ["Appointments"],
-        "summary": "Delete appointment",
-        "parameters": [
-          { "name": "id", "in": "path", "required": true, "type": "integer" }
-        ],
-        "responses": {
-          "200": { "description": "Appointment deleted" },
-          "404": { "description": "Appointment not found" }
-        }
-        ,
-        "security": [ { "Bearer": [] } ]
-      }
-    },
-    "/api/appointments": {
-      "post": {
-        "tags": ["Appointments"],
-        "summary": "Create appointment",
-        "parameters": [
-          { "in": "body", "name": "body", "required": true, "schema": { "$ref": "#/definitions/AppointmentInput" } }
-        ],
-        "responses": {
-          "201": { "description": "Appointment created" },
-          "400": { "description": "Validation error" }
-        }
-        ,
-        "security": [ { "Bearer": [] } ]
-      }
-    },
-    "/api/calendar/auth/google": {
-      "get": {
-        "tags": ["Calendar"],
-        "summary": "Initiate Google OAuth login flow",
-        "responses": {
-          "302": { "description": "Redirect to Google OAuth" }
-        }
-      }
-    },
-    "/api/calendar/auth/google/callback": {
-      "get": {
-        "tags": ["Calendar"],
-        "summary": "Handle Google OAuth callback",
-        "responses": {
-          "302": { "description": "Redirect to frontend with tokens" },
-          "500": { "description": "Google authentication failed" }
-        }
-      }
-    },
-    "/api/calendar/google/sync": {
-      "post": {
-        "tags": ["Calendar"],
-        "summary": "Sync all appointments to Google Calendar",
-        "parameters": [
-          { "in": "body", "name": "body", "required": true, "schema": { "$ref": "#/definitions/GoogleCalendarSyncInput" } }
-        ],
-        "responses": {
-          "200": { "description": "Event created/updated in Google Calendar" },
-          "401": { "description": "Missing access token" },
-          "500": { "description": "Google Calendar sync failed" }
-        }
-      }
-    },
-    "/api/calendar/google/sync/{eventId}": {
-      "put": {
-        "tags": ["Calendar"],
-        "summary": "Edit Google Calendar event",
-        "parameters": [
-          { "name": "eventId", "in": "path", "required": true, "type": "string" },
-          { "in": "body", "name": "body", "required": true, "schema": { "$ref": "#/definitions/GoogleCalendarSyncInput" } }
-        ],
-        "responses": {
-          "200": { "description": "Event updated in Google Calendar" },
-          "401": { "description": "Missing access token" },
-          "500": { "description": "Google Calendar update failed" }
-        }
-      },
-      "delete": {
-        "tags": ["Calendar"],
-        "summary": "Delete Google Calendar event",
-        "parameters": [
-          { "name": "eventId", "in": "path", "required": true, "type": "string" }
-        ],
-        "responses": {
-          "200": { "description": "Event deleted from Google Calendar" },
-          "401": { "description": "Missing access token" },
-          "404": { "description": "Event not found" },
-          "500": { "description": "Google Calendar deletion failed" }
-        }
-      }
-    }
-    ,
-    "/api/medications/user": {
-      "get": {
-        "tags": ["Medications"],
-        "summary": "Get all medications for the authenticated user (userId from JWT)",
-        "responses": {
-          "200": {
-            "description": "List of medications",
-            "schema": { "type": "array", "items": { "$ref": "#/definitions/Medication" } }
-          },
-          "500": { "description": "Failed to fetch medications" }
-        },
-        "security": [ { "Bearer": [] } ]
-      },
-      "post": {
-        "tags": ["Medications"],
-        "summary": "Create a medication",
-        "parameters": [
-          { "in": "body", "name": "body", "required": true, "schema": { "$ref": "#/definitions/MedicationInput" } }
-        ],
-        "responses": {
-          "201": { "description": "Medication created" },
-          "400": { "description": "Validation error" }
-        }
-        ,
-        "security": [ { "Bearer": [] } ]
-      }
-    },
-    "/api/medications/{id}": {
-      "get": {
-        "tags": ["Medications"],
-        "summary": "Get medication by ID",
-        "parameters": [
-          { "name": "id", "in": "path", "required": true, "type": "integer" }
-        ],
-        "responses": {
-          "200": { "description": "Medication details", "schema": { "$ref": "#/definitions/Medication" } },
-          "404": { "description": "Medication not found" }
-        }
-        ,
-        "security": [ { "Bearer": [] } ]
-      },
-      "put": {
-        "tags": ["Medications"],
-        "summary": "Update medication",
-        "parameters": [
-          { "name": "id", "in": "path", "required": true, "type": "integer" },
-          { "in": "body", "name": "body", "required": true, "schema": { "$ref": "#/definitions/MedicationInput" } }
-        ],
-        "responses": {
-          "200": { "description": "Medication updated" },
-          "400": { "description": "Validation error" }
-        }
-        ,
-        "security": [ { "Bearer": [] } ]
-      },
-      "delete": {
-        "tags": ["Medications"],
-        "summary": "Delete medication",
-        "parameters": [
-          { "name": "id", "in": "path", "required": true, "type": "integer" }
-        ],
-        "responses": {
-          "200": { "description": "Medication deleted" },
-          "404": { "description": "Medication not found" }
-        }
-        ,
-        "security": [ { "Bearer": [] } ]
-      }
-    },
-    "/api/medications/schedules/user": {
-      "get": {
-        "tags": ["Medications"],
-        "summary": "Get all medication schedules (with checkbox state) for the authenticated user (userId from JWT)",
-        "responses": {
-          "200": {
-            "description": "List of medication schedules",
-            "schema": { "type": "array", "items": { "$ref": "#/definitions/MedicationSchedule" } }
-          },
-          "500": { "description": "Failed to fetch medication schedules" }
-        },
-        "security": [ { "Bearer": [] } ]
-      }
-    },
-    "/api/medications/tracking/reset": {
-      "post": {
-        "tags": ["MedicationTracker"],
-        "summary": "Reset all medication tracking (admin/testing)",
-        "responses": {
-          "200": { "description": "All medication tracking reset" }
-        }
-        ,
-        "security": [ { "Bearer": [] } ]
-      }
-    },
-    "/api/medications/tracking/save": {
-      "post": {
-        "tags": ["MedicationTracker"],
-        "summary": "Save medication tracking state for the user",
-        "parameters": [
-          { "in": "body", "name": "body", "required": true, "schema": { "$ref": "#/definitions/MedicationTrackingInput" } }
-        ],
-        "responses": {
-          "200": { "description": "Tracking state saved" },
-          "400": { "description": "Validation error" }
-        },
-        "security": [ { "Bearer": [] } ]
-      }
-    },
-    "/api/places": {
-      "get": {
-        "tags": ["Places"],
-        "summary": "Get all saved places for authenticated user",
-        "security": [{ "Bearer": [] }],
-        "responses": {
-          "200": {
-            "description": "List of saved places",
-            "schema": {
-              "type": "array",
-              "items": { "$ref": "#/definitions/Place" }
-            }
-          },
-          "401": { "description": "Unauthorized" },
-          "500": { "description": "Internal server error" }
-        }
-      },
-      "post": {
-        "tags": ["Places"],
-        "summary": "Add a new place",
-        "security": [{ "Bearer": [] }],
-        "parameters": [
-          {
-            "in": "body",
-            "name": "body",
-            "required": true,
-            "schema": { "$ref": "#/definitions/PlaceInput" }
-          }
-        ],
-        "responses": {
-          "201": { "description": "Place created successfully" },
-          "400": { "description": "Validation error" },
-          "401": { "description": "Unauthorized" },
-          "500": { "description": "Internal server error" }
-        }
-      }
-    },
-    "/api/places/{placeId}": {
-      "put": {
-        "tags": ["Places"],
-        "summary": "Update a saved place",
-        "security": [{ "Bearer": [] }],
-        "parameters": [
-          { "name": "placeId", "in": "path", "required": true, "type": "integer" },
-          {
-            "in": "body",
-            "name": "body",
-            "required": true,
-            "schema": { "$ref": "#/definitions/PlaceUpdateInput" }
-          }
-        ],
-        "responses": {
-          "200": { "description": "Place updated successfully" },
-          "400": { "description": "Validation error" },
-          "401": { "description": "Unauthorized" },
-          "404": { "description": "Place not found" },
-          "500": { "description": "Internal server error" }
-        }
-      },
-      "delete": {
-        "tags": ["Places"],
-        "summary": "Delete a saved place",
-        "security": [{ "Bearer": [] }],
-        "parameters": [
-          { "name": "placeId", "in": "path", "required": true, "type": "integer" }
-        ],
-        "responses": {
-          "200": { "description": "Place deleted successfully" },
-          "401": { "description": "Unauthorized" },
-          "404": { "description": "Place not found" },
-          "500": { "description": "Internal server error" }
-        }
-      }
-    },
-    "/api/place-notes/{address}": {
-      "get": {
-        "tags": ["PlaceNotes"],
-        "summary": "Get all notes for a specific address",
-        "security": [{ "Bearer": [] }],
-        "parameters": [
-          {
-            "name": "address",
+            "name": "id",
             "in": "path",
-            "description": "Address to get notes for",
             "required": true,
             "type": "string"
           }
         ],
         "responses": {
           "200": {
-            "description": "List of notes for the address",
-            "schema": {
-              "type": "array",
-              "items": { "$ref": "#/definitions/Note" }
-            }
+            "description": "OK"
           },
-          "401": { "description": "Unauthorized" },
-          "404": { "description": "No notes found for the address" }
-        }
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "tags": [
+          "Community"
+        ],
+        "security": []
       }
     },
-    "/api/place-notes": {
+    "/api/hobby-groups/join": {
       "post": {
-        "tags": ["PlaceNotes"],
-        "summary": "Create a new note for a place",
-        "security": [{ "Bearer": [] }],
+        "description": "",
         "parameters": [
           {
-            "in": "body",
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          },
+          {
             "name": "body",
-            "required": true,
-            "schema": { "$ref": "#/definitions/PlaceNoteInput" }
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "groupId": {
+                  "example": "any"
+                }
+              }
+            }
           }
         ],
         "responses": {
-          "201": { "description": "Note created successfully" },
-          "400": { "description": "Validation error" },
-          "401": { "description": "Unauthorized" }
-        }
+          "200": {
+            "description": "OK"
+          },
+          "201": {
+            "description": "Created"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "tags": [
+          "Community"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/groups/saveDesc": {
+      "patch": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "groupId": {
+                  "example": "any"
+                },
+                "newDescription": {
+                  "example": "any"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "tags": [
+          "Group"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/groups/user/{userId}": {
+      "get": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "tags": [
+          "Group"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/groups/checkMembership/{groupId}": {
+      "get": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "groupId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "tags": [
+          "Members"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/groups/memberCount/{groupId}": {
+      "get": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "groupId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "tags": [
+          "Members"
+        ],
+        "security": []
+      }
+    },
+    "/api/groups/memberList/{groupId}": {
+      "get": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "groupId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "tags": [
+          "Members"
+        ],
+        "security": []
+      }
+    },
+    "/api/groups/channels/{groupId}": {
+      "get": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "groupId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "tags": [
+          "Channels"
+        ],
+        "security": []
+      }
+    },
+    "/api/groups/channels/create": {
+      "post": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "groupId": {
+                  "example": "any"
+                },
+                "channelName": {
+                  "example": "any"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "409": {
+            "description": "Conflict"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "tags": [
+          "Channels"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/groups/channels/delete": {
+      "delete": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "groupId": {
+                  "example": "any"
+                },
+                "channelName": {
+                  "example": "any"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "tags": [
+          "Channels"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/groups/events/{groupId}": {
+      "get": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "groupId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "tags": [
+          "Events"
+        ],
+        "security": []
+      }
+    },
+    "/api/groups/events/create": {
+      "post": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "groupId": {
+                  "example": "any"
+                },
+                "title": {
+                  "example": "any"
+                },
+                "description": {
+                  "example": "any"
+                },
+                "eventDate": {
+                  "example": "any"
+                },
+                "startTime": {
+                  "example": "any"
+                },
+                "endTime": {
+                  "example": "any"
+                },
+                "location": {
+                  "example": "any"
+                },
+                "channelName": {
+                  "example": "any"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "tags": [
+          "Events"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/groups/events/{eventId}": {
+      "patch": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "eventId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "groupId": {
+                  "example": "any"
+                },
+                "title": {
+                  "example": "any"
+                },
+                "description": {
+                  "example": "any"
+                },
+                "eventDate": {
+                  "example": "any"
+                },
+                "startTime": {
+                  "example": "any"
+                },
+                "endTime": {
+                  "example": "any"
+                },
+                "location": {
+                  "example": "any"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "tags": [
+          "Events"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      },
+      "delete": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "eventId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "tags": [
+          "Events"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/groups/firebase/channels/{groupId}/{channelName}": {
+      "get": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "groupId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "channelName",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "tags": [
+          "ChatMessages"
+        ],
+        "security": []
+      },
+      "post": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "groupId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "channelName",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "message": {
+                  "example": "any"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "tags": [
+          "ChatMessages"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/groups/firebase/messages/{messageId}": {
+      "put": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "messageId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "newText": {
+                  "example": "any"
+                },
+                "groupId": {
+                  "example": "any"
+                },
+                "channelName": {
+                  "example": "any"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "tags": [
+          "ChatMessages"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      },
+      "delete": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "messageId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "groupId": {
+                  "example": "any"
+                },
+                "channelName": {
+                  "example": "any"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "tags": [
+          "ChatMessages"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/groups/firebase-config": {
+      "get": {
+        "description": "",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "ChatMessages"
+        ],
+        "security": []
+      }
+    },
+    "/api/groups/deleteCommunity": {
+      "delete": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "groupId": {
+                  "example": "any"
+                },
+                "userId": {
+                  "example": "any"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "tags": [
+          "Group"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/groups/leaveGroup": {
+      "post": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "groupId": {
+                  "example": "any"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "tags": [
+          "Group"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/medications/user": {
+      "get": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "tags": [
+          "Medications"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/medications/{id}": {
+      "get": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "tags": [
+          "Medications"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      },
+      "put": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "Name": {
+                  "example": "any"
+                },
+                "Dosage": {
+                  "example": "any"
+                },
+                "Frequency": {
+                  "example": "any"
+                },
+                "Notes": {
+                  "example": "any"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "tags": [
+          "Medications"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      },
+      "delete": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "tags": [
+          "Medications"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/medications/": {
+      "post": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "Name": {
+                  "example": "any"
+                },
+                "Dosage": {
+                  "example": "any"
+                },
+                "Frequency": {
+                  "example": "any"
+                },
+                "Notes": {
+                  "example": "any"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "tags": [
+          "Medications"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/medications/schedules/user": {
+      "get": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "tags": [
+          "MedicationTracker"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/medications/tracking/save": {
+      "post": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "medicationId": {
+                  "example": "any"
+                },
+                "scheduleTime": {
+                  "example": "any"
+                },
+                "isChecked": {
+                  "example": "any"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "tags": [
+          "MedicationTracker"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/medications/tracking/reset": {
+      "post": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "tags": [
+          "MedicationTracker"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/appointments/user": {
+      "get": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "tags": [
+          "Appointments"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/appointments/{id}": {
+      "get": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "tags": [
+          "Appointments"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      },
+      "put": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "AppointmentDate": {
+                  "example": "any"
+                },
+                "AppointmentTime": {
+                  "example": "any"
+                },
+                "Title": {
+                  "example": "any"
+                },
+                "Location": {
+                  "example": "any"
+                },
+                "DoctorName": {
+                  "example": "any"
+                },
+                "Notes": {
+                  "example": "any"
+                },
+                "GoogleEventID": {
+                  "example": "any"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "tags": [
+          "Appointments"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      },
+      "delete": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "tags": [
+          "Appointments"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/appointments/": {
+      "post": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "AppointmentDate": {
+                  "example": "any"
+                },
+                "AppointmentTime": {
+                  "example": "any"
+                },
+                "Title": {
+                  "example": "any"
+                },
+                "Location": {
+                  "example": "any"
+                },
+                "DoctorName": {
+                  "example": "any"
+                },
+                "Notes": {
+                  "example": "any"
+                },
+                "GoogleEventID": {
+                  "example": "any"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "tags": [
+          "Appointments"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/calendar/auth/google": {
+      "get": {
+        "description": "",
+        "responses": {},
+        "tags": [
+          "Calendar"
+        ],
+        "security": []
+      }
+    },
+    "/api/calendar/auth/google/callback": {
+      "get": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "code",
+            "in": "query",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "tags": [
+          "Calendar"
+        ],
+        "security": []
+      }
+    },
+    "/api/calendar/google/sync": {
+      "post": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "tokens": {
+                  "example": "any"
+                },
+                "GoogleEventID": {
+                  "example": "any"
+                },
+                "AppointmentID": {
+                  "example": "any"
+                },
+                "Title": {
+                  "example": "any"
+                },
+                "AppointmentDate": {
+                  "example": "any"
+                },
+                "AppointmentTime": {
+                  "example": "any"
+                },
+                "Location": {
+                  "example": "any"
+                },
+                "DoctorName": {
+                  "example": "any"
+                },
+                "Notes": {
+                  "example": "any"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "tags": [
+          "Calendar"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/calendar/google/sync/{eventId}": {
+      "put": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "eventId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "tokens": {
+                  "example": "any"
+                },
+                "Title": {
+                  "example": "any"
+                },
+                "AppointmentDate": {
+                  "example": "any"
+                },
+                "AppointmentTime": {
+                  "example": "any"
+                },
+                "Location": {
+                  "example": "any"
+                },
+                "DoctorName": {
+                  "example": "any"
+                },
+                "Notes": {
+                  "example": "any"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "tags": [
+          "Calendar"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      },
+      "delete": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "eventId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "tokens": {
+                  "example": "any"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "tags": [
+          "Calendar"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/places/": {
+      "get": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "tags": [
+          "Places"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      },
+      "post": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "placeName": {
+                  "example": "any"
+                },
+                "address": {
+                  "example": "any"
+                },
+                "latitude": {
+                  "example": "any"
+                },
+                "longitude": {
+                  "example": "any"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "tags": [
+          "Places"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/places/{placeId}": {
+      "put": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "placeId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "placeName": {
+                  "example": "any"
+                },
+                "address": {
+                  "example": "any"
+                },
+                "latitude": {
+                  "example": "any"
+                },
+                "longitude": {
+                  "example": "any"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "tags": [
+          "Places"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      },
+      "delete": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "placeId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "tags": [
+          "Places"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/bus/bus-arrivals/{busStopCode}": {
+      "get": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "busStopCode",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "tags": [
+          "Bus"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/place-notes/{address}": {
+      "get": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "address",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "tags": [
+          "PlaceNotes"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/place-notes/": {
+      "post": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "address": {
+                  "example": "any"
+                },
+                "noteText": {
+                  "example": "any"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "tags": [
+          "PlaceNotes"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       }
     },
     "/api/place-notes/{noteId}": {
       "put": {
-        "tags": ["PlaceNotes"],
-        "summary": "Update an existing note",
-        "security": [{ "Bearer": [] }],
+        "description": "",
         "parameters": [
-          { "name": "noteId", "in": "path", "required": true, "type": "integer" },
           {
-            "in": "body",
-            "name": "body",
+            "name": "noteId",
+            "in": "path",
             "required": true,
-            "schema": { "$ref": "#/definitions/PlaceNoteInput" }
-          }
-        ],
-        "responses": {
-          "200": { "description": "Note updated successfully" },
-          "400": { "description": "Validation error" },
-          "401": { "description": "Unauthorized" },
-          "404": { "description": "Note not found" }
-        }
-      },
-      "delete": {
-        "tags": ["PlaceNotes"],
-        "summary": "Delete a note by ID",
-        "security": [{ "Bearer": [] }],
-        "parameters": [
-          { "name": "noteId", "in": "path", "required": true, "type": "integer" }
-        ],
-        "responses": {
-          "200": { "description": "Note deleted successfully" },
-          "401": { "description": "Unauthorized" },
-          "404": { "description": "Note not found" }
-        }
-      }
-    },
-    "/api/bus/bus-arrivals/{busStopCode}": {
-  "get": {
-    "tags": ["Bus"],
-    "summary": "Get bus arrival timings for a specific bus stop",
-    "parameters": [
-      {
-        "name": "busStopCode",
-        "in": "path",
-        "required": true,
-        "type": "string",
-        "description": "Code of the bus stop to fetch arrivals for"
-      }
-    ],
-    "responses": {
-      "200": {
-        "description": "Bus arrivals data",
-        "schema": {
-          "type": "object",
-          "properties": {
-            "Services": {
-              "type": "array",
-              "items": { "$ref": "#/definitions/BusService" }
+            "type": "string"
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "noteText": {
+                  "example": "any"
+                }
+              }
             }
           }
-        }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "tags": [
+          "PlaceNotes"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       },
-      "400": { "description": "Invalid bus stop code" },
-      "404": { "description": "Bus stop not found" },
-      "500": { "description": "Internal server error" }
+      "delete": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "noteId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "tags": [
+          "PlaceNotes"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/auth/register": {
+      "post": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "email": {
+                  "example": "any"
+                },
+                "password": {
+                  "example": "any"
+                },
+                "first_name": {
+                  "example": "any"
+                },
+                "last_name": {
+                  "example": "any"
+                },
+                "phone_number": {
+                  "example": "any"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "tags": [
+          "Authentication"
+        ],
+        "security": []
+      }
+    },
+    "/api/auth/login": {
+      "post": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "email": {
+                  "example": "any"
+                },
+                "password": {
+                  "example": "any"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "tags": [
+          "Authentication"
+        ],
+        "security": []
+      }
+    },
+    "/api/auth/forgot-password": {
+      "post": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "email": {
+                  "example": "any"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "tags": [
+          "Authentication"
+        ],
+        "security": []
+      }
+    },
+    "/api/auth/reset-password/{token}": {
+      "post": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "token",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "password": {
+                  "example": "any"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "tags": [
+          "Authentication"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/auth/logout": {
+      "post": {
+        "description": "",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "Authentication"
+        ],
+        "security": []
+      }
+    },
+    "/api/requests/": {
+      "get": {
+        "description": "",
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "tags": [
+          "HelpRequests"
+        ],
+        "security": []
+      },
+      "post": {
+        "description": "",
+        "responses": {
+          "201": {
+            "description": "Created"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "tags": [
+          "HelpRequests"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/requests/{id}": {
+      "delete": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "tags": [
+          "HelpRequests"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      },
+      "patch": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "example": "any"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "tags": [
+          "HelpRequests"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/contacts/": {
+      "get": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "tags": [
+          "EmergencyContacts"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      },
+      "post": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "example": "any"
+                },
+                "relationship": {
+                  "example": "any"
+                },
+                "phone": {
+                  "example": "any"
+                },
+                "note": {
+                  "example": "any"
+                },
+                "isStarred": {
+                  "example": "any"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "409": {
+            "description": "Conflict"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "tags": [
+          "EmergencyContacts"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/contacts/{id}": {
+      "delete": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "tags": [
+          "EmergencyContacts"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      },
+      "get": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "tags": [
+          "EmergencyContacts"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      },
+      "patch": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "example": "any"
+                },
+                "relationship": {
+                  "example": "any"
+                },
+                "phone": {
+                  "example": "any"
+                },
+                "note": {
+                  "example": "any"
+                },
+                "isStarred": {
+                  "example": "any"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "tags": [
+          "EmergencyContacts"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/hotlines/": {
+      "get": {
+        "description": "",
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "tags": [
+          "EmergencyHotlines"
+        ],
+        "security": []
+      }
+    },
+    "/api/friends/": {
+      "post": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "userID": {
+                  "example": "any"
+                },
+                "friendUserID": {
+                  "example": "any"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "tags": [
+          "Friends"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/friends/{userId}": {
+      "get": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "tags": [
+          "Friends"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/friends/{friendId}": {
+      "put": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "friendId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "example": "any"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "tags": [
+          "Friends"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/friends/{userId}/{friendId}": {
+      "delete": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "friendId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "tags": [
+          "Friends"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/friends/incoming/{userId}": {
+      "get": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "tags": [
+          "Friends"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/friends/sent/{userId}": {
+      "get": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "tags": [
+          "Friends"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/messages/": {
+      "post": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "senderId": {
+                  "example": "any"
+                },
+                "receiverId": {
+                  "example": "any"
+                },
+                "messageText": {
+                  "example": "any"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "tags": [
+          "Messages"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/messages/{user1}/{user2}": {
+      "get": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "user1",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "user2",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "tags": [
+          "Messages"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/messages/{messageId}": {
+      "put": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "messageId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "messageText": {
+                  "example": "any"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "tags": [
+          "Messages"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      },
+      "delete": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "messageId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "tags": [
+          "Messages"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/users/{userId}": {
+      "get": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "tags": [
+          "Users"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
     }
-  }
-}
   },
-  "definitions": {
-  "Place": {
-    "type": "object",
-    "properties": {
-      "id": { "type": "integer" },
-      "userId": { "type": "integer" },
-      "placeName": { "type": "string" },
-      "address": { "type": "string" }
-    },
-    "required": ["id", "userId", "placeName", "address"]
-  },
-  "PlaceInput": {
-    "type": "object",
-    "properties": {
-      "userId": { "type": "integer" },
-      "placeName": { "type": "string" },
-      "address": { "type": "string" }
-    },
-    "required": ["userId", "placeName", "address"]
-  },
-  "PlaceUpdateInput": {
-    "type": "object",
-    "properties": {
-      "placeName": { "type": "string" },
-      "address": { "type": "string" }
+  "security": [
+    {
+      "bearerAuth": []
     }
-  },
-  "Note": {
-    "type": "object",
-    "properties": {
-      "id": { "type": "integer" },
-      "userId": { "type": "integer" },
-      "address": { "type": "string" },
-      "noteText": { "type": "string" }
-    },
-    "required": ["id", "userId", "address", "noteText"]
-  },
-  "PlaceNoteInput": {
-    "type": "object",
-    "properties": {
-      "userId": { "type": "integer" },
-      "address": { "type": "string" },
-      "noteText": { "type": "string" }
-    },
-    "required": ["userId", "address", "noteText"]
-  },
-  "BusService": {
-  "type": "object",
-  "properties": {
-    "serviceNumber": { "type": "string" },
-    "arrivalTime": { "type": "string", "format": "date-time" },
-    "nextBus": { "type": "string" },
-    "status": { "type": "string" }
-  },
-  "required": ["serviceNumber", "arrivalTime"]
-}
-
-}
-
+  ]
 }

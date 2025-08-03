@@ -72,7 +72,94 @@ async function createContact(req, res) {
   }
 }
 
+async function getContactById(req, res) {
+  try {
+    const contactId = req.params.id;
+    const userId = req.user?.id;
+
+    if (!userId) {
+      return res.status(401).json({ error: 'User not authenticated' });
+    }
+
+    const contact = await contactModel.getContactById(contactId, userId);
+    if (!contact) {
+      return res.status(404).json({ error: 'Contact not found' });
+    }
+
+    res.status(200).json(contact);
+  } catch (error) {
+    console.error('Error retrieving contact:', error);
+    res.status(500).json({ error: 'Failed to retrieve contact' });
+  }
+}
+
+async function updateContact(req, res) {
+  try {
+    const contactId = req.params.id;
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({ error: 'User not authenticated' });
+    }
+
+    const { name, relationship, phone, note, isStarred } = req.body;
+
+    if (!name || !phone) {
+      return res.status(400).json({ error: 'Name and Phone are required' });
+    }
+
+    // Additional validation as in createContact
+    if (name.length > 100) {
+      return res.status(400).json({ error: 'Name is too long (max 100 characters)' });
+    }
+    if (phone.length > 20) {
+      return res.status(400).json({ error: 'Phone number is too long (max 20 characters)' });
+    }
+
+    const updated = await contactModel.updateContact(contactId, userId, {
+      name: name.trim(),
+      relationship: relationship?.trim() || '',
+      phone: phone.trim(),
+      note: note?.trim() || '',
+      isStarred: Boolean(isStarred)
+    });
+
+    if (!updated) {
+      return res.status(404).json({ error: 'Contact not found or not authorized' });
+    }
+
+    res.status(200).json({ message: 'Contact updated successfully' });
+  } catch (error) {
+    console.error('Error updating contact:', error);
+    res.status(500).json({ error: 'Failed to update contact' });
+  }
+}
+
+async function deleteContact(req, res) {
+  try {
+    const contactId = req.params.id;
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({ error: 'User not authenticated' });
+    }
+
+    const deleted = await contactModel.deleteContact(contactId, userId);
+    if (!deleted) {
+      return res.status(404).json({ error: 'Contact not found or not authorized' });
+    }
+
+    res.status(200).json({ message: 'Contact deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting contact:', error);
+    res.status(500).json({ error: 'Failed to delete contact' });
+  }
+}
+
 module.exports = {
   getAllContacts,
-  createContact
+  createContact,
+  getContactById,
+  updateContact,
+  deleteContact
 };
+
+

@@ -11,6 +11,11 @@ const FormData = require('form-data');
 const MAILGUN_API_KEY = process.env.MAILGUN_API_KEY;
 const DOMAIN = process.env.MAILGUN_DOMAIN;
 
+console.log('=== MAILGUN CONFIG CHECK ===');
+console.log('API Key present:', !!MAILGUN_API_KEY);
+console.log('API Key format correct:', MAILGUN_API_KEY?.startsWith('key-') && MAILGUN_API_KEY?.length > 40);
+console.log('Domain:', DOMAIN);
+
 const mailgun = new Mailgun(FormData);
 const mg = mailgun.client({
   username: 'api',
@@ -60,20 +65,7 @@ async function registerUser(req, res) {
 
 async function loginUser(req, res) {
   try {
-    const { email, password, captchaToken } = req.body;
-     //reCAPTCHA verification step
-    if (!captchaToken) {
-      return res.status(400).json({ message: "CAPTCHA token missing" });
-    }
-
-    const verifyUrl = `https://www.google.com/recaptcha/api/siteverify?secret=${process.env.RECAPTCHA_SECRET_KEY}&response=${captchaToken}`;
-
-    const captchaRes = await fetch(verifyUrl, { method: 'POST' });
-    const captchaData = await captchaRes.json();
-
-    if (!captchaData.success) {
-      return res.status(403).json({ message: "Failed CAPTCHA verification" });
-    }
+    const { email, password } = req.body;
     
     if (!email || !password) {
       return res.status(400).json({ message: "Email and password are required" });
@@ -134,13 +126,7 @@ async function forgotPassword(req, res) {
 
     console.log('=== FORGOT PASSWORD REQUEST ===');
     console.log('Email:', email);
-    // Get fresh values from environment
-    const MAILGUN_API_KEY = process.env.MAILGUN_API_KEY;
-    const DOMAIN = process.env.MAILGUN_DOMAIN;
-    
     console.log('API Key present:', !!MAILGUN_API_KEY);
-    console.log('API Key length:', MAILGUN_API_KEY?.length);
-    console.log('API Key starts with correct format:', MAILGUN_API_KEY?.includes('-'));
     console.log('Domain:', DOMAIN);
 
     if (!MAILGUN_API_KEY || !DOMAIN) {
@@ -162,22 +148,6 @@ async function forgotPassword(req, res) {
     });
 
     const resetUrl = `http://localhost:3000/reset-password.html?token=${token}`;
-     // Create a fresh Mailgun client instance
-    const Mailgun = require('mailgun.js').default;
-    const FormData = require('form-data');
-    
-    const mailgun = new Mailgun(FormData);
-    
-    // Clean the API key of any potential whitespace/hidden characters
-    const cleanApiKey = MAILGUN_API_KEY.trim();
-    console.log('Clean API Key length:', cleanApiKey.length);
-    console.log('API Key preview:', cleanApiKey.substring(0, 8) + '...' + cleanApiKey.slice(-4));
-    
-    const mg = mailgun.client({
-      username: 'api',
-      key: cleanApiKey,
-      url: 'https://api.mailgun.net'
-    });
 
     const messageData = {
       from: `EverydayCare <postmaster@${DOMAIN}>`,
@@ -213,7 +183,6 @@ async function forgotPassword(req, res) {
 
     console.log('Sending email to:', email);
     console.log('Using domain:', DOMAIN);
-    console.log('Message from field:', messageData.from);
 
     try {
       const data = await mg.messages.create(DOMAIN, messageData);
@@ -226,34 +195,20 @@ async function forgotPassword(req, res) {
       console.error('❌ Mailgun error:', {
         status: mailgunError.status,
         message: mailgunError.message,
-        details: mailgunError.details,
-        stack: mailgunError.stack
+        details: mailgunError.details
       });
-      // Log the full error object for debugging
-      console.error('Full error object:', JSON.stringify(mailgunError, null, 2));
 
       if (mailgunError.status === 401) {
         return res.status(500).json({ 
-          error: 'Email service authentication failed. Please check API key.',
-          debug: {
-            keyLength: cleanApiKey.length,
-            keyPreview: cleanApiKey.substring(0, 8) + '...',
-            domain: DOMAIN
-          }
+          error: 'Email service authentication failed. Please check API key.' 
         });
       } else if (mailgunError.status === 400) {
         return res.status(500).json({ 
-          error: 'Invalid email request. Please check domain configuration.' ,
-          debug: {
-            recipient: email,
-            domain: DOMAIN
-          }
+          error: 'Invalid email request. Please check domain configuration.' 
         });
       } else {
         return res.status(500).json({ 
-          error: `Email service error: ${mailgunError.message}`,
-          status: mailgunError.status,
-          details: mailgunError.details
+          error: 'Failed to send email. Please try again later.' 
         });
       }
     }
@@ -261,8 +216,7 @@ async function forgotPassword(req, res) {
   } catch (error) {
     console.error('Forgot password error:', error);
     res.status(500).json({ 
-      error: 'Internal server error. Please try again.',
-      debug: error.message
+      error: 'Internal server error. Please try again.' 
     });
   }
 }
@@ -491,191 +445,6 @@ async function generateCurlTest(req, res) {
     note: 'If this curl command works, the issue is with the Node.js Mailgun client setup'
   });
 }
-// Add this test function to your authController.js
-async function testMailgunSimple(req, res) {
-  try {
-    const MAILGUN_API_KEY = process.env.MAILGUN_API_KEY;
-    const DOMAIN = process.env.MAILGUN_DOMAIN;
-    
-    console.log('=== SIMPLE MAILGUN TEST ===');
-    console.log('API Key present:', !!MAILGUN_API_KEY);
-    console.log('Domain:', DOMAIN);
-    
-    if (!MAILGUN_API_KEY || !DOMAIN) {
-      return res.status(400).json({ error: 'Missing Mailgun configuration' });
-    }
-    
-    const cleanApiKey = MAILGUN_API_KEY.trim();
-    
-    // Test with a simple fetch request first
-    const testUrl = `https://api.mailgun.net/v3/${DOMAIN}/messages`;
-    const auth = Buffer.from(`api:${cleanApiKey}`).toString('base64');
-    
-    const formData = new URLSearchParams();
-    formData.append('from', `Test <postmaster@${DOMAIN}>`);
-    formData.append('to', 'jessica09052018@gmail.com'); // Your authorized email
-    formData.append('subject', 'Simple Test Email');
-    formData.append('text', 'This is a simple test email to verify the API key works.');
-    
-    console.log('Making direct API call...');
-    console.log('URL:', testUrl);
-    console.log('Auth header present:', !!auth);
-    
-    const response = await fetch(testUrl, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Basic ${auth}`,
-        'Content-Type': 'application/x-www-form-urlencoded'
-      },
-      body: formData
-    });
-    
-    const responseText = await response.text();
-    console.log('Response status:', response.status);
-    console.log('Response body:', responseText);
-    
-    if (response.ok) {
-      const data = JSON.parse(responseText);
-      res.json({
-        success: true,
-        message: 'Direct API test successful!',
-        messageId: data.id,
-        response: data
-      });
-    } else {
-      res.status(response.status).json({
-        success: false,
-        error: 'Direct API test failed',
-        status: response.status,
-        response: responseText
-      });
-    }
-    
-  } catch (error) {
-    console.error('Simple test error:', error);
-    res.status(500).json({
-      success: false,
-      error: error.message
-    });
-  }
-}
-// Add this function to your authController.js to test the API key directly
-async function testDirectAPI(req, res) {
-  try {
-    const MAILGUN_API_KEY = process.env.MAILGUN_API_KEY;
-    const DOMAIN = process.env.MAILGUN_DOMAIN;
-    
-    console.log('=== DIRECT API TEST ===');
-    console.log('Testing API key directly with fetch...');
-    
-    const cleanApiKey = MAILGUN_API_KEY.trim();
-    const testUrl = `https://api.mailgun.net/v3/${DOMAIN}/messages`;
-    
-    // Create form data manually
-    const formData = new URLSearchParams();
-    formData.append('from', `Test <postmaster@${DOMAIN}>`);
-    formData.append('to', 'jessica09052018@gmail.com');
-    formData.append('subject', 'Direct API Test');
-    formData.append('text', 'Testing direct API call without Mailgun SDK');
-    
-    // Create auth header
-    const auth = Buffer.from(`api:${cleanApiKey}`).toString('base64');
-    
-    console.log('URL:', testUrl);
-    console.log('Auth header length:', auth.length);
-    console.log('Form data:', Object.fromEntries(formData));
-    
-    const response = await fetch(testUrl, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Basic ${auth}`,
-        'Content-Type': 'application/x-www-form-urlencoded'
-      },
-      body: formData
-    });
-    
-    const responseText = await response.text();
-    console.log('Response status:', response.status);
-    console.log('Response headers:', Object.fromEntries(response.headers));
-    console.log('Response body:', responseText);
-    
-    if (response.ok) {
-      const data = JSON.parse(responseText);
-      res.json({
-        success: true,
-        message: 'Direct API call successful!',
-        data: data
-      });
-    } else {
-      res.status(response.status).json({
-        success: false,
-        error: 'Direct API call failed',
-        status: response.status,
-        response: responseText,
-        headers: Object.fromEntries(response.headers)
-      });
-    }
-    
-  } catch (error) {
-    console.error('Direct API test error:', error);
-    res.status(500).json({
-      success: false,
-      error: error.message,
-      stack: error.stack
-    });
-  }
-}
-
-// Also add this function to test domain access
-async function testDomainAccess(req, res) {
-  try {
-    const MAILGUN_API_KEY = process.env.MAILGUN_API_KEY;
-    const DOMAIN = process.env.MAILGUN_DOMAIN;
-    
-    console.log('=== DOMAIN ACCESS TEST ===');
-    
-    const cleanApiKey = MAILGUN_API_KEY.trim();
-    const domainUrl = `https://api.mailgun.net/v3/domains/${DOMAIN}`;
-    const auth = Buffer.from(`api:${cleanApiKey}`).toString('base64');
-    
-    console.log('Testing domain access...');
-    console.log('Domain URL:', domainUrl);
-    
-    const response = await fetch(domainUrl, {
-      method: 'GET',
-      headers: {
-        'Authorization': `Basic ${auth}`
-      }
-    });
-    
-    const responseText = await response.text();
-    console.log('Domain response status:', response.status);
-    console.log('Domain response:', responseText);
-    
-    if (response.ok) {
-      const data = JSON.parse(responseText);
-      res.json({
-        success: true,
-        message: 'Domain access successful!',
-        domain: data
-      });
-    } else {
-      res.status(response.status).json({
-        success: false,
-        error: 'Domain access failed',
-        status: response.status,
-        response: responseText
-      });
-    }
-    
-  } catch (error) {
-    console.error('Domain access test error:', error);
-    res.status(500).json({
-      success: false,
-      error: error.message
-    });
-  }
-}
 
 module.exports = {
   registerUser,
@@ -686,7 +455,5 @@ module.exports = {
   testMailgun,
   debugEnvironment,
   testWithManualKey,
-  generateCurlTest,
-  testMailgunSimple,
-  testDirectAPI
+  generateCurlTest
 };

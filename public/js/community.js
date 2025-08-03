@@ -241,6 +241,8 @@ async function loadGroups() {
 }
 
 // Wait for DOM to be fully loaded
+// This block sets up modal functionality, loads groups, and controls UI based on user role
+// Only runs after all HTML elements are available
 document.addEventListener('DOMContentLoaded', function() {
     // Get references to DOM elements with null checks
     const modal = document.getElementById('addModal');
@@ -249,6 +251,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const form = document.getElementById('addCommunityForm');
 
     // Only set up modal functionality if elements exist
+    // Modal opens when .add-btn is clicked, closes on close button or outside click
+    // Handles form submission for creating a new community group
     if (modal && addBtns.length > 0 && closeBtn && form) {
         // Open the "Add Community" modal when any .add-btn is clicked
         addBtns.forEach(btn => {
@@ -284,7 +288,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
             const groupName = document.getElementById('groupName').value.trim();
             const groupDescription = document.getElementById('groupDescription').value.trim();
-
+            
+            // Send a POST request to create a new hobby group
             try {
                 const response = await fetch(`${apiBaseUrl}/hobby-groups`, {
                     method: 'POST',
@@ -296,34 +301,49 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
 
                 if (response.ok) {
+                    // If the server responded successfully, parse the JSON data
                     const data = await response.json();
+                    
+                    // Notify the user that the community group was added successfully
                     alert('Community group added!');
+                    
+                    // Hide the modal window used for adding the group
                     modal.style.display = 'none';
+                    
+                    // Reset the form inputs to clear previous data
                     form.reset();
-
+                    
+                    // Extract the new group's ID from the response data
                     const groupId = data.groupId;
+                    
+                    // Redirect the user to the newly created group's page using the group ID
                     window.location.href = `group.html?id=${groupId}`;
-                } 
+                }
                 else {
+                    // If response is not OK, handle error and show message
                     let errorMsg = 'Failed to add group.';
                     try {
+                        // Try to parse error message from response JSON
                         const errorData = await response.json();
                         if (errorData && errorData.message) {
                             errorMsg = errorData.message;
                         }
                     } 
                     catch (err) {
+                        // If error parsing response, log it for debugging
                         console.error('Error parsing response:', err);
                     }
-                    alert(errorMsg);
+                    alert(errorMsg); // Show error message to user
                 }
             } 
             catch (error) {
+                // Handle network or server errors
                 alert('Error connecting to server.');
                 console.error(error);
             }
         });
         
+        // Modal setup complete, log for debugging
         console.log('Modal functionality initialized successfully');
     } 
     else {
@@ -335,13 +355,16 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Load groups after DOM is ready
+    // Calls loadGroups() to fetch and display all community groups
     loadGroups();
     
     // Control UI based on user role
+    // Calls checkUserRoleAndSetUI() to hide/show UI elements for admins/non-admins
     checkUserRoleAndSetUI();
 });
 
 // Function to check user role and set UI visibility
+// Hides "Add Community" button and modal for non-admin users
 function checkUserRoleAndSetUI() {
     const user = checkUserAuthentication();
     if (!user) return;

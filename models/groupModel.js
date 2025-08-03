@@ -134,26 +134,47 @@ async function getMemberListWithRoles(groupId) {
             pool.request().query("SELECT UserID, first_name, last_name FROM Users WHERE role = 'admin'")
         ]);
         const ownerId = ownerRes.recordset[0]?.OwnerID;
+
         // Map to track unique users
         const userMap = new Map();
-        // Add explicit members
+
+        // Add explicit members from the membersRes result set
         for (const m of membersRes.recordset) {
+            // Check if the current user is the group owner
             const isOwner = m.UserID === ownerId;
+
+            // Assign role: 'Owner' if owner, else 'Member'
             const role = isOwner ? 'Owner' : 'Member';
+
+            // Assign sortOrder to help with display order: Owner (1), Member (3)
             const sortOrder = isOwner ? 1 : 3;
+
+            // Add the user to the map with their name, role, and sortOrder
             userMap.set(m.UserID, { name: m.Name, role, sortOrder });
         }
+
         // Add admins
+        // Loop through each admin record returned from the database
         for (const a of adminsRes.recordset) {
+            // Check if the current user is the group owner
             const isOwner = a.UserID === ownerId;
+
+            // If this user is not already in the userMap
             if (!userMap.has(a.UserID)) {
+                // Construct full name from first and last name
                 const fullName = `${a.first_name} ${a.last_name}`.trim();
+                
+                // Assign role based on ownership status
                 const role = isOwner ? 'Owner' : 'Admin';
+                
+                // Use sortOrder to prioritize Owner (1) above Admin (2)
                 const sortOrder = isOwner ? 1 : 2;
+
+                // Add user to the map with name, role, and sortOrder
                 userMap.set(a.UserID, { name: fullName, role, sortOrder });
             } 
             else {
-                // Upgrade existing member to admin role if applicable
+                // If user already exists in the map (e.g. as a Member), update role to Admin if not Owner
                 const entry = userMap.get(a.UserID);
                 if (entry.role !== 'Owner') {
                     entry.role = 'Admin';
@@ -161,6 +182,7 @@ async function getMemberListWithRoles(groupId) {
                 }
             }
         }
+
         // Convert to array and sort
         const members = Array.from(userMap.values())
             .sort((a, b) => a.sortOrder - b.sortOrder || a.name.localeCompare(b.name))
@@ -285,7 +307,6 @@ async function getUserDetailsById(userId) {
     }
 }
 
-// Update an event by eventId and groupId
 // Update an event by eventId and groupId, only if userId matches creator
 async function updateEvent(eventId, groupId, title, description, eventDate, startTime, endTime, location, userId) {
     try {

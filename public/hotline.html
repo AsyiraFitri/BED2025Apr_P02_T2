@@ -3,159 +3,43 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-     <link rel="stylesheet" href="../public/css/emergency.css">
+     <link rel="stylesheet" href="css/emergency.css">
+     <link rel="stylesheet" href="css/style.css">
     <title>Document</title>
      <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <style>/* Emergency Hotlines CSS */
-
-.container-main {
-    margin-top: 2rem;
-    margin-bottom: 2rem;
-}
-
-.intro-text {
-    color: #6c757d;
-    margin-bottom: 2rem;
-}
-
-.sos-button {
-    background: linear-gradient(45deg, #dc3545, #c82333);
-    color: white;
-    border: none;
-    padding: 1rem 2rem;
-    font-size: 1.2rem;
-    font-weight: bold;
-    border-radius: 50px;
-    margin-bottom: 2rem;
-    box-shadow: 0 4px 15px rgba(220, 53, 69, 0.3);
-    transition: all 0.3s ease;
-    cursor: pointer;
-    display: block;
-    margin-left: auto;
-    margin-right: auto;
-}
-
-.sos-button:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(220, 53, 69, 0.4);
-}
-
-.hotlines-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 1.5rem;
-    margin-top: 2rem;
-}
-
-.hotline-card {
-    background: white;
-    border-radius: 12px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    padding: 1.5rem;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-    border-left: 4px solid #dc3545;
-}
-
-.hotline-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
-}
-
-.hotline-header h3 {
-    color: #dc3545;
-    margin-bottom: 1rem;
-    font-size: 1.3rem;
-    font-weight: 600;
-}
-
-.hotline-number {
-    background: #f8f9fa;
-    padding: 0.75rem;
-    border-radius: 8px;
-    margin-bottom: 1rem;
-    text-align: center;
-}
-
-.hotline-number a {
-    color: #dc3545;
-    text-decoration: none;
-    font-weight: bold;
-    font-size: 1.2rem;
-    margin-left: 0.5rem;
-}
-
-.hotline-number a:hover {
-    text-decoration: underline;
-}
-
-.hotline-body p {
-    margin-bottom: 0.75rem;
-    line-height: 1.5;
-}
-
-.hotline-footer {
-    margin-top: 1.5rem;
-    text-align: center;
-}
-
-.debug-info {
-    background: #f8f9fa;
-    border: 1px solid #dee2e6;
-    border-radius: 8px;
-    padding: 1rem;
-    margin: 1rem 0;
-    font-family: monospace;
-    font-size: 0.85rem;
-}
-
-.debug-info strong {
-    color: #495057;
-}
-
-#debug-log {
-    max-height: 200px;
-    overflow-y: auto;
-    margin-top: 0.5rem;
-}
-
-/* Responsive design */
-@media (max-width: 768px) {
-    .hotlines-grid {
-        grid-template-columns: 1fr;
-    }
     
-    .sos-button {
-        width: 100%;
-        font-size: 1rem;
-        padding: 0.8rem 1.5rem;
-    }
-}</style>
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-light">
-        <div class="container">
-            <a class="navbar-brand" href="#"><i class="fas fa-heart"></i> EVERYDAY CARE</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
+        <div class="container d-flex justify-content-between align-items-center">
+            <a class="navbar-brand logo-container d-flex align-items-center" href="index.html">
+                <img src="images/logo.jpg" alt="logo" class="logo-image">
+            </a>
+            <button class="navbar-toggler ms-auto" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item">
-                        <a class="nav-link" href="#navigation"><i class="fas fa-map-marker-alt"></i> Navigation</a>
+                        <a class="nav-link" href="navigation.html"><i class="fas fa-map-marker-alt"></i> Navigation</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="community.html"><i class="fas fa-users"></i> Community</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="health-dashboard.html"><i class="fas fa-heartbeat"></i> Health</a>
+                        <a class="nav-link" href="health.html"><i class="fas fa-heartbeat"></i> Health</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="emergency-mainpage.html"><i class="fas fa-exclamation-triangle"></i> Emergency</a>
+                        <a class="nav-link" href="emergency-mainpage.html"><i class="fas fa-exclamation-triangle"></i>
+                            Emergency</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#accessibility"><i class="fas fa-universal-access"></i>
-                            Accessibility</a>
+                        <a class="nav-link" href="message.html"><i class="fa-solid fa-user-group"></i> Friends</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" id="logoutBtn"><i class="fa fa-sign-out"></i> Logout</a>
                     </li>
                 </ul>
             </div>

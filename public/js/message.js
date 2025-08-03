@@ -1,8 +1,10 @@
-// message.js
+// [FRONTEND MESSAGING SYSTEM]
 
+// Global state variables
 let currentUserId = "";
 let currentFriendId = "";
 
+// Initialize when page loads
 document.addEventListener("DOMContentLoaded", async () => {
   // Check authentication
   const user = JSON.parse(sessionStorage.getItem("user"));
@@ -16,6 +18,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   currentUserId = parseInt(user.UserID);
   document.getElementById("displayUserId").textContent = `Logged in as: ${user.first_name} (ID: ${currentUserId})`;
   
+  // Load initial friend list
   try {
     await loadFriends();
   } catch (error) {
@@ -23,10 +26,12 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 });
 
+// [READ] Load and display user's friends
 async function loadFriends() {
   console.log(`Loading friends for user ${currentUserId}...`);
   
   try {
+    // Fetch friend list from API
     const response = await fetch(`http://localhost:3000/api/friends/${currentUserId}`);
     console.log("Friend response status:", response.status);
     
@@ -40,12 +45,13 @@ async function loadFriends() {
     const list = document.getElementById("friendsList");
     list.innerHTML = "<h5 class='text-center mt-2'>Friends</h5>";
 
+    // Handle empty friend list
     if (!friends || friends.length === 0) {
       list.innerHTML += `<div class="text-muted text-center p-2">No friends yet.</div>`;
       return;
     }
 
-    // Load friend details in parallel
+    // Fetch friend details in parallel for better performance
     const friendDetails = await Promise.all(
       friends.map(async friend => {
         const friendId = friend.FriendID;
@@ -88,6 +94,7 @@ async function loadFriends() {
   }
 }
 
+// [READ] Load conversation with selected friend
 async function selectFriend(friendId) {
   try {
     currentFriendId = parseInt(friendId);
@@ -114,6 +121,7 @@ async function selectFriend(friendId) {
     const box = document.getElementById('messageBox');
     box.innerHTML = '';
 
+    // Handle empty conversation
     if (!messages || messages.length === 0) {
       box.innerHTML = `
         <div class="text-center p-3 text-muted">
@@ -161,6 +169,7 @@ async function selectFriend(friendId) {
   }
 }
 
+// [CREATE] Send new message
 async function sendMessage() {
   const input = document.getElementById('messageInput');
   const text = input.value.trim();
@@ -210,6 +219,7 @@ async function sendMessage() {
   }
 }
 
+// [DELETE] Remove a message
 async function deleteMessage(id) {
   if (!confirm('Are you sure you want to delete this message?')) {
     return;
@@ -244,6 +254,7 @@ async function deleteMessage(id) {
   }
 }
 
+// [UPDATE] Edit existing message
 async function editMessage(id, oldText) {
   try {
     const newText = prompt("Edit your message:", oldText);
@@ -281,43 +292,61 @@ async function editMessage(id, oldText) {
   }
 }
 
-// Add the translation function
+// [EXTRA FEATURE] Message translation
 async function translateMessage(messageId, text) {
   const translationDiv = document.getElementById(`translation-${messageId}`);
   
-  // Toggle visibility if already translated
-  if (translationDiv.style.display === 'block') {
-    translationDiv.style.display = 'none';
-    return;
-  }
-
-  // Show loading state
-  translationDiv.innerHTML = '<em>Translating...</em>';
+  // Clear previous state
+  translationDiv.innerHTML = '<div class="loading">Translating...</div>';
   translationDiv.style.display = 'block';
 
   try {
-    // Simple language detection
-    const targetLang = /[a-zA-Z]/.test(text) ? 'zh' : 'en';
-    
-    const response = await fetch('https://libretranslate.de/translate', {
+    const response = await fetch(`/api/messages/${messageId}/translate`, {
       method: 'POST',
-      body: JSON.stringify({
-        q: text,
-        source: 'auto',
-        target: targetLang
-      }),
-      headers: { 'Content-Type': 'application/json' }
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${sessionStorage.getItem('token') || ''}`
+      },
+      body: JSON.stringify({ text })
     });
 
+    // Check for network errors
+    if (!response.ok) {
+      throw new Error(`Server error: ${response.status}`);
+    }
+
     const data = await response.json();
-    translationDiv.innerHTML = `<em>Translated: ${data.translatedText}</em>`;
+    
+    // Validate response structure
+    if (!data?.translation?.translatedText) {
+      throw new Error(data?.error || 'Invalid translation response');
+    }
+
+    // Display translation
+    translationDiv.innerHTML = `
+      <div class="translation-result">
+        <strong>Translated:</strong> ${data.translation.translatedText}
+        <small>${data.translation.sourceLanguage} → ${data.translation.targetLanguage}</small>
+      </div>
+    `;
+
   } catch (err) {
-    translationDiv.innerHTML = '<em>Translation failed</em>';
-    console.error("Translation error:", err);
+    console.error('Translation failed:', err);
+    translationDiv.innerHTML = `
+      <div class="translation-error">
+        <strong>Error:</strong> ${err.message}
+        <button onclick="retryTranslation(${messageId}, '${encodeURIComponent(text)}')"
+                class="retry-btn">Retry</button>
+      </div>
+    `;
   }
 }
 
-// update deletefriend function
+function retryTranslation(messageId, text) {
+  translateMessage(messageId, decodeURIComponent(text));
+}
+
+// [DELETE] Remove friend connection
 async function deleteFriend(friendId, event) {
   event.stopPropagation(); // Prevent triggering selectFriend
   

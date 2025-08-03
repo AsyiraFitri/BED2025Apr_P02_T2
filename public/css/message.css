@@ -170,6 +170,7 @@
 }
 
 /* updated Friend delete button */
+/*
 .friend-item button.btn-danger {
   padding: 0.25rem 0.5rem;
   font-size: 0.8rem;
@@ -178,4 +179,45 @@
 .friend-item button.btn-danger:hover {
   background-color: #dc3545;
   border-color: #dc3545;
+}
+*/
+
+
+.translating {
+  color: #666;
+  font-style: italic;
+}
+
+.translation-success {
+  background: #e8f5e9;
+  padding: 8px;
+  border-left: 3px solid #4caf50;
+  margin-top: 5px;
+  position: relative;
+}
+
+.translation-error {
+  background: #ffebee;
+  padding: 8px;
+  border-left: 3px solid #f44336;
+  margin-top: 5px;
+}
+
+.btn-close-translation {
+  position: absolute;
+  right: 5px;
+  top: 5px;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.btn-retry {
+  background: #2196f3;
+  color: white;
+  border: none;
+  padding: 2px 8px;
+  border-radius: 3px;
+  margin-top: 5px;
+  cursor: pointer;
 }
