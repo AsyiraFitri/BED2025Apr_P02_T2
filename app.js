@@ -2,21 +2,17 @@ const cors = require('cors');
 const express = require("express");
 const sql = require("mssql");
 const path = require("path");
-const bodyParser = require("body-parser");
-const dbConfig = require("./dbConfig"); // Database configuration
-const dotenv = require("dotenv");
 
 require("dotenv").config(); // Load environment variables from .env file
-dotenv.config();
 
 // Initialize app
-const app = express(); // Create the Express app
-const port = process.env.PORT || 3000;
+const app = express();
+const PORT = process.env.PORT || 3000;
 
 // Middleware
 app.use(cors());
 app.use(express.json()); // For parsing JSON
-app.use(express.urlencoded({ extended: true })); // Optional: for form data
+app.use(express.urlencoded({ extended: true })); // For form data
 
 // Serve static files from public directory
 app.use(express.static(path.join(__dirname, 'public')));
@@ -39,7 +35,6 @@ app.use((req, res, next) => {
   next();
 });
 
-
 // ==========================
 // Routes by Team Members
 // ==========================
@@ -53,10 +48,9 @@ app.use('/api/groups', groupRoutes);
 // Xuan Tong Routes
 const medicationRoutes = require('./routes/medicationRoutes');
 const appointmentRoutes = require('./routes/appointmentRoutes');
+const calendarRoutes = require('./routes/calendarRoutes');
 app.use('/api/medications', medicationRoutes);
 app.use('/api/appointments', appointmentRoutes);
-
-const calendarRoutes = require('./routes/calendarRoutes');
 app.use('/api/calendar', calendarRoutes);
 
 // Asyira Routes
@@ -66,15 +60,12 @@ const placeNotesRoutes = require('./routes/placeNotesRoutes');
 app.use('/api/places', placeRoutes);
 app.use('/api/bus', busRoutes);
 app.use('/api/place-notes', placeNotesRoutes);
- 
 
 // Sandi Routes
 const authRoutes = require('./routes/authRoutes');
 const requestRoutes = require('./routes/requestRoutes');
 const contactRoutes = require('./routes/emergencyContactRoutes');
 const emergencyHotlineRoutes = require('./routes/emergencyHotlineRoutes');
-
-
 app.use('/api/auth', authRoutes);
 app.use('/api/requests', requestRoutes);
 app.use('/api/contacts', contactRoutes);
@@ -83,19 +74,14 @@ app.use('/api/hotlines', emergencyHotlineRoutes);
 // Yiru Routes
 const friendRoutes = require('./routes/friendRoutes');
 const messageRoutes = require('./routes/messageRoutes');
-// updated
 const userRoutes = require('./routes/userRoutes');
-
 app.use('/api/friends', friendRoutes);
 app.use('/api/messages', messageRoutes);
-// updated
 app.use('/api/users', userRoutes);
-
 
 // ==========================
 
 // Start the server
-const PORT = 3000;
 app.listen(PORT, () => {
   console.log(`Server running at http://localhost:${PORT}`);
 });
