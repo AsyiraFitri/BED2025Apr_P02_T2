@@ -65,12 +65,13 @@ async function registerUser(req, res) {
   }
 }
 
+/*     User Login     */
 async function loginUser(req, res) {
   try {
     const { email, password } = req.body;
 
     const pool = await sql.connect(dbConfig);
-    
+    // Find user by email
     const user = await pool
       .request()
       .input("email", sql.VarChar, email)
@@ -79,13 +80,13 @@ async function loginUser(req, res) {
     if (user.recordset.length === 0) {
       return res.status(401).json({ message: "Invalid credentials" });
     }
-
+ // Compare provided password with hashed password
     const isValidPassword = await bcrypt.compare(password, user.recordset[0].password);
     
     if (!isValidPassword) {
       return res.status(401).json({ message: "Invalid credentials" });
     }
-
+ // Generate JWT token
     const token = jwt.sign(
       { 
         id: user.recordset[0].UserID, 
@@ -98,6 +99,7 @@ async function loginUser(req, res) {
       { expiresIn: "24h" }
     );
 
+// Send token and user info back to client
     res.status(200).json({
       message: "Login successful",
       token: token,
@@ -116,7 +118,7 @@ async function loginUser(req, res) {
     res.status(500).json({ message: "Internal server error" });
   }
 }
-
+/*  Forgot Password and Sends a reset link via Mailgun  */
 async function forgotPassword(req, res) {
   try {
     const { email } = req.body;
@@ -127,6 +129,7 @@ async function forgotPassword(req, res) {
     console.log('API Key present:', !!MAILGUN_API_KEY);
     console.log('Domain:', DOMAIN);
 
+    // Ensure Mailgun credentials are set
     if (!MAILGUN_API_KEY || !DOMAIN) {
       return res.status(500).json({ error: 'Email service not configured' });
     }
@@ -141,10 +144,12 @@ async function forgotPassword(req, res) {
     if (user.recordset.length === 0)
       return res.status(400).json({ error: "User not found" });
 
+ // Generate reset token (expires in 1 hour)
     const token = jwt.sign({ email }, process.env.RESET_SECRET, {
       expiresIn: "1h",
     });
 
+// Build password reset email HTML
     const resetUrl = `http://localhost:3000/reset-password.html?token=${token}`;
 
     const messageData = {
@@ -218,12 +223,13 @@ async function forgotPassword(req, res) {
     });
   }
 }
-
+/* Reset Password - Verifies token - Updates password - Sends confirmation email */
 async function resetPassword(req, res) {
   try {
     const { token } = req.params;
     const { password } = req.body;
 
+    // Verify token and extract email
     let payload;
     try {
       payload = jwt.verify(token, process.env.RESET_SECRET);
@@ -234,6 +240,7 @@ async function resetPassword(req, res) {
     const pool = await sql.connect(dbConfig);
     const hashedPassword = await bcrypt.hash(password, 10);
 
+// Update password in DB
     await pool
       .request()
       .input("email", payload.email)
@@ -270,6 +277,7 @@ async function resetPassword(req, res) {
   }
 }
 
+/*    Logout User     */
 async function logoutUser(req, res) {
   res.status(200).json({ message: "Logged out successfully" });
 }

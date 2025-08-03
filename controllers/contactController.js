@@ -1,5 +1,10 @@
-// controllers/contactController.js
+// This controller handles all CRUD operations for emergency contacts.
+// It communicates with the contactModel for database queries and returns JSON responses.
+
 const contactModel = require('../models/contactModel');
+
+/** GET /api/contacts
+* Retrieve all contacts for the currently authenticated user */ 
 
 async function getAllContacts(req, res) {
   try {
@@ -11,6 +16,8 @@ async function getAllContacts(req, res) {
     res.status(500).json({ error: 'Failed to retrieve contacts' });
   }
 }
+/** POST /api/contacts
+ * Create a new contact for the authenticated user */
 
 async function createContact(req, res) {
   try {
@@ -38,6 +45,8 @@ async function createContact(req, res) {
     res.status(500).json({ error: 'Failed to create contact' });
   }
 }
+/** GET /api/contacts/:id
+ * Retrieve a single contact by ID for the authenticated user */
 
 async function getContactById(req, res) {
   try {
@@ -55,7 +64,8 @@ async function getContactById(req, res) {
     res.status(500).json({ error: 'Failed to retrieve contact' });
   }
 }
-
+/** PATCH /api/contacts/:id
+ * Update an existing contact for the authenticated user */
 async function updateContact(req, res) {
   try {
     const contactId = req.params.id;
@@ -80,6 +90,9 @@ async function updateContact(req, res) {
     res.status(500).json({ error: 'Failed to update contact' });
   }
 }
+
+/** DELETE /api/contacts/:id
+ * Delete a contact for the authenticated user */
 
 async function deleteContact(req, res) {
   try {
