@@ -162,7 +162,7 @@ button:hover {
 }
 /* ensure the .step-guide is properly styled */
 .step-guide {
-  max-height: 300px;
+  max-height: 500px;
   overflow-y: auto; /* ensures scrolling if content exceeds available space */
   padding: 10px;
   border: 1px solid #ccc;
