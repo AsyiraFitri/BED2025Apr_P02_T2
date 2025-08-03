@@ -10,11 +10,11 @@
   "tags": [
     {
       "name": "Community",
-      "description": "Community related endpoints"
+      "description": "Community endpoints"
     },
     {
       "name": "Group",
-      "description": "Group related endpoints"
+      "description": "Group endpoints"
     },
     {
       "name": "Members",
