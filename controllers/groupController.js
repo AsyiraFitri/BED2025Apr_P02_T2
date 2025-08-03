@@ -1,5 +1,7 @@
 // Import the group model to access database methods
 const GroupModel = require('../models/groupModel');
+// Load environment variables for Firebase configuration
+require('dotenv').config();
 const sql = require('mssql');
 const config = require('../dbConfig');
 
@@ -268,6 +270,71 @@ const getUserDetailsById = async (req, res) => {
     }
 };
 
+// Update an event by eventId
+const updateEvent = async (req, res) => {
+  try {
+    const eventId = req.params.eventId;
+    const { groupId, title, description, eventDate, startTime, endTime, location } = req.body;
+    const userId = req.user && (req.user.id || req.user.userId);
+    if (!groupId || !title || !description || !eventDate || !startTime || !endTime || !location) {
+      return res.status(400).json({ error: 'Missing required event fields.' });
+    }
+    if (!userId) {
+      return res.status(401).json({ error: 'User ID not found in token.' });
+    }
+    await require('../models/groupModel').updateEvent(eventId, groupId, title, description, eventDate, startTime, endTime, location, userId);
+    res.json({ success: true, message: 'Event updated successfully.' });
+  } catch (error) {
+    console.error('Error updating event:', error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+// Create a new event
+const createEvent = async (req, res) => {
+  try {
+    const { groupId, channelName, title, description, eventDate, startTime, endTime, location } = req.body;
+    const user = req.user;
+    if (!groupId || !title || !eventDate || !startTime || !endTime || !location) {
+      return res.status(400).json({ error: 'Missing required event fields.' });
+    }
+    const creatorId = user.id || user.UserID || user.userId;
+    if (!creatorId) {
+      return res.status(400).json({ error: 'User ID not found in token.' });
+    }
+    await require('../models/groupModel').createEvent(groupId, channelName, title, description, eventDate, startTime, endTime, location, creatorId);
+    res.json({ success: true, message: 'Event created successfully.' });
+  } catch (error) {
+    console.error('Error creating event:', error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+// Delete an event
+const deleteEvent = async (req, res) => {
+  try {
+    const eventId = req.params.eventId;
+    await require('../models/groupModel').deleteEvent(eventId);
+    res.json({ success: true, message: 'Event deleted successfully.' });
+  } catch (error) {
+    console.error('Error deleting event:', error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+// Get all events for a group
+const getEvents = async (req, res) => {
+    try {
+        const groupId = req.params.groupId;
+        const events = await GroupModel.getEvents(groupId);
+        res.json(events);
+    } 
+    catch (error) {
+        console.error('Error fetching events:', error);
+        res.status(500).json({ error: error.message });
+    }
+};
+
 // Export all functions for use in routes
 module.exports = {
     saveDesc,
@@ -279,5 +346,9 @@ module.exports = {
     getChannels,
     createChannel,
     deleteChannel,
-    getUserDetailsById
+    getUserDetailsById,
+    getEvents,
+    updateEvent,
+    createEvent,
+    deleteEvent
 };

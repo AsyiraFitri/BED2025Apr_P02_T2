@@ -437,6 +437,7 @@ function createChatInterface(channelName) {
   const editButton = document.getElementById('editDescBtn');
   isOwner = !editButton.classList.contains('hidden');
 
+  // Determine if the message input should be shown based on channel type and user privileges
   const hasAdminPrivileges = isOwner || isAdmin;
   const isRestrictedChannel = channelName === 'announcements' || channelName === 'events';
   const showMessageInput = !isRestrictedChannel || hasAdminPrivileges;
