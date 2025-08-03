@@ -7,6 +7,19 @@ const doc = {
   },
   host: 'localhost:3000',
   schemes: ['http'],
+  securityDefinitions: {
+    bearerAuth: {
+      type: 'apiKey',
+      name: 'authorization',
+      in: 'header',
+      description: 'JWT Authorization header using the Bearer scheme. Example: "Bearer {token}"'
+    }
+  },
+  security: [
+    {
+      bearerAuth: []
+    }
+  ],
   tags: [
     // Jing Yin 
     { name: 'Community', description: 'Community related endpoints' },
@@ -68,12 +81,52 @@ swaggerAutogen(outputFile, endpointsFiles, doc).then(() => {
   const fs = require('fs');
   const swaggerOutput = JSON.parse(fs.readFileSync(outputFile, 'utf8'));
   
-  // Add tags to endpoints based on their paths
+  // Endpoints that don't require authentication
+  const publicEndpoints = [
+    '/api/auth/register',
+    '/api/auth/login',
+    '/api/auth/forgot-password',
+    '/api/auth/logout',
+    '/api/hotlines/',
+    '/api/bus/bus-arrivals',
+    '/api/calendar/auth/google',
+    '/api/calendar/auth/google/callback'
+  ];
+  
+  // Remove any paths that might be causing the default section FIRST
+  const pathsToRemove = [];
+  Object.keys(swaggerOutput.paths).forEach(path => {
+    // Remove root level paths that don't have proper API structure
+    if (path === '/' || path === '/{id}' || path === '/join' || path === '/events/{eventId}' || 
+        path === '/checkMembership/{groupId}' || path === '/memberCount/{groupId}' ||
+        path === '/memberList/{groupId}' || path === '/channels/{groupId}' ||
+        path === '/saveDesc' || path === '/createChannel' || path === '/deleteChannel' ||
+        path === '/register' || path === '/events/{eventId}' || 
+        !path.startsWith('/api/')) {
+      pathsToRemove.push(path);
+    }
+  });
+  
+  // Remove the problematic paths
+  pathsToRemove.forEach(path => {
+    console.log(`Removing problematic path: ${path}`);
+    delete swaggerOutput.paths[path];
+  });
+  
+  // Add tags to endpoints based on their paths and handle default section
   Object.keys(swaggerOutput.paths).forEach(path => {
     Object.keys(swaggerOutput.paths[path]).forEach(method => {
       const endpoint = swaggerOutput.paths[path][method];
       
-      // Assign tags based on path patterns
+      // Force remove any existing default tags
+      if (endpoint.tags) {
+        endpoint.tags = endpoint.tags.filter(tag => tag !== 'default');
+        if (endpoint.tags.length === 0) {
+          delete endpoint.tags;
+        }
+      }
+      
+      // Assign tags based on path patterns - EVERY endpoint must have a tag
       if (path.includes('/hobby-groups')) {
         endpoint.tags = ['Community'];
       } else if (path.includes('/groups')) {
@@ -98,7 +151,7 @@ swaggerAutogen(outputFile, endpointsFiles, doc).then(() => {
         endpoint.tags = ['Appointments'];
       } else if (path.includes('/calendar')) {
         endpoint.tags = ['Calendar'];
-      } else if (path.includes('/places')) {
+      } else if (path.includes('/places') && !path.includes('/place-notes')) {
         endpoint.tags = ['Places'];
       } else if (path.includes('/place-notes')) {
         endpoint.tags = ['PlaceNotes'];
@@ -118,11 +171,58 @@ swaggerAutogen(outputFile, endpointsFiles, doc).then(() => {
         endpoint.tags = ['Messages'];
       } else if (path.includes('/users')) {
         endpoint.tags = ['Users'];
+      } else {
+        // Fallback - assign a default tag based on the path structure
+        console.log(`Warning: Unhandled path ${path}, assigning to Community`);
+        endpoint.tags = ['Community'];
+      }
+      
+      // Add security (JWT) to endpoints that require authentication
+      const isPublicEndpoint = publicEndpoints.includes(path);
+      const isPublicMethod = (path === '/api/hobby-groups/' && method === 'get') ||
+                            (path === '/api/hobby-groups/{id}' && method === 'get') ||
+                            (path === '/api/groups/memberCount/{groupId}' && method === 'get') ||
+                            (path === '/api/groups/memberList/{groupId}' && method === 'get') ||
+                            (path === '/api/groups/channels/{groupId}' && method === 'get') ||
+                            (path === '/api/groups/firebase/channels/{groupId}/{channelName}' && method === 'get') ||
+                            (path === '/api/groups/firebase-config' && method === 'get') ||
+                            (path === '/api/groups/events/{groupId}' && method === 'get') ||
+                            (path === '/api/requests/' && method === 'get');
+      
+      if (!isPublicEndpoint && !isPublicMethod) {
+        endpoint.security = [{ bearerAuth: [] }];
+      } else {
+        // Explicitly remove security for public endpoints
+        endpoint.security = [];
+      }
+      
+      // Remove any default responses and clean up response structure
+      if (endpoint.responses && endpoint.responses.default) {
+        delete endpoint.responses.default;
       }
     });
   });
   
+  // Final check - ensure no endpoint is missing tags
+  let untaggedCount = 0;
+  Object.keys(swaggerOutput.paths).forEach(path => {
+    Object.keys(swaggerOutput.paths[path]).forEach(method => {
+      const endpoint = swaggerOutput.paths[path][method];
+      if (!endpoint.tags || endpoint.tags.length === 0) {
+        console.log(`ERROR: Endpoint ${method.toUpperCase()} ${path} has no tags!`);
+        untaggedCount++;
+      }
+    });
+  });
+  
+  if (untaggedCount > 0) {
+    console.log(`WARNING: ${untaggedCount} endpoints are missing tags!`);
+  }
+  
   // Write the updated swagger file
   fs.writeFileSync(outputFile, JSON.stringify(swaggerOutput, null, 2));
   console.log('Tags added to endpoints successfully!');
+  console.log('JWT authorization added to protected endpoints!');
+  console.log('Default section and problematic paths removed!');
+  console.log(`Total endpoints processed: ${Object.keys(swaggerOutput.paths).length}`);
 });
