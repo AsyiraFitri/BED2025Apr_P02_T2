@@ -1,7 +1,6 @@
-// middlewares/requestValidation.js
-
 function validateRequestId(req, res, next) {
   const RequestID = req.params.id;
+  //Ensure request id is valid
   if (!RequestID || isNaN(RequestID)) {
     return res.status(400).json({ error: 'Invalid request ID' });
   }

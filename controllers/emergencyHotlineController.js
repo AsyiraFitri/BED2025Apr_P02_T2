@@ -1,4 +1,10 @@
+// Controller for handling emergency hotline requests.
+// It interacts with the emergencyHotlineModel to retrieve hotline data from the database.
+
 const hotlineModel = require('../models/emergencyHotlineModel');
+
+/** GET /api/hotlines
+ * Retrieves all emergency hotlines from the database */
 
 async function getHotlines(req, res) {
   try {

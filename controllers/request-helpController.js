@@ -1,4 +1,6 @@
-// controllers/request-helpController.js
+// Controller for managing help requests.
+// Handles CRUD operations by calling functions from request-helpModel.
+
 const { 
   createHelpRequest, 
   getAllHelpRequests, 
