@@ -1,11 +1,13 @@
+// routes/contactRoutes.js
 const express = require('express');
 const router = express.Router();
 const contactController = require('../controllers/contactController');
-const { verifyToken } = require('../middlewares/authorizeUser');
+const { validateContactFields, ensureAuthenticated } = require('../middlewares/contactValidation');
 
-router.get('/', verifyToken, contactController .getAllContacts);
-router.post('/', verifyToken, contactController .createContact);
-router.delete('/:id', verifyToken, contactController.deleteContact);
-router.get('/:id', verifyToken, contactController.getContactById);
-router.patch('/:id', verifyToken, contactController.updateContact);
+router.get('/', ensureAuthenticated, contactController.getAllContacts);
+router.post('/', ensureAuthenticated, validateContactFields, contactController.createContact);
+router.get('/:id', ensureAuthenticated, contactController.getContactById);
+router.patch('/:id', ensureAuthenticated, validateContactFields, contactController.updateContact);
+router.delete('/:id', ensureAuthenticated, contactController.deleteContact);
+
 module.exports = router;
