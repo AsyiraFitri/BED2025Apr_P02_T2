@@ -1,10 +1,10 @@
 const sql = require('mssql');
-const config = require('../dbConfig'); // This imports your config object
+const dbConfig = require('../dbConfig');
 
 async function getAllHotlines() {
   try {
     console.log('Model: Getting hotlines from database...');
-    const pool = await sql.connect(config); // Use sql.connect with your config
+    const pool = await sql.connect(dbConfig);
     const result = await pool.request().query('SELECT * FROM EmergencyHotlines');
     console.log('Model: Query result:', result.recordset.length, 'records');
     return result.recordset;
