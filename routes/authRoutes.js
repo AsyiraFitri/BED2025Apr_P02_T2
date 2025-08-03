@@ -1,18 +1,25 @@
 const express = require('express');
 const router = express.Router();
 const authController = require('../controllers/authController');
+const {
+  verifyRegisterFields,
+  verifyLoginFields,
+  verifyForgotPasswordFields,
+  verifyResetPasswordFields,
+  verifyCaptcha
+} = require('../middlewares/authorizeUser');
 
 // Registration route
-router.post('/register', authController.registerUser);
+router.post('/register', verifyRegisterFields, authController.registerUser);
 
 // Login route
-router.post('/login', authController.loginUser);
+router.post('/login', verifyCaptcha, verifyLoginFields, authController.loginUser);
 
 // Forgot password route
-router.post('/forgot-password', authController.forgotPassword);
+router.post('/forgot-password', verifyForgotPasswordFields, authController.forgotPassword);
 
 // Reset password route
-router.post('/reset-password/:token', authController.resetPassword);
+router.post('/reset-password/:token', verifyResetPasswordFields, authController.resetPassword);
 
 // Logout route
 router.post('/logout', authController.logoutUser); 

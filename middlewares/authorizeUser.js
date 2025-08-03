@@ -149,4 +149,50 @@ async function verifyCaptcha(req, res, next) {
     res.status(500).json({ message: "CAPTCHA verification failed" });
   }
 }
-module.exports = { verifyToken, verifyAdmin, verifyGroupOwner,verifyCaptcha };
+// Validate required fields for register
+function verifyRegisterFields(req, res, next) {
+  const { email, password, first_name, last_name } = req.body;
+  if (!email || !password || !first_name || !last_name) {
+    return res.status(400).json({ error: "Missing required fields for registration" });
+  }
+  next();
+}
+
+// Validate required fields for login
+function verifyLoginFields(req, res, next) {
+  const { email, password, captchaToken } = req.body;
+  if (!email || !password) {
+    return res.status(400).json({ error: "Email and password are required" });
+  }
+  if (!captchaToken) {
+    return res.status(400).json({ error: "CAPTCHA token missing" });
+  }
+  next();
+}
+
+// Validate required field for forgot password
+function verifyForgotPasswordFields(req, res, next) {
+  const { email } = req.body;
+  if (!email) {
+    return res.status(400).json({ error: "Email is required" });
+  }
+  next();
+}
+
+// Validate required field for reset password
+function verifyResetPasswordFields(req, res, next) {
+  const { password } = req.body;
+  if (!password) {
+    return res.status(400).json({ error: "Password is required" });
+  }
+  next();
+}
+
+module.exports = { verifyToken,
+  verifyAdmin,
+  verifyGroupOwner,
+  verifyCaptcha,
+  verifyRegisterFields,
+  verifyLoginFields,
+  verifyForgotPasswordFields,
+  verifyResetPasswordFields, };

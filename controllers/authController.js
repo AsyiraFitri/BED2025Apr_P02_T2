@@ -1,21 +1,24 @@
 require("dotenv").config();
 const sql = require('mssql');
 const dbConfig = require('../dbConfig');
-const bcrypt = require("bcrypt");
+const bcrypt = require("bcrypt");  // For password hashing
 const jwt = require("jsonwebtoken");
 
-/* Mailgun Setup */
+/*    Mailgun Setup for Sending Emails    */
 const Mailgun = require('mailgun.js').default;
 const FormData = require('form-data');
 
+// Load Mailgun credentials from environment variables
 const MAILGUN_API_KEY = process.env.MAILGUN_API_KEY;
 const DOMAIN = process.env.MAILGUN_DOMAIN;
 
+// Log Mailgun config status for debugging
 console.log('=== MAILGUN CONFIG CHECK ===');
 console.log('API Key present:', !!MAILGUN_API_KEY);
 console.log('API Key format correct:', MAILGUN_API_KEY?.startsWith('key-') && MAILGUN_API_KEY?.length > 40);
 console.log('Domain:', DOMAIN);
 
+// Create Mailgun client
 const mailgun = new Mailgun(FormData);
 const mg = mailgun.client({
   username: 'api',
@@ -23,14 +26,13 @@ const mg = mailgun.client({
   url: 'https://api.mailgun.net'
 });
 
+/*      User Registration       */
 async function registerUser(req, res) {
   console.log("REGISTER req.body:", req.body);
 
   try {
     const { email, password, first_name, last_name, phone_number } = req.body;
-    if (!email || !password || !first_name || !last_name)
-      return res.status(400).json({ error: "Missing required fields" });
-    
+
     const cleanedEmail = email.trim().toLowerCase();
     const pool = await sql.connect(dbConfig);
 
@@ -66,10 +68,6 @@ async function registerUser(req, res) {
 async function loginUser(req, res) {
   try {
     const { email, password } = req.body;
-    
-    if (!email || !password) {
-      return res.status(400).json({ message: "Email and password are required" });
-    }
 
     const pool = await sql.connect(dbConfig);
     
@@ -186,13 +184,13 @@ async function forgotPassword(req, res) {
 
     try {
       const data = await mg.messages.create(DOMAIN, messageData);
-      console.log('✅ Email sent successfully:', data);
+      console.log('Email sent successfully:', data);
 
       res.status(200).json({ 
         message: "Password reset link has been sent to your email address"
       });
     } catch (mailgunError) {
-      console.error('❌ Mailgun error:', {
+      console.error('Mailgun error:', {
         status: mailgunError.status,
         message: mailgunError.message,
         details: mailgunError.details
@@ -225,8 +223,6 @@ async function resetPassword(req, res) {
   try {
     const { token } = req.params;
     const { password } = req.body;
-
-    if (!password) return res.status(400).json({ error: "Password required" });
 
     let payload;
     try {
@@ -278,55 +274,6 @@ async function logoutUser(req, res) {
   res.status(200).json({ message: "Logged out successfully" });
 }
 
-// Test function to verify everything works
-async function testMailgun(req, res) {
-  try {
-    console.log('=== MAILGUN TEST ===');
-    console.log('API Key:', MAILGUN_API_KEY ? 'Present ✅' : 'Missing ❌');
-    console.log('Domain:', DOMAIN || 'Missing ❌');
-
-    if (!MAILGUN_API_KEY || !DOMAIN) {
-      return res.status(500).json({ 
-        error: 'Mailgun configuration incomplete',
-        config: {
-          apiKey: !!MAILGUN_API_KEY,
-          domain: !!DOMAIN
-        }
-      });
-    }
-
-    const testMessage = {
-      from: `Test <postmaster@${DOMAIN}>`,
-      to: ['test@example.com'],
-      subject: 'Mailgun Test - EverydayCare',
-      text: 'This is a test email to verify Mailgun is working correctly.',
-      html: '<p>This is a <strong>test email</strong> to verify Mailgun is working correctly.</p>'
-    };
-
-    const result = await mg.messages.create(DOMAIN, testMessage);
-    console.log('✅ Test email sent:', result);
-
-    res.status(200).json({
-      success: true,
-      message: 'Mailgun test successful!',
-      messageId: result.id,
-      status: result.status
-    });
-
-  } catch (error) {
-    console.error('❌ Mailgun test failed:', error);
-    
-    res.status(500).json({
-      success: false,
-      error: 'Mailgun test failed',
-      details: {
-        message: error.message,
-        status: error.status
-      }
-    });
-  }
-}
-
 // Debug function to check environment variables
 async function debugEnvironment(req, res) {
   const MAILGUN_API_KEY = process.env.MAILGUN_API_KEY;
@@ -373,78 +320,8 @@ async function debugEnvironment(req, res) {
   res.json(analysis);
 }
 
-// Test with manual API key entry
-async function testWithManualKey(req, res) {
-  const { testApiKey, testDomain } = req.body;
-  
-  if (!testApiKey || !testDomain) {
-    return res.status(400).json({ 
-      error: 'Please provide testApiKey and testDomain in request body' 
-    });
-  }
-  
-  try {
-    const Mailgun = require('mailgun.js').default;
-    const FormData = require('form-data');
-    
-    const mailgun = new Mailgun(FormData);
-    const mg = mailgun.client({
-      username: 'api',
-      key: testApiKey.trim(),
-      url: 'https://api.mailgun.net'
-    });
-    
-    console.log('Testing with manual key:', {
-      keyStart: testApiKey.substring(0, 10),
-      keyLength: testApiKey.length,
-      domain: testDomain
-    });
-    
-    // Test domain validation
-    const domainInfo = await mg.domains.get(testDomain);
-    
-    res.json({
-      success: true,
-      message: 'Manual API key test successful!',
-      domainInfo: domainInfo.name,
-      keyWorking: true
-    });
-    
-  } catch (error) {
-    console.error('Manual key test failed:', error);
-    
-    res.json({
-      success: false,
-      error: error.message,
-      status: error.status,
-      details: error.details,
-      keyWorking: false
-    });
-  }
-}
 
-// Test with curl command equivalent
-async function generateCurlTest(req, res) {
-  const MAILGUN_API_KEY = process.env.MAILGUN_API_KEY;
-  const DOMAIN = process.env.MAILGUN_DOMAIN;
-  
-  if (!MAILGUN_API_KEY || !DOMAIN) {
-    return res.status(400).json({ error: 'Missing API key or domain' });
-  }
-  
-  const curlCommand = `curl -s --user 'api:${MAILGUN_API_KEY}' \\
-  https://api.mailgun.net/v3/${DOMAIN}/messages \\
-  -F from='Test <postmaster@${DOMAIN}>' \\
-  -F to='test@example.com' \\
-  -F subject='Test Email' \\
-  -F text='This is a test email'`;
-  
-  res.json({
-    message: 'Copy and paste this curl command in your terminal to test manually',
-    curlCommand: curlCommand,
-    note: 'If this curl command works, the issue is with the Node.js Mailgun client setup'
-  });
-}
+
 
 module.exports = {
   registerUser,
@@ -452,8 +329,5 @@ module.exports = {
   forgotPassword,
   resetPassword,
   logoutUser,
-  testMailgun,
   debugEnvironment,
-  testWithManualKey,
-  generateCurlTest
 };
