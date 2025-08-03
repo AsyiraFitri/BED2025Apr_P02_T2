@@ -138,6 +138,23 @@ CREATE TABLE PlaceNotes (
   FOREIGN KEY (UserID) REFERENCES Users(UserID)
 );
 
+-- CREATE TABLES - Wang Yiru's
+CREATE TABLE Friends (
+  FriendID INT PRIMARY KEY IDENTITY,
+  UserID INT,
+  FriendUserID INT,
+  Status NVARCHAR(10),
+  CreatedAt DATETIME DEFAULT GETDATE()
+);
+
+CREATE TABLE Messages (
+  MessageID INT PRIMARY KEY IDENTITY,
+  SenderID INT,
+  ReceiverID INT,
+  MessageText NVARCHAR(500),
+  Timestamp DATETIME DEFAULT GETDATE()
+);
+
 -- INSERT SAMPLE DATA - Le Wun Sandi Kyaw's
 INSERT INTO Users (UserID, first_name, last_name, phone_number, email, password, role)
 VALUES  
@@ -479,19 +496,24 @@ FROM SavedPlaces
 WHERE Address = '376 Clementi Ave 4, Singapore 120376'
   AND UserID = 8;
 
--- CREATE TABLES - Wang Yiru's
-CREATE TABLE Friends (
-  FriendID INT PRIMARY KEY IDENTITY,
-  UserID INT,
-  FriendUserID INT,
-  Status NVARCHAR(10),
-  CreatedAt DATETIME DEFAULT GETDATE()
-);
+-- INSERT SAMPLE DATA - Wang Yiru's
+INSERT INTO [T2_EverdayCare].[dbo].[Friends] 
+    ([FriendID], [UserID], [FriendUserID], [Status], [CreatedAt])
+VALUES
+    (2, 7, 10, 'accepted', '2025-08-01 04:48:33.743'),
+    (7, 9, 8, 'rejected', '2025-08-01 20:25:21.610'),
+    (8, 10, 8, 'rejected', '2025-08-01 21:20:29.683'),
+    (9, 7, 8, 'pending', '2025-08-02 21:08:55.773'),
+    (11, 9, 10, 'accepted', '2025-08-02 23:40:13.753'),
+    (12, 9, 8, 'rejected', '2025-08-02 23:41:15.387');
 
-CREATE TABLE Messages (
-  MessageID INT PRIMARY KEY IDENTITY,
-  SenderID INT,
-  ReceiverID INT,
-  MessageText NVARCHAR(500),
-  Timestamp DATETIME DEFAULT GETDATE()
-);
+SET IDENTITY_INSERT [T2_EverdayCare].[dbo].[Messages] ON;
+INSERT INTO [T2_EverdayCare].[dbo].[Messages] 
+    ([MessageID], [SenderID], [ReceiverID], [MessageText], [Timestamp])
+VALUES
+    (1, 7, 9, 'Hi Anna, I am Chloe', '2025-08-01 13:18:38.530'),
+    (2, 9, 7, 'Hii', '2025-08-01 14:21:23.907'),
+    (5, 9, 7, 'Hello', '2025-08-02 22:11:07.163'),
+    (7, 10, 9, 'Hiiii', '2025-08-02 23:48:57.203'),
+    (8, 9, 10, 'Hello', '2025-08-02 23:50:41.577');
+SET IDENTITY_INSERT [T2_EverdayCare].[dbo].[Messages] OFF;
