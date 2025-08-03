@@ -892,3 +892,37 @@ button {
         padding: 0.8rem 1.5rem;
     }
 }
+/* ===== RESET PASSWORD PAGE ===== */
+header {
+  text-align: center;
+  padding: 30px 0;
+}
+
+.form-container h2 {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.logo {
+  display: inline-block;
+}
+
+.logo-image {
+  width: 200px;
+  height: auto;
+  object-fit: contain;
+  display: block;
+  margin: 0 auto;
+}
+
+@media (max-width: 768px) {
+  .logo-image {
+    width: 280px;
+  }
+}
+
+@media (max-width: 480px) {
+  .logo-image {
+    width: 220px;
+  }
+}

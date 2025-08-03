@@ -1,3 +1,4 @@
+// models/contactModel.js
 const sql = require('mssql');
 const dbConfig = require('../dbConfig');
 
@@ -20,16 +21,13 @@ async function getAllContactsByUser(userId) {
         WHERE user_id = @userId 
         ORDER BY IsStarred DESC, Name ASC
       `);
-    
     console.log(`Found ${result.recordset.length} contacts for user ${userId}`);
     return result.recordset;
   } catch (error) {
     console.error('Database error in getAllContactsByUser:', error);
     throw error;
   } finally {
-    if (pool) {
-      await pool.close();
-    }
+    if (pool) await pool.close();
   }
 }
 
@@ -37,10 +35,7 @@ async function createContact({ name, relationship, phone, note, isStarred, userI
   let pool;
   try {
     console.log('Creating contact with userId:', userId);
-    
-    if (!userId) {
-      throw new Error('userId is required');
-    }
+    if (!userId) throw new Error('userId is required');
 
     pool = await sql.connect(dbConfig);
     const result = await pool.request()
@@ -67,34 +62,10 @@ async function createContact({ name, relationship, phone, note, isStarred, userI
     console.error('Database error in createContact:', error);
     throw error;
   } finally {
-    if (pool) {
-      await pool.close();
-    }
+    if (pool) await pool.close();
   }
 }
-async function deleteContact(contactId, userId) {
-  let pool;
-  try {
-    pool = await sql.connect(dbConfig);
-    const result = await pool.request()
-      .input('contactId', sql.Int, contactId)
-      .input('userId', sql.Int, userId)
-      .query(`
-        DELETE FROM EmergencyContact
-        WHERE ContactID = @contactId AND user_id = @userId
-      `);
 
-    // Return true if a row was deleted
-    return result.rowsAffected[0] > 0;
-  } catch (error) {
-    console.error('Database error in deleteContact:', error);
-    throw error;
-  } finally {
-    if (pool) {
-      await pool.close();
-    }
-  }
-}
 async function getContactById(contactId, userId) {
   let pool;
   try {
@@ -107,17 +78,15 @@ async function getContactById(contactId, userId) {
         FROM EmergencyContact
         WHERE ContactID = @contactId AND user_id = @userId
       `);
-
     return result.recordset[0] || null;
   } catch (error) {
     console.error('Database error in getContactById:', error);
     throw error;
   } finally {
-    if (pool) {
-      await pool.close();
-    }
+    if (pool) await pool.close();
   }
 }
+
 async function updateContact(contactId, userId, { name, relationship, phone, note, isStarred }) {
   let pool;
   try {
@@ -140,24 +109,39 @@ async function updateContact(contactId, userId, { name, relationship, phone, not
           IsStarred = @isStarred
         WHERE ContactID = @contactId AND user_id = @userId
       `);
-
-    // Returns true if a row was updated
     return result.rowsAffected[0] > 0;
   } catch (error) {
     console.error('Database error in updateContact:', error);
     throw error;
   } finally {
-    if (pool) {
-      await pool.close();
-    }
+    if (pool) await pool.close();
   }
 }
 
+async function deleteContact(contactId, userId) {
+  let pool;
+  try {
+    pool = await sql.connect(dbConfig);
+    const result = await pool.request()
+      .input('contactId', sql.Int, contactId)
+      .input('userId', sql.Int, userId)
+      .query(`
+        DELETE FROM EmergencyContact
+        WHERE ContactID = @contactId AND user_id = @userId
+      `);
+    return result.rowsAffected[0] > 0;
+  } catch (error) {
+    console.error('Database error in deleteContact:', error);
+    throw error;
+  } finally {
+    if (pool) await pool.close();
+  }
+}
 
 module.exports = {
   getAllContactsByUser,
   createContact,
-    getContactById,
+  getContactById,
   updateContact,
   deleteContact
 };

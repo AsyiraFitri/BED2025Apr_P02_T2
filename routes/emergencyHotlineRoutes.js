@@ -1,8 +1,9 @@
+// routes/emergencyHotlineRoutes.js
 const express = require('express');
 const router = express.Router();
-const hotlineController = require('../controllers/emergencyHotlineController');
+const { getHotlines } = require('../controllers/emergencyHotlineController');
+// const { validateHotlineFields } = require('../middlewares/hotlineValidation'); // for future POST/PUT
 
-// GET route for fetching all hotlines
-router.get('/', hotlineController.getHotlines);
+router.get('/', getHotlines);
 
 module.exports = router;
